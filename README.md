@@ -1,7 +1,7 @@
 <!--
 title: '&#x1F680; DOTFILES'
 description: 'My machine configuration, versioned and symlinked by a bootstrap script.'
-tags: [macos, configuration, developer-experience, environment-setup]
+tags: [cross-platform, configuration, developer-experience, environment-setup]
 category: root
 -->
 
@@ -22,9 +22,9 @@ _A fresh machine reaches a working setup in one command._
 
 ## &#x1F4A1; About
 
-Dotfiles are hidden configuration files (files beginning with a dot, like `.zshrc` or `.gitconfig`) that customize how a Unix-based system behaves. This repository centralizes those files so they can be tracked, versioned, and backed up in Git.
+Dotfiles are hidden configuration files (files beginning with a dot, like `.zshrc` or `.gitconfig`) that customize how a system behaves. This repository centralizes those files so they can be tracked, versioned, and backed up in Git.
 
-Instead of manually configuring a new macOS environment from scratch, this repository uses a bootstrap script to automatically symlink these configurations into place. This ensures that shell setups, editor preferences, and git settings are predictable, consistent, and immediately productive on any new machine.
+Instead of manually configuring a new environment from scratch, this repository uses a bootstrap script to automatically symlink these configurations into place. This setup natively supports both Microsoft Windows and Apple macOS, ensuring that shell setups, editor preferences, and git settings are **1:1 identical on install** across operating systems and immediately productive on any new machine.
 
 ---
 
@@ -37,6 +37,7 @@ The repository will be structured to keep configurations isolated by tool, makin
 ├── bin/                   # &#x1F4E6; Custom executables and scripts
 ├── config/                # &#x2699;&#xFE0F; Tool-specific configurations (e.g., git, zsh)
 ├── macOS/                 # &#x2699;&#xFE0F; macOS defaults and system preferences
+├── windows/               # &#x2699;&#xFE0F; Windows defaults and system preferences
 ├── bootstrap.sh           # &#x1F680; Deployment script
 └── README.md              # &#x1F4DD; Documentation
 ```
@@ -50,7 +51,7 @@ The repository will be structured to keep configurations isolated by tool, makin
 
 ### 1. Pre-requisites
 
-Ensure that `git` is installed on the target machine. On a fresh macOS install, running `git` in the terminal will prompt you to install the Xcode Command Line Tools.
+Ensure that `git` is installed on the target machine. On a fresh macOS install, running `git` in the terminal will prompt you to install the Xcode Command Line Tools. On Windows, ensure Git for Windows is installed.
 
 ### 2. Installation
 
