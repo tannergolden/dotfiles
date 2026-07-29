@@ -16,11 +16,6 @@ category: root
 
 _A fresh machine reaches a working setup in one command._
 
-<a href="./"><img src="https://img.shields.io/badge/Status-Active-2EA043?style=for-the-badge&logoColor=white" alt="Status: Active" /></a>
-<a href="./"><img src="https://img.shields.io/badge/Role-Configuration-FE5196?style=for-the-badge&logoColor=white" alt="Role: Configuration" /></a>
-<a href="./"><img src="https://img.shields.io/badge/Context-Environment-9C27B0?style=for-the-badge&logoColor=white" alt="Context: Environment" /></a>
-<a href="./LICENSE"><img src="https://img.shields.io/badge/License-MIT-F1E05A?style=for-the-badge&logoColor=white" alt="License: MIT" /></a>
-
 </div>
 
 ---
