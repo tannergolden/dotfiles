@@ -65,4 +65,26 @@ export LESSHISTFILE="-"
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/ripgreprc"
 export BAT_CONFIG_PATH="${XDG_CONFIG_HOME}/bat/config"
 
+# fzf sources files with fd instead of find: it honours .gitignore, skips
+# .git, and follows the same rules ripgrep uses, so the three tools agree
+# about what "the files" means. Debian installs the binary as fdfind, and
+# fzf executes this string with sh, where an interactive alias does not
+# apply, so the name must be resolved here rather than aliased.
+if command -v fd >/dev/null 2>&1; then
+    _fd=fd
+elif command -v fdfind >/dev/null 2>&1; then
+    _fd=fdfind
+else
+    _fd=""
+fi
+if [ -n "${_fd}" ]; then
+    export FZF_DEFAULT_COMMAND="${_fd} --type f --hidden --follow --exclude .git"
+    export FZF_CTRL_T_COMMAND="${FZF_DEFAULT_COMMAND}"
+    export FZF_ALT_C_COMMAND="${_fd} --type d --hidden --follow --exclude .git"
+fi
+unset _fd
+# The preview chain degrades: bat, then Debian's batcat, then plain cat.
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always {} 2>/dev/null || batcat --color=always {} 2>/dev/null || cat {}'"
+
+
 export LANG="${LANG:-en_US.UTF-8}"

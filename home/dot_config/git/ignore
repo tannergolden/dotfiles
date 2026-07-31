@@ -1,0 +1,31 @@
+# --- Global gitignore: machine facts, never project facts ---
+#
+# Git reads this file at $XDG_CONFIG_HOME/git/ignore BY DEFAULT, with no
+# core.excludesFile setting anywhere. Verified on git 2.43 with a zero
+# config environment: check-ignore attributes the match to this file.
+#
+# THE RULE FOR WHAT BELONGS HERE: only things that are true of the
+# MACHINE, never things that are true of any project. OS metadata and
+# editor swap files exist because of where a repository is checked out,
+# not because of what it contains, so ignoring them per repository means
+# repeating the same lines in every .gitignore forever.
+#
+# Nothing project-shaped goes here, however tempting. A globally ignored
+# node_modules or .env changes what git status reports in EVERY repository
+# on the machine, including ones whose own .gitignore made a different
+# choice, and it does so invisibly to anyone reading that repository.
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Editor swap and backup droppings
+*.swp
+*.swo
+*~

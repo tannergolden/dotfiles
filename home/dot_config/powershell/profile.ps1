@@ -33,6 +33,13 @@ $env:XDG_CACHE_HOME  = if ($env:XDG_CACHE_HOME)  { $env:XDG_CACHE_HOME }  else {
 $env:RIPGREP_CONFIG_PATH = Join-Path $env:XDG_CONFIG_HOME 'ripgrep\ripgreprc'
 $env:BAT_CONFIG_PATH     = Join-Path $env:XDG_CONFIG_HOME 'bat\config'
 
+# fzf reads these on Windows too, for bare `fzf` invocations. The Ctrl-T
+# and Ctrl-R keybindings stay POSIX-only because fzf ships no PowerShell
+# integration upstream, which the README's parity table records.
+if (Get-Command fd -ErrorAction SilentlyContinue) {
+    $env:FZF_DEFAULT_COMMAND = 'fd --type f --hidden --follow --exclude .git'
+}
+
 if (Get-Command code -ErrorAction SilentlyContinue) {
     $env:EDITOR = 'code --wait'
 } else {
