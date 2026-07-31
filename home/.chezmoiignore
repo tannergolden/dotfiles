@@ -68,6 +68,7 @@ Library/**
 .local/bin/ai-dash
 .local/bin/ai-agents
 .local/bin/ai-model
+.local/bin/dotfiles-doctor
 {{ end }}
 
 {{ if not $isWindows }}
@@ -84,4 +85,5 @@ Documents/**
 .local/bin/ai-dash.ps1
 .local/bin/ai-agents.ps1
 .local/bin/ai-model.ps1
+.local/bin/dotfiles-doctor.ps1
 {{ end }}

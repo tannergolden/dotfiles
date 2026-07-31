@@ -22,6 +22,72 @@ pins:
   # this is one opaque string rather than a version number.
   antigravityCli: '1.1.9-6572839516635136'
 
+# --- What must actually EXIST when provisioning claims to be done ---
+#
+# WHY THIS IS SEPARATE FROM THE LISTS BELOW, and why it is keyed by
+# BINARY rather than by package.
+#
+# The install lists drive a run_onchange_ script, which chezmoi runs when
+# its rendered content changes and NEVER AGAIN until it changes. That is
+# right for "install this set once", and catastrophic as the only
+# mechanism: if the install did not happen - no Homebrew yet, a failed
+# download, a declined password - chezmoi records the script as done and
+# every later `chezmoi apply` is a silent no-op. The machine is missing
+# tmux, `ai-dash` says to run `chezmoi apply`, and running it does
+# nothing at all. Verified: that is exactly the dead end.
+#
+# So the repair pass (run_after_15-verify-tools) runs on EVERY apply,
+# asks whether each binary below is on PATH, and installs what is not.
+# It is keyed by binary because that is the question worth asking - a
+# package that reports itself installed while its binary is missing is
+# still a broken machine - and because the two names genuinely differ:
+# ripgrep ships `rg`, git-delta ships `delta`, Debian ships `fdfind`.
+#
+# Only entries whose manager can install them on demand belong here. On
+# Linux the upstream tarball tools are deliberately absent: the repair
+# pass names them and prints the one command that re-runs provisioning
+# wholesale, rather than half-reimplementing it here.
+verify:
+  darwin:
+    bat: bat
+    delta: git-delta
+    eza: eza
+    fastfetch: fastfetch
+    fd: fd
+    fzf: fzf
+    gh: gh
+    git: git
+    jq: jq
+    ollama: ollama
+    rg: ripgrep
+    starship: starship
+    tmux: tmux
+    zoxide: zoxide
+  linux:
+    delta: git-delta
+    eza: eza
+    fzf: fzf
+    gh: gh
+    git: git
+    jq: jq
+    rg: ripgrep
+    tmux: tmux
+    zsh: zsh
+    zstd: zstd
+  windows:
+    bat: bat
+    delta: delta
+    eza: eza
+    fastfetch: fastfetch
+    fd: fd
+    fzf: fzf
+    gh: gh
+    jq: jq
+    ollama: ollama
+    rg: ripgrep
+    starship: starship
+    zoxide: zoxide
+
 packages:
   # macOS. Installed with `brew bundle` against a Brewfile generated from
   # this list, so it is idempotent and quiet on re-run.

@@ -104,7 +104,7 @@ Prefer the two-step form? A clone followed by `~/.dotfiles/scripts/bootstrap.sh`
 │   ├── .chezmoidata/      # 📋 the package manifest, one list per platform
 │   ├── .chezmoiscripts/   # 📦 provisioning, keyed to the manifest
 │   ├── dot_config/        # ⚙️ tool configuration
-│   └── dot_local/         # 🤖 ai-dash, ai-agents, ai-model
+│   └── dot_local/         # 🤖 ai-dash, ai-agents, ai-model, dotfiles-doctor
 ├── scripts/               # 🔧 bootstrap, backup, restore, guards
 ├── docs/                  # 📚 manual steps and recovery
 ├── install.sh             # ☁️ the one command; also the Codespaces entrypoint
@@ -294,6 +294,26 @@ chezmoi diff            # what would change, without changing it
 chezmoi apply           # bring this machine into line
 chezmoi verify          # exit non-zero when the machine has drifted
 chezmoi edit ~/.zshrc   # edit the source, not the rendered copy
+dotfiles-doctor         # check every expected tool is installed, and install what is not
+```
+
+### 🩺 When a tool is missing
+
+`dotfiles-doctor` exists because of a trap worth understanding, since every dotfiles repository that provisions packages has it.
+
+Package installation runs from a chezmoi `run_onchange_` script. chezmoi hashes that script and does not run it again while the hash is unchanged — which records that the script **ran**, never that it **worked**. So a machine bootstrapped before Homebrew existed, or through a failed download, has provisioning marked done with nothing installed. `ai-dash` then says it needs tmux, and `chezmoi apply` — the obvious remedy — prints nothing and changes nothing, forever.
+
+Three things now close that off, and none of them requires knowing any of the above:
+
+- **`ai-dash` and `ai-model` repair themselves.** Finding tmux or ollama missing, they run the doctor before giving up.
+- **`chezmoi apply` notices.** A hook keyed to *which tools are actually on PATH* — not to the package list — fires whenever that set changes, so a machine whose toolchain drifts repairs on the next apply.
+- **`dotfiles-doctor` is a command**, runnable at any time, with `--check` to report without installing.
+
+If something is still missing after all that, chezmoi is remembering a provisioning run that did not work. This forgets it and runs all of it again:
+
+```bash
+chezmoi state delete-bucket --bucket=scriptState
+chezmoi apply
 ```
 
 `make lint` and `make test` run what continuous integration runs, so a green local run means a green pipeline.

@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+# --- dotfiles-doctor: check the machine really has what it claims ---
+#
+# WHY THIS COMMAND EXISTS, and it is the answer to a specific dead end.
+#
+# Provisioning runs from a chezmoi `run_onchange_` script, which chezmoi
+# hashes and then does not run again while the hash is unchanged. That
+# records that the script RAN, never that it WORKED. So a machine
+# bootstrapped before Homebrew existed - or through a failed download, or
+# a declined password - has provisioning marked done with nothing
+# installed, and from then on `chezmoi apply` is a silent no-op. The
+# machine has no tmux, `ai-dash` says to run `chezmoi apply`, and running
+# it prints nothing and changes nothing. Reproduced exactly; it is why
+# this file was written.
+#
+# The repair could not live in a plain `run_` script (one that runs on
+# every apply) either: chezmoi reports those as permanently pending, so
+# `chezmoi status` is never empty and `chezmoi verify` never exits 0 -
+# which would break the drift detection this repository documents.
+#
+# So it is a COMMAND. It is called by bootstrap at the end of an install,
+# by `ai-dash` and `ai-model` when they find a tool missing, and by a
+# chezmoi hook keyed to which tools are actually present - so a machine
+# whose toolchain changes underneath it repairs on the next apply. You
+# can also just run it.
+#
+#   dotfiles-doctor          check, and install anything missing
+#   dotfiles-doctor --check  report only, exit 1 if anything is missing
+#
+# BASH 3.2 ONLY: this is the macOS system bash.
+
+set -uo pipefail
+
+CHECK_ONLY=false
+case "${1:-}" in
+  --check) CHECK_ONLY=true ;;
+  -h|--help|help)
+    echo "usage: dotfiles-doctor [--check]"
+    echo "  (no flag)  install anything missing from the toolchain"
+    echo "  --check    report only; exit 1 when something is missing"
+    exit 0
+    ;;
+  '') ;;
+  *) echo "unknown argument: ${1} (try --help)" >&2; exit 2 ;;
+esac
+
+case "$(uname -s)" in
+  Darwin) PLATFORM=darwin ;;
+  *)      PLATFORM=linux ;;
+esac
+
+# binary:package, per platform. Kept here rather than read from the
+# manifest at run time because this script must work on a machine where
+# the repository clone is gone - `chezmoi purge` removes it, and a
+# machine that has been purged is exactly one that may need checking.
+if [ "${PLATFORM}" = "darwin" ]; then
+  VERIFY="bat:bat delta:git-delta eza:eza fastfetch:fastfetch fd:fd fzf:fzf \
+gh:gh git:git jq:jq ollama:ollama rg:ripgrep starship:starship tmux:tmux zoxide:zoxide"
+else
+  # apt-installable only. The upstream tarball tools (starship, zoxide,
+  # fastfetch, ollama) are checked but not installed here: reproducing
+  # their download logic would be a second copy of the provisioning
+  # script, so they are reported with the command that re-runs it.
+  VERIFY="delta:git-delta eza:eza fzf:fzf gh:gh git:git jq:jq rg:ripgrep \
+tmux:tmux zsh:zsh zstd:zstd"
+fi
+
+# Present under either name is present: Debian ships fd as fdfind and bat
+# as batcat, and the shell config aliases them back.
+have() {
+  case "$1" in
+    fd)  command -v fd >/dev/null 2>&1 || command -v fdfind >/dev/null 2>&1 ;;
+    bat) command -v bat >/dev/null 2>&1 || command -v batcat >/dev/null 2>&1 ;;
+    *)   command -v "$1" >/dev/null 2>&1 ;;
+  esac
+}
+
+missing_bins=""
+missing_pkgs=""
+for pair in ${VERIFY}; do
+  bin="${pair%%:*}"
+  pkg="${pair#*:}"
+  if ! have "${bin}"; then
+    missing_bins="${missing_bins}${bin} "
+    missing_pkgs="${missing_pkgs}${pkg} "
+  fi
+done
+
+if [ -z "${missing_bins}" ]; then
+  [ "${CHECK_ONLY}" = "true" ] && echo "ok   every expected tool is on PATH"
+  exit 0
+fi
+
+if [ "${CHECK_ONLY}" = "true" ]; then
+  echo "missing: ${missing_bins% }"
+  exit 1
+fi
+
+echo "==> missing from PATH: ${missing_bins% }"
+
+if [ "${PLATFORM}" = "darwin" ]; then
+  if command -v brew >/dev/null 2>&1; then
+    # shellcheck disable=SC2086  # deliberate word split: a package list
+    brew install ${missing_pkgs} 2>&1 | sed 's/^/    /'
+  else
+    echo "    Homebrew is not installed, which is why these are missing." >&2
+    echo '    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' >&2
+  fi
+else
+  if command -v apt-get >/dev/null 2>&1; then
+    SUDO=""
+    if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then SUDO="sudo"; fi
+    if [ "$(id -u)" -eq 0 ] || [ -n "${SUDO}" ]; then
+      export DEBIAN_FRONTEND=noninteractive
+      ${SUDO} apt-get update -qq >/dev/null 2>&1 || true
+      for pkg in ${missing_pkgs}; do
+        if ${SUDO} apt-get install -y -qq "${pkg}" >/dev/null 2>&1; then
+          echo "    installed ${pkg}"
+        else
+          echo "    could not install ${pkg}" >&2
+        fi
+      done
+    else
+      echo "    not root and no sudo; cannot install ${missing_pkgs% }" >&2
+    fi
+  fi
+fi
+
+# Whatever is left is named, with the one command that re-runs the whole
+# of provisioning. Clearing the script bucket is what makes every
+# run_onchange_ script fire again, and it is the way out of the state
+# this command exists to detect.
+still=""
+for pair in ${VERIFY}; do
+  bin="${pair%%:*}"
+  have "${bin}" || still="${still}${bin} "
+done
+
+if [ -n "${still}" ]; then
+  cat >&2 <<EOF
+
+  Still missing: ${still% }
+
+  chezmoi remembers that provisioning ran, whether or not it worked.
+  This forgets that and runs all of it again:
+
+    chezmoi state delete-bucket --bucket=scriptState
+    chezmoi apply
+
+EOF
+  exit 1
+fi
+
+echo "==> toolchain repaired"
+exit 0

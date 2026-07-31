@@ -196,6 +196,27 @@ cm apply --force >/dev/null 2>&1
 before="$(cm apply --force 2>&1 | grep -c 'would install' || true)"
 check "provisioning does not re-run on an unchanged apply" '[ "${before}" = "0" ]'
 
+# --- 9a. the repair pass ----------------------------------------------------
+# Provisioning is a run_onchange_ script, so its recorded hash means "this
+# ran", never "this worked". A machine bootstrapped before its package
+# manager existed therefore had provisioning marked done with nothing
+# installed, and every later `chezmoi apply` was a silent no-op. The
+# doctor is the way out, so it must exist, be runnable, and be honest.
+DOCTOR="${HOME}/.local/bin/dotfiles-doctor"
+if [ "${WINDOWS_HOST}" = "false" ]; then
+  check "dotfiles-doctor was applied" '[ -f "${DOCTOR}" ]'
+  check "dotfiles-doctor is executable" '[ -x "${DOCTOR}" ]'
+  check "dotfiles-doctor --check runs and reports" \
+    '"${DOCTOR}" --check >/dev/null 2>&1 || true'
+  # --check must never install anything, whatever it finds.
+  check "dotfiles-doctor --check changes nothing" \
+    'before="$(command -v tmux || true)"; "${DOCTOR}" --check >/dev/null 2>&1 || true; [ "$(command -v tmux || true)" = "${before}" ]'
+  check "dotfiles-doctor rejects an unknown argument" \
+    '! "${DOCTOR}" --nonsense >/dev/null 2>&1'
+  check "dotfiles-doctor help mentions --check" \
+    '"${DOCTOR}" --help 2>&1 | grep -q -- "--check"'
+fi
+
 # --- 9b. keys without a person ---------------------------------------------
 # The zero-input contract: bootstrap generates keys BEFORE apply so the
 # git config's signing gate flips on the same machine state, and appends

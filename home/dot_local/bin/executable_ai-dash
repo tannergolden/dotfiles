@@ -125,8 +125,34 @@ case "${1:-}" in
     ;;
 esac
 
-command -v tmux >/dev/null 2>&1 \
-  || { echo "ai-dash needs tmux; run 'chezmoi apply' to install it" >&2; exit 1; }
+# FIX IT RATHER THAN NAME A COMMAND AND GIVE UP. This used to say "run
+# 'chezmoi apply' to install it", which was advice the tool could not
+# honour: provisioning is a run_onchange_ script whose recorded hash
+# means apply does nothing at all on a machine where the install never
+# happened. Reproduced, and it is a genuine dead end - no tmux, and the
+# one suggested remedy silently does nothing.
+#
+# dotfiles-doctor is the repair, and it is a sibling of this file so it
+# is present whenever this one is.
+if ! command -v tmux >/dev/null 2>&1; then
+  _doctor="$(dirname -- "$0")/dotfiles-doctor"
+  if [ -x "${_doctor}" ]; then
+    echo "ai-dash needs tmux; repairing the toolchain first" >&2
+    "${_doctor}" >&2 || true
+  fi
+  unset _doctor
+fi
+
+if ! command -v tmux >/dev/null 2>&1; then
+  {
+    echo "ai-dash needs tmux and it could not be installed automatically."
+    case "$(uname -s)" in
+      Darwin) echo "  brew install tmux" ;;
+      *)      echo "  sudo apt-get install -y tmux" ;;
+    esac
+  } >&2
+  exit 1
+fi
 
 # Already built? Just go there. Re-running must never stack a second grid.
 #

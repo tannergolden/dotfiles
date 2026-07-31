@@ -1,0 +1,42 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/usr/bin/env bash
+# --- Re-check the toolchain whenever the machine's tool set changes ---
+#
+# KEYED TO WHICH TOOLS ARE ACTUALLY PRESENT, not to a package list. Every
+# lookPath below renders that tool's absolute path, or an empty string
+# when it is missing, so this script's content is a fingerprint of the
+# machine's real toolchain. Install something, or lose something, and the
+# content changes - which is precisely when run_onchange_ fires.
+#
+# WHY THAT IS THE RIGHT KEY. The packages script is keyed to the package
+# LIST, so its hash says "these packages were requested once" and nothing
+# about whether they arrived. This one changes the moment reality does.
+#
+# WHY NOT A PLAIN run_ SCRIPT, which would run every time and be simpler:
+# chezmoi reports always-run scripts as permanently pending, so
+# `chezmoi status` would never be empty and `chezmoi verify` would never
+# exit 0 again - and this repository documents verify as its drift
+# detector. Measured: with a run_ script present, verify exits 1 on a
+# perfectly clean machine.
+#
+# The work itself lives in ~/.local/bin/dotfiles-doctor, which is a
+# managed file applied before this runs, and which anybody can run by
+# hand at any time.
+#
+# tool fingerprint: {{ range $bin, $pkg := (index .verify .chezmoi.os) }}{{ lookPath $bin }}{{ end }}
+
+set -uo pipefail
+
+if [ "${CI_STUB:-0}" = "1" ]; then
+  echo "CI_STUB=1: would verify the installed toolchain"
+  exit 0
+fi
+
+DOCTOR="${HOME}/.local/bin/dotfiles-doctor"
+[ -x "${DOCTOR}" ] || exit 0
+
+# NEVER FATAL. An after_ script exiting non-zero fails an apply whose
+# files all landed correctly, and it would do so on exactly the machines
+# already having a bad day. The doctor reports; it does not veto.
+"${DOCTOR}" || true
+{{- end }}

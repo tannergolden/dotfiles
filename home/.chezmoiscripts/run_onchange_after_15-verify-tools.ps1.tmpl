@@ -1,0 +1,27 @@
+{{- if eq .chezmoi.os "windows" -}}
+# --- Re-check the toolchain whenever the machine's tool set changes ---
+#
+# The Windows twin; see the POSIX script for the reasoning. The comment
+# below is a fingerprint of which tools are actually on PATH, so this
+# script's content changes when the machine's real toolchain does, which
+# is exactly when run_onchange_ fires. A plain run_ script would be
+# simpler and would break `chezmoi verify`, which chezmoi reports as
+# permanently pending while one exists.
+#
+# tool fingerprint: {{ range $bin, $pkg := .verify.windows }}{{ lookPath $bin }}{{ end }}
+
+$ErrorActionPreference = 'Continue'
+
+if ($env:CI_STUB -eq '1') {
+    Write-Host 'CI_STUB=1: would verify the installed toolchain'
+    exit 0
+}
+
+$doctor = Join-Path $HOME '.local\bin\dotfiles-doctor.ps1'
+if (-not (Test-Path $doctor)) { exit 0 }
+
+# Never fatal: an after_ script exiting non-zero fails an apply whose
+# files all landed correctly.
+& $doctor
+exit 0
+{{- end }}

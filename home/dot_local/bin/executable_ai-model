@@ -295,8 +295,20 @@ cmd_install() {
   local auto=false
   if [ "${1:-}" = "--auto" ]; then auto=true; fi
 
+  # Same repair-first reasoning as ai-dash: pointing at `chezmoi apply`
+  # was advice that does nothing on a machine whose provisioning was
+  # recorded as done without having worked. The doctor is a sibling of
+  # this file, so it is there whenever this is.
+  if ! command -v ollama >/dev/null 2>&1; then
+    _doctor="$(dirname -- "$0")/dotfiles-doctor"
+    if [ -x "${_doctor}" ]; then
+      warn "ollama is not installed; repairing the toolchain first"
+      "${_doctor}" >&2 || true
+    fi
+    unset _doctor
+  fi
   command -v ollama >/dev/null 2>&1 \
-    || die "ollama is not installed; run 'chezmoi apply' (or see the README for the container route)"
+    || die "ollama is not installed and could not be installed automatically; see the README for the container route"
 
   local kind budget picked tag size cap
   read -r kind budget <<EOF

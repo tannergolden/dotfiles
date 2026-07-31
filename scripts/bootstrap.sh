@@ -371,6 +371,24 @@ if [ "${IN_CODESPACES}" = "false" ] && [ ! -e "${REPO_DIR}/.git" ] \
 fi
 
 # --- stage 8: report --------------------------------------------------------
+#
+# "Bootstrap complete" must not print over a machine that is missing half
+# its toolchain. The apply above runs a repair pass that installs what is
+# absent, so anything still missing here is something neither the package
+# manager nor the repair could supply - and saying so beats letting it be
+# discovered later by a command that does not exist.
+#
+# The doctor is the single place that knows what "installed" means, and
+# it is a managed file that the apply above has just put on disk. Run in
+# repair mode: on a machine where provisioning degraded, this is what
+# actually installs the toolchain rather than reporting its absence.
+MISSING_TOOLS=""
+DOCTOR="${HOME}/.local/bin/dotfiles-doctor"
+if [ -x "${DOCTOR}" ] && [ "${CI:-false}" != "true" ]; then
+  "${DOCTOR}" || true
+  MISSING_TOOLS="$("${DOCTOR}" --check 2>/dev/null | sed -n 's/^missing: //p')"
+fi
+
 cat <<EOF
 
   Bootstrap complete.
@@ -381,6 +399,23 @@ cat <<EOF
     ${REPO_DIR}/scripts/restore-backup.sh ${BACKUP_DIR}
 
 EOF
+
+if [ -n "${MISSING_TOOLS}" ]; then
+  cat >&2 <<EOF
+  NOT EVERYTHING INSTALLED: ${MISSING_TOOLS}
+
+  Retry the repair at any time with:
+
+    dotfiles-doctor
+
+  If they stay missing, chezmoi is remembering that provisioning ran.
+  This forgets that and runs all of it again:
+
+    chezmoi state delete-bucket --bucket=scriptState
+    chezmoi apply
+
+EOF
+fi
 
 if [ "${IN_CODESPACES}" = "false" ] && [ "${KEYS_REGISTERED}" = "false" ] \
    && [ -f "${HOME}/.ssh/id_signing_ed25519.pub" ]; then
