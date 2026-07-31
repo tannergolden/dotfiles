@@ -1,0 +1,40 @@
+# --- The standards gate set ---
+#
+# Trigger stubs only. The logic lives in tannergolden/standards and is
+# called, never copied, so a fix there reaches this repository when the
+# v1 tag moves. GitHub only runs workflows that live in the repository
+# being pushed to, which is why these few lines must exist here at all.
+#
+# THE THREE JOB IDS ARE A CONTRACT, NOT A CHOICE. The published rulesets
+# require status checks reported as "<job id> / <job name>", so the ids
+# ci, secrets and pr below must not be renamed, or branch protection
+# waits forever on checks that never report.
+#
+# ci.yml resolves its stages through this repository's Makefile: lint,
+# test and build targets exist there, so no commands are passed.
+
+name: '🚦 Checks'
+
+on:
+  push:
+    branches: ['Experimental', 'Development', 'Preview', 'Release']
+  pull_request:
+    branches: ['Experimental', 'Development', 'Preview', 'Release']
+  schedule:
+    - cron: '0 3 * * 0' # weekly link integrity sweep
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ci:
+    uses: tannergolden/standards/.github/workflows/ci.yml@v1
+    secrets: inherit
+
+  secrets:
+    uses: tannergolden/standards/.github/workflows/gitleaks.yml@v1
+    secrets: inherit
+
+  pr:
+    uses: tannergolden/standards/.github/workflows/semantic-pr.yml@v1
+    secrets: inherit

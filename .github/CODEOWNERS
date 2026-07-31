@@ -1,0 +1,5 @@
+# CODEOWNERS is read only from the repository that owns it, so unlike the
+# community health files it cannot be inherited from the account's .github
+# repository and must live here.
+
+* @tannergolden

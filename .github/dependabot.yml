@@ -1,0 +1,25 @@
+# Keeps the SHA-pinned actions in .github/workflows/ current. Dependabot
+# bumps the pinned commit and its version comment together, which is what
+# makes pinning to a SHA sustainable rather than a slow freeze.
+#
+# The filename is .yml, not .yaml, because GitHub reads this file under
+# that exact spelling and no other.
+#
+# commit-message.prefix makes every update a Conventional Commit, because
+# on a squash merge the PR title becomes the commit that lands, and the
+# changelog tooling silently drops non-conforming messages.
+
+version: 2
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '07:00'
+    commit-message:
+      prefix: 'build'
+      include: 'scope'
+    groups:
+      github-actions:
+        patterns: ['*']
