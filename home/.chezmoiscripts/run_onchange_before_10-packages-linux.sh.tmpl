@@ -59,9 +59,13 @@ fi
 BIN_DIR="${HOME}/.local/bin"
 mkdir -p "${BIN_DIR}"
 
+# MUSL ONLY. The gnu triple was set here too and never read by anything -
+# both upstream tools below fetch the statically linked musl build, which
+# is the point: it runs on any glibc vintage the container happens to
+# have. Kept as one variable so nothing can drift back apart.
 case "$(uname -m)" in
-  x86_64|amd64) ARCH_GNU="x86_64-unknown-linux-gnu"; ARCH_MUSL="x86_64-unknown-linux-musl" ;;
-  aarch64|arm64) ARCH_GNU="aarch64-unknown-linux-gnu"; ARCH_MUSL="aarch64-unknown-linux-musl" ;;
+  x86_64|amd64) ARCH_MUSL="x86_64-unknown-linux-musl" ;;
+  aarch64|arm64) ARCH_MUSL="aarch64-unknown-linux-musl" ;;
   *) echo "unknown architecture $(uname -m); skipping upstream tools" >&2; exit 0 ;;
 esac
 
@@ -82,8 +86,26 @@ install_zoxide() {
   command -v zoxide >/dev/null 2>&1 && return 0
   echo "==> zoxide (upstream release)"
   local tmp; tmp="$(mktemp -d)"
-  local ver; ver="$(curl -fsSL https://api.github.com/repos/ajeetdsouza/zoxide/releases/latest 2>/dev/null \
-    | grep -m1 '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')" || ver=""
+  # THE REDIRECT FIRST, THE REST API ONLY AS A FALLBACK. Unauthenticated
+  # api.github.com allows 60 requests an hour PER IP, and a codespace, an
+  # office or a CI runner shares one NAT address with everybody else on
+  # it - so a 403 here is routine rather than exotic. It left `ver` empty,
+  # skipped zoxide, and exited 0, which run_onchange records as done
+  # forever. The /releases/latest web endpoint is a plain redirect whose
+  # target carries the tag and is not rate limited, so it is tried first;
+  # the old API call stays as a second chance for a network that allows
+  # api.github.com but not the web host. Both are best effort, and a
+  # GITHUB_TOKEN raises the API's limit when one exists (a codespace
+  # always provides one).
+  local ver
+  ver="$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+    https://github.com/ajeetdsouza/zoxide/releases/latest 2>/dev/null \
+    | sed -n 's|.*/tag/v\(.*\)$|\1|p')" || ver=""
+  if [ -z "${ver}" ]; then
+    ver="$(curl -fsSL ${GITHUB_TOKEN:+-H "Authorization: Bearer ${GITHUB_TOKEN}"} \
+      https://api.github.com/repos/ajeetdsouza/zoxide/releases/latest 2>/dev/null \
+      | grep -m1 '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')" || ver=""
+  fi
   if [ -n "${ver}" ]; then
     local url="https://github.com/ajeetdsouza/zoxide/releases/download/v${ver}/zoxide-${ver}-${ARCH_MUSL}.tar.gz"
     if curl -fsSL -o "${tmp}/z.tar.gz" "${url}" 2>/dev/null; then

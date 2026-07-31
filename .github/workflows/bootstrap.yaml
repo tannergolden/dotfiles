@@ -82,6 +82,13 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           make lint-shell
 
+      # The templates GENERATE shell that nothing used to read. A
+      # rendering is what runs on a new machine, and under CI_STUB the
+      # smoke test exits three lines into each one, so the real branch
+      # reached a laptop having passed a green pipeline.
+      - name: '🧹 ShellCheck the generated shell'
+        run: make lint-shell-templates
+
       # Nothing checked the PowerShell until this step existed. It parses
       # the two bootstrap scripts, the profile, and the three Windows
       # provisioning templates AFTER rendering them, which is the only way

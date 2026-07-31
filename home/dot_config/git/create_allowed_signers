@@ -16,10 +16,16 @@
 # FORMAT
 #   <principal> [options] <keytype> <base64-key>
 #
-# ADD YOUR SIGNING KEY:
+# BOOTSTRAP ALREADY DID THIS FOR YOU. It generates the key and appends
+# the entry below, pinned, on every run. The recipe is here for a second
+# key, another machine's key, or a repair - and it carries the namespace
+# pin, because an entry written without one is exactly what the warning
+# further down this file is about:
+#
 #   ssh-keygen -t ed25519 -C "signing" -f ~/.ssh/id_signing_ed25519
-#   printf '%s %s\n' "24684994+tannergolden@users.noreply.github.com" \
-#     "$(cat ~/.ssh/id_signing_ed25519.pub | cut -d' ' -f1,2)" \
+#   printf '%s namespaces="git" %s\n' \
+#     "24684994+tannergolden@users.noreply.github.com" \
+#     "$(cut -d' ' -f1,2 ~/.ssh/id_signing_ed25519.pub)" \
 #     >> ~/.config/git/allowed_signers
 #
 # Then register the PUBLIC half on GitHub under Settings, SSH and GPG keys,

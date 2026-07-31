@@ -45,6 +45,15 @@ Host *
     # with "Too many authentication failures" even though the correct key
     # was loaded. The server also logs your public key fingerprints before
     # failing, and that key set is a stable cross-server identifier.
+    #
+    # THE COROLLARY, WHICH COSTS AN HOUR IF YOU MEET IT COLD. With this set
+    # and no IdentityFile at this level, ssh offers only the keys a block
+    # names explicitly, plus OpenSSH's DEFAULT filenames (id_rsa, id_ecdsa,
+    # id_ecdsa_sk, id_ed25519, id_ed25519_sk). This setup's key is
+    # ~/.ssh/id_auth_ed25519, which is none of those, and a key loaded in
+    # the agent is not offered on that basis either. So every host that
+    # should use it needs its own IdentityFile line, exactly as the
+    # github.com block above has - including hosts you add in config.d.
     IdentitiesOnly yes
 
     AddKeysToAgent yes

@@ -246,6 +246,17 @@ New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
 
 $manifest = Join-Path $BackupDir 'manifest.tsv'
 $stage    = Join-Path $BackupDir 'stage'
+
+# REFUSE TO WRITE OVER AN EXISTING SNAPSHOT, which backup-targets.sh has
+# always done and this side did not: Set-Content and Compress-Archive
+# -Force both overwrite silently, so two runs landing on the same
+# second-resolution stamp destroyed the only copy of the originals.
+foreach ($existing in @('manifest.tsv', 'targets.zip')) {
+    if (Test-Path -LiteralPath (Join-Path $BackupDir $existing)) {
+        Stop-Bootstrap "$BackupDir already holds $existing; refusing to overwrite a snapshot"
+    }
+}
+
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 $rows = @()
 
@@ -296,7 +307,21 @@ foreach ($t in $targets) {
 }
 $rows | Set-Content -Path $manifest -Encoding utf8
 
-$stagedFiles = @(Get-ChildItem $stage -Recurse -File -ErrorAction SilentlyContinue)
+# HIDDEN FILES MUST REACH THE ARCHIVE, AND TWICE THEY DID NOT. Copy-Item
+# preserves the Hidden attribute onto the staged copy, and then both
+# `Compress-Archive -Path <dir>\*` (wildcard resolution skips hidden
+# items) and an un-Forced Get-ChildItem skip them - so a target that
+# happened to carry the attribute was staged, silently left out of the
+# zip, AND left out of the count the verification compares, meaning the
+# check could not see its own loss. Windows tools set Hidden on dotfiles
+# often enough that this is a real path, not a curiosity. Clearing the
+# attribute on the staged copies fixes both halves at once; the originals
+# are untouched, and restore re-creates plain files, which is the same
+# thing the POSIX side does.
+Get-ChildItem $stage -Recurse -File -Force -ErrorAction SilentlyContinue |
+    ForEach-Object { $_.Attributes = [System.IO.FileAttributes]::Normal }
+
+$stagedFiles = @(Get-ChildItem $stage -Recurse -File -Force -ErrorAction SilentlyContinue)
 if ($stagedFiles.Count -gt 0) {
     $zipPath = Join-Path $BackupDir 'targets.zip'
     try {

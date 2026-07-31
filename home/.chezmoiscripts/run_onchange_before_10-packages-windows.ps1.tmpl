@@ -60,6 +60,21 @@ if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
     # scoop install on an already-installed package is a no-op.
     scoop install {{ . }} 2>$null | Out-Null
     {{ end }}
+    # FAILURE WAS COMPLETELY INVISIBLE UNTIL THIS BLOCK. Both streams are
+    # discarded above, so a bucket problem, a renamed manifest or a dead
+    # network printed the "==> scoop install" header and nothing else,
+    # and the missing tool only turned up later as a command not found.
+    # The Linux twin has always warned per package.
+    #
+    # PRESENCE, NOT $LASTEXITCODE: scoop has a long history of exiting 0
+    # on a failed install, so the only trustworthy check is whether the
+    # app directory exists. Every name in the manifest is a plain
+    # main-bucket package, so apps\<name>\current is valid for all of them.
+    {{ range .packages.windows.scoop -}}
+    if (-not (Test-Path (Join-Path $HOME 'scoop\apps\{{ . }}\current'))) {
+        Write-Warning "could not install {{ . }}; run 'scoop install {{ . }}' by hand"
+    }
+    {{ end }}
 }
 
 # --- winget ----------------------------------------------------------------

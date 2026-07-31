@@ -32,8 +32,8 @@
 # whatever CI's apt provides. A pin nothing enforces is worse than no pin,
 # because it is quoted as though it were true.
 
-.PHONY: help setup lint lint-shell lint-powershell lint-format test build dev \
-        deploy render prefixes apply diff verify
+.PHONY: help setup lint lint-shell lint-shell-templates lint-powershell \
+        lint-format test build dev deploy render prefixes apply diff verify
 
 help: ## Show the available targets
 	@grep -hE '^[a-z][a-z-]*:.*?## ' $(MAKEFILE_LIST) \
@@ -43,7 +43,7 @@ help: ## Show the available targets
 setup: ## Install the pinned tools these targets need
 	@scripts/bootstrap.sh
 
-lint: lint-shell lint-powershell render prefixes ## Run every static check CI runs
+lint: lint-shell lint-shell-templates lint-powershell render prefixes ## Run every static check CI runs
 
 lint-shell: ## ShellCheck over the shell this repository ships
 	@command -v shellcheck >/dev/null 2>&1 \
@@ -51,6 +51,9 @@ lint-shell: ## ShellCheck over the shell this repository ships
 	@shellcheck --severity=style install.sh scripts/*.sh \
 		home/dot_local/bin/executable_ai-* \
 		&& echo "ok   shellcheck clean"
+
+lint-shell-templates: ## ShellCheck the shell the templates GENERATE
+	@scripts/check-shell-templates.sh
 
 lint-powershell: ## Parse every .ps1, which nothing checked before
 	@REPO_DIR="$(CURDIR)" scripts/check-powershell.sh
