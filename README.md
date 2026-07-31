@@ -232,7 +232,9 @@ Every other way back, from a reverting file to removing the setup entirely, is w
 ### 🔗 See also
 
 > [!TIP]
-> Conventions, workflows and the automation that enforces them live in [📐 Engineering Standards](https://github.com/tannergolden/standards). Follow them by link rather than copying them, so nothing here goes stale.
+> Conventions live in [📐 Engineering Standards](https://github.com/tannergolden/standards) and are followed here by link rather than by copying, so nothing goes stale. Commit format, sign-off, branch naming and the `make` interface all come from there.
+
+This repository takes **the conventions and not the automation**, which is the account's rule for its core repositories. It calls none of the published gate workflows and holds no trigger stubs for them; the checks that run here are its own, in [`.github/workflows/bootstrap.yaml`](.github/workflows/bootstrap.yaml), and they are the ones worth running on a dotfiles repository: ShellCheck, a PowerShell parse, every template rendered for every platform, and the full bootstrap and restore proof on macOS, Windows and Linux.
 
 ---
 
