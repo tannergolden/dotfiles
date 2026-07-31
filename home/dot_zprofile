@@ -1,0 +1,26 @@
+# --- .zprofile: login shells, after /etc/zprofile ---
+#
+# WHY PATH IS SET A SECOND TIME.
+#
+# On macOS, /etc/zprofile runs `eval $(/usr/libexec/path_helper -s)`, and
+# path_helper does not merge your PATH, it REBUILDS it. Verified against
+# Apple's published path_helper.c: it starts empty, appends /etc/paths,
+# appends /etc/paths.d/*, and only then appends whatever you already had,
+# deduplicated. Your entries therefore always land behind every system
+# entry:
+#
+#   in   ~/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:...
+#   out  /usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:...
+#        ...:~/.local/bin:/opt/homebrew/bin
+#
+# Homebrew moves from position two to position ten, so /usr/bin/python3
+# shadows the one you installed. Re-sourcing here runs after path_helper
+# and puts things back.
+#
+# `typeset -U` makes the double application idempotent by discarding
+# duplicates, so PATH does not grow every login. It is a zsh builtin, which
+# is why it lives here rather than in the POSIX env.sh.
+
+typeset -U path PATH
+
+[ -r "${HOME}/.config/sh/env.sh" ] && . "${HOME}/.config/sh/env.sh"

@@ -1,0 +1,64 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# --- Provision macOS packages ---
+#
+# run_onchange_, deliberately, not run_once_.
+#
+# `run_once_` is keyed on the SHA-256 of the RENDERED script and remembers
+# that hash forever, in a per-machine BoltDB stored next to the config file
+# and never committed. Delete that state, or rebuild the machine, and it
+# fires again anyway. Worse, reverting the package list to a previous state
+# produces a hash that has already run, so the revert silently does nothing.
+#
+# `run_onchange_` is keyed on the target path and fires whenever the content
+# differs from last time, including on a revert. That is the behaviour a
+# package manifest actually wants.
+#
+# The list below is interpolated from .chezmoidata/packages.yaml, so editing
+# that file changes this script's content and re-triggers it. That is the
+# entire mechanism.
+
+set -euo pipefail
+
+# CI stubs this out. The macOS runner ships Homebrew preinstalled, so
+# actually installing here would prove nothing about a bare machine while
+# costing minutes per run.
+if [ "${CI_STUB:-0}" = "1" ]; then
+  echo "CI_STUB=1: would install {{ len .packages.darwin.brew }} formulae"
+  exit 0
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+  echo "Homebrew is not installed." >&2
+  echo "Install it from https://brew.sh and re-run 'chezmoi apply'." >&2
+  # Degrade rather than abort: a missing package manager must not cost you
+  # a working shell. Note that apply is NOT atomic, so aborting here would
+  # leave every target that sorts earlier already written.
+  exit 0
+fi
+
+BREWFILE="$(mktemp)"
+trap 'rm -f "${BREWFILE}"' EXIT
+
+cat > "${BREWFILE}" <<'BREW'
+{{ range .packages.darwin.brew -}}
+brew "{{ . }}"
+{{ end -}}
+{{ range .packages.darwin.cask -}}
+cask "{{ . }}"
+{{ end -}}
+BREW
+
+echo "==> brew bundle ({{ len .packages.darwin.brew }} formulae)"
+# `brew bundle` is first-party (merged into Homebrew/brew) and idempotent.
+# It is declarative about SET MEMBERSHIP only: Homebrew has no lockfile and
+# its documentation says it will not have one, so two machines converge on
+# the same package names at whatever versions are current that day.
+#
+# Never `brew bundle cleanup --force` from a script. That bypasses the
+# still-has-dependents safety check and deletes anything not in the list,
+# including things you installed deliberately and forgot to record.
+brew bundle --file="${BREWFILE}" --no-lock || {
+  echo "brew bundle reported errors; continuing" >&2
+}
+{{- end }}

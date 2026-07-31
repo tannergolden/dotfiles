@@ -1,0 +1,99 @@
+{{/*
+  ~/.ssh/config
+
+  FIRST OBTAINED VALUE WINS, so specific blocks go at the top and `Host *`
+  goes LAST. This is the reverse of most config formats and is the most
+  common structural bug in an ssh config.
+
+  Machine specific and internal hosts do NOT belong here. This file is
+  public, and a host list is reconnaissance. Put those in
+  ~/.ssh/config.d/*.conf, which is gitignored and pulled in below.
+*/}}
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $isDarwin  := eq .chezmoi.os "darwin" -}}
+
+# MUST be the first directive.
+#
+# UseKeychain is an Apple-only option. On Linux or Windows an unguarded
+# UseKeychain does not warn, it TERMINATES ssh:
+#
+#   Bad configuration option: usekeychain
+#   terminating, 1 bad configuration options
+#
+# Every ssh invocation then fails, which takes git fetch, git push and
+# rsync with it. IgnoreUnknown is not applied to options appearing before
+# it, so placement here is load-bearing, not stylistic.
+IgnoreUnknown UseKeychain
+
+# Include is processed where it appears. Keep it above `Host *` so a
+# specific block in config.d still wins over the defaults below.
+Include ~/.ssh/config.d/*.conf
+
+Host github.com
+    User git
+    # Pointing at the PUBLIC half is deliberate and it works: the private
+    # key can live only in the agent, so no private material need exist on
+    # disk at all.
+    IdentityFile ~/.ssh/id_auth_ed25519.pub
+    IdentitiesOnly yes
+
+Host *
+    # THE MOST IMPORTANT LINE HERE. Default is `no`, and the default causes
+    # outright authentication FAILURE, not just noise: ssh offers every key
+    # in the agent plus seven default paths, in agent order. Measured, with
+    # eight keys loaded and a stock MaxAuthTries of 6, authentication fails
+    # with "Too many authentication failures" even though the correct key
+    # was loaded. The server also logs your public key fingerprints before
+    # failing, and that key set is a stable cross-server identifier.
+    IdentitiesOnly yes
+
+    AddKeysToAgent yes
+{{- if $isDarwin }}
+    UseKeychain yes
+{{- end }}
+
+    # Forwarding exposes your agent socket on the remote host, where root
+    # can use every key in it for the life of the connection. Possession of
+    # the socket is possession of the credential; no key material is
+    # needed. Use ProxyJump instead, which keeps authentication local.
+    ForwardAgent no
+
+    # Default is 0, meaning disabled. Idle sessions behind NAT are silently
+    # reaped by middleboxes and surface as a frozen terminal. This is the
+    # encrypted, in-channel probe; TCPKeepAlive is the spoofable one.
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    TCPKeepAlive no
+
+    StrictHostKeyChecking ask
+    # Upstream default is `no`; Debian and Ubuntu patch it to `yes`. Set it
+    # explicitly so behaviour is identical on every platform. Note it only
+    # blocks bulk enumeration: the salt is stored beside the hash, so
+    # `ssh-keygen -F` still confirms any single guess instantly.
+    HashKnownHosts yes
+    # Lets a server rotate its host key in band, instead of training you to
+    # click through the warning.
+    UpdateHostKeys yes
+
+{{- if not $isWindows }}
+
+    # Connection multiplexing. Not supported by Win32-OpenSSH at all, hence
+    # the guard.
+    #
+    # THE SOCKET IS THE CREDENTIAL: a client presenting no key and no agent
+    # can ride an existing master. File permissions are the only control,
+    # so this must live in a directory only you can read. %C is a
+    # fixed-length hash, which both keeps the path short and keeps
+    # hostnames out of a directory listing.
+    #
+    # The real path budget is about 91 bytes, not the 108 the header
+    # suggests, because the master binds a temporary name with a 17
+    # character suffix first. ssh will NOT create this directory.
+    ControlMaster auto
+    ControlPath ~/.ssh/cm/%C
+    ControlPersist 5m
+{{- end }}
+
+    # Costs CPU on already-compressed traffic such as git packs. Enable per
+    # host if you have a genuinely slow link.
+    Compression no

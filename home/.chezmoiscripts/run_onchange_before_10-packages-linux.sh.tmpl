@@ -1,0 +1,87 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+# --- Provision Linux packages, including inside a Codespace ---
+#
+# apt cannot carry this toolchain alone. starship is not in the Ubuntu
+# archive at all, and several of the others lag upstream far enough to
+# matter. So apt supplies what it has and pinned upstream releases supply
+# the rest.
+
+set -euo pipefail
+
+if [ "${CI_STUB:-0}" = "1" ]; then
+  echo "CI_STUB=1: would install {{ len .packages.linux.apt }} apt packages"
+  exit 0
+fi
+
+# --- apt -------------------------------------------------------------------
+if command -v apt-get >/dev/null 2>&1; then
+  SUDO=""
+  if [ "$(id -u)" -ne 0 ]; then
+    if command -v sudo >/dev/null 2>&1; then
+      SUDO="sudo"
+    else
+      echo "not root and no sudo; skipping apt packages" >&2
+    fi
+  fi
+
+  if [ "$(id -u)" -eq 0 ] || [ -n "${SUDO}" ]; then
+    echo "==> apt-get install ({{ len .packages.linux.apt }} packages)"
+    export DEBIAN_FRONTEND=noninteractive
+    ${SUDO} apt-get update -qq || true
+    # One missing package must not take the rest with it, so install
+    # individually and keep going.
+    for pkg in {{ range .packages.linux.apt }}{{ . }} {{ end }}; do
+      ${SUDO} apt-get install -y -qq "${pkg}" >/dev/null 2>&1 \
+        || echo "  could not install ${pkg}, continuing" >&2
+    done
+  fi
+else
+  echo "no apt-get; skipping distribution packages" >&2
+fi
+
+# --- upstream releases -----------------------------------------------------
+# Installed to a user-writable prefix so this works without root, which
+# matters in a container where you may not have it.
+BIN_DIR="${HOME}/.local/bin"
+mkdir -p "${BIN_DIR}"
+
+case "$(uname -m)" in
+  x86_64|amd64) ARCH_GNU="x86_64-unknown-linux-gnu"; ARCH_MUSL="x86_64-unknown-linux-musl" ;;
+  aarch64|arm64) ARCH_GNU="aarch64-unknown-linux-gnu"; ARCH_MUSL="aarch64-unknown-linux-musl" ;;
+  *) echo "unknown architecture $(uname -m); skipping upstream tools" >&2; exit 0 ;;
+esac
+
+install_starship() {
+  command -v starship >/dev/null 2>&1 && return 0
+  echo "==> starship (upstream release)"
+  local tmp; tmp="$(mktemp -d)"
+  local url="https://github.com/starship/starship/releases/latest/download/starship-${ARCH_MUSL}.tar.gz"
+  if curl -fsSL -o "${tmp}/s.tar.gz" "${url}" 2>/dev/null; then
+    tar -xzf "${tmp}/s.tar.gz" -C "${tmp}" && install -m 0755 "${tmp}/starship" "${BIN_DIR}/starship"
+  else
+    echo "  starship download failed, continuing" >&2
+  fi
+  rm -rf "${tmp}"
+}
+
+install_zoxide() {
+  command -v zoxide >/dev/null 2>&1 && return 0
+  echo "==> zoxide (upstream release)"
+  local tmp; tmp="$(mktemp -d)"
+  local ver; ver="$(curl -fsSL https://api.github.com/repos/ajeetdsouza/zoxide/releases/latest 2>/dev/null \
+    | grep -m1 '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')" || ver=""
+  if [ -n "${ver}" ]; then
+    local url="https://github.com/ajeetdsouza/zoxide/releases/download/v${ver}/zoxide-${ver}-${ARCH_MUSL}.tar.gz"
+    if curl -fsSL -o "${tmp}/z.tar.gz" "${url}" 2>/dev/null; then
+      tar -xzf "${tmp}/z.tar.gz" -C "${tmp}" && install -m 0755 "${tmp}/zoxide" "${BIN_DIR}/zoxide"
+    fi
+  fi
+  command -v "${BIN_DIR}/zoxide" >/dev/null 2>&1 || echo "  zoxide install failed, continuing" >&2
+  rm -rf "${tmp}"
+}
+
+{{ range .packages.linux.upstream -}}
+install_{{ . }}
+{{ end }}
+{{- end }}

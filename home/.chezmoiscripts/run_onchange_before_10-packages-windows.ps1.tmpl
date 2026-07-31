@@ -1,0 +1,44 @@
+{{- if eq .chezmoi.os "windows" -}}
+# --- Provision Windows packages ---
+#
+# scoop for everything that can install per-user, winget for the one
+# package that insists on elevating.
+#
+# scoop refuses to run as administrator by design and installs under the
+# user profile, so nothing here raises a UAC prompt except Git, which
+# declares ElevationRequirement: elevatesSelf and would raise one however
+# it was invoked.
+
+$ErrorActionPreference = 'Continue'
+
+if ($env:CI_STUB -eq '1') {
+    Write-Host "CI_STUB=1: would install {{ len .packages.windows.scoop }} scoop packages"
+    exit 0
+}
+
+# --- scoop -----------------------------------------------------------------
+if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+    Write-Warning "scoop is not installed. Install it from https://scoop.sh, then re-run 'chezmoi apply'."
+    Write-Warning "Skipping per-user packages. This does not abort the rest of the apply."
+} else {
+    Write-Host "==> scoop install ({{ len .packages.windows.scoop }} packages)"
+    {{ range .packages.windows.scoop -}}
+    # scoop install on an already-installed package is a no-op.
+    scoop install {{ . }} 2>$null | Out-Null
+    {{ end }}
+}
+
+# --- winget ----------------------------------------------------------------
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Write-Warning "winget is not available; skipping {{ len .packages.windows.winget }} package(s)."
+} else {
+    {{ range .packages.windows.winget -}}
+    Write-Host "==> winget install {{ . }}"
+    # --exact so a partial identifier cannot match the wrong package.
+    # Note the accept flags suppress winget's own prompts but NOT the UAC
+    # dialog, so this stage is not fully unattended on Windows.
+    winget install --exact --id {{ . }} --silent `
+        --accept-package-agreements --accept-source-agreements 2>$null | Out-Null
+    {{ end }}
+}
+{{- end }}

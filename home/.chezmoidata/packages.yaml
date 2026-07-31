@@ -1,0 +1,77 @@
+# --- The package manifest, and the only place a tool is named ---
+#
+# WHY DATA RATHER THAN THREE SCRIPTS.
+#
+# The provisioning scripts are templates over this file. Changing a package
+# here changes the RENDERED script, which changes its content hash, which is
+# what makes `run_onchange_` fire. So editing this list is the whole
+# workflow: no separate install step, and no way for a script to drift out
+# of step with the list it is supposed to install.
+#
+# THE NAMES GENUINELY DIFFER PER PLATFORM. This is not redundancy that could
+# be collapsed with a mapping table. Debian renames two of these binaries
+# outright (fd-find installs /usr/bin/fdfind, bat installs /usr/bin/batcat),
+# and winget partitions ripgrep by toolchain. A table pretending one name
+# fits all three would simply be wrong.
+
+packages:
+  # macOS. Installed with `brew bundle` against a Brewfile generated from
+  # this list, so it is idempotent and quiet on re-run.
+  darwin:
+    brew:
+      - bat
+      - eza
+      - fd
+      - fzf
+      - gh
+      - git
+      - git-delta
+      - jq
+      - ripgrep
+      - starship
+      - zoxide
+    cask: []
+
+  # Debian and Ubuntu, which is what a Codespace runs.
+  #
+  # apt CANNOT carry this toolchain on its own: starship is absent from the
+  # archive entirely, and fzf in Ubuntu 24.04 is roughly thirty minor
+  # versions behind upstream, far enough that its shell integration differs.
+  # So apt provides the system-level pieces and the rest come from pinned
+  # upstream releases.
+  linux:
+    apt:
+      - bat
+      - eza
+      - fd-find
+      - fzf
+      - git
+      - jq
+      - ripgrep
+      - zsh
+    # Fetched from upstream releases because apt has no usable version.
+    upstream:
+      - starship
+      - zoxide
+
+  # Windows. scoop for anything that can install per-user, winget for the
+  # one package that insists on elevating.
+  windows:
+    # scoop refuses to run as administrator by design and installs under
+    # the user profile, so none of these trigger a UAC prompt.
+    scoop:
+      - bat
+      - delta
+      - eza
+      - fd
+      - fzf
+      - gh
+      - jq
+      - ripgrep
+      - starship
+      - zoxide
+    # Git.Git declares ElevationRequirement: elevatesSelf, so it raises UAC
+    # no matter how it is invoked. It is here rather than in scoop because
+    # winget handles that elevation properly.
+    winget:
+      - Git.Git

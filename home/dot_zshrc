@@ -1,0 +1,133 @@
+# --- .zshrc: interactive shells only ---
+#
+# Safe to print from. Aliases, options, completion, keybindings and the
+# prompt all belong here and nowhere else.
+
+# --- history ---------------------------------------------------------------
+# Vanilla zsh persists NOTHING: HISTFILE unset, HISTSIZE=30, SAVEHIST=0.
+# macOS is less bad, because Apple's /etc/zshrc sets HISTFILE, 2000 and
+# 1000 before this file runs, but those are still small. Everything is set
+# explicitly here so the result does not depend on which platform's global
+# rc happened to run first.
+HISTFILE="${HOME}/.zsh_history"
+HISTSIZE=200000    # in memory; must exceed SAVEHIST for dedup to work well
+SAVEHIST=100000    # on disk
+
+setopt extended_history        # record start time and duration
+setopt share_history           # live history across running shells
+setopt hist_ignore_space       # a leading space keeps a command out of history
+setopt hist_reduce_blanks      # normalise runs of whitespace
+setopt hist_ignore_dups        # drop consecutive repeats from the live list
+setopt hist_save_no_dups       # drop older duplicates at write time
+setopt hist_verify             # !! expands into the buffer, never fires blind
+setopt hist_fcntl_lock         # safer concurrent writes
+setopt hist_no_store           # do not record `history` itself
+
+# share_history and accurate durations are mutually exclusive: the manual
+# calls the three append modes "mutually exclusive", and measured, every
+# command under share_history records an elapsed time of 0. Sharing is the
+# more useful of the two, so do NOT also set inc_append_history here.
+#
+# A side benefit on macOS: Apple's per-session history split self-disables
+# at the first prompt when one of the sharing options is set, so this line
+# also stops Terminal.app fragmenting history across windows.
+
+# Never persist anything matching these, however it was typed.
+HISTORY_IGNORE='(pass *|*API_KEY*|*TOKEN*|*SECRET*|*PASSWORD*)'
+
+# --- shell options ---------------------------------------------------------
+setopt auto_cd                 # bare directory name means cd
+setopt auto_pushd              # cd maintains a stack
+setopt pushd_ignore_dups
+setopt extended_glob
+setopt no_beep
+setopt interactive_comments    # allow # comments when typing interactively
+setopt no_flow_control         # reclaim ctrl-s and ctrl-q
+
+# --- completion ------------------------------------------------------------
+# Rebuild the dump at most once a day, otherwise load the cached one.
+#
+# The point is NOT speed: `compinit -C` saves single digit milliseconds.
+# The point is bounding staleness. A cold rebuild is brutal and superlinear
+# (measured at 318 ms for ~1000 completion functions and 1.9 s for ~4000),
+# and a permanent `-C` means a newly `brew install`ed tool's completions
+# stay invisible forever. This caps that at 24 hours while still running
+# the ownership audit periodically.
+#
+# If you just installed something and want its completions now:
+#   rm -f ~/.zcompdump && exec zsh
+autoload -Uz compinit
+if [[ -n ${HOME}/.zcompdump(#qN.mh+24) ]]; then
+  compinit                     # full: security audit plus rescan
+else
+  compinit -C                  # cached: skip both
+fi
+
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+
+# --- keybindings -----------------------------------------------------------
+# STATE THIS EXPLICITLY. zsh picks the keymap by substring-matching "vi"
+# against $EDITOR or $VISUAL, so `EDITOR=nvim` silently puts the shell in
+# vi mode and Ctrl-A stops working. Verified: vi, vim and nvim all select
+# viins; emacs, nano, code and helix select emacs.
+bindkey -e
+
+# Prefix-aware history search on the arrow keys. On macOS this overrides
+# Apple's /etc/zshrc binding of the same keys, which is intentional.
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[[B' down-line-or-beginning-search
+
+# --- aliases ---------------------------------------------------------------
+# Debian and Ubuntu rename two of these binaries, so a config that says
+# `fd` or `bat` does nothing at all on a Codespace: the packages install
+# /usr/bin/fdfind and /usr/bin/batcat. Detect rather than assume.
+command -v fdfind  >/dev/null 2>&1 && alias fd='fdfind'
+command -v batcat  >/dev/null 2>&1 && alias bat='batcat'
+
+command -v eza >/dev/null 2>&1 && {
+  alias ls='eza --group-directories-first'
+  alias ll='eza -l --git --group-directories-first'
+  alias la='eza -la --git --group-directories-first'
+  alias tree='eza --tree'
+}
+
+alias g='git'
+alias gs='git status --short --branch'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -20'
+
+alias ..='cd ..'
+alias ...='cd ../..'
+
+# --- tools -----------------------------------------------------------------
+# Each guarded, so a machine missing one still gets a working shell rather
+# than an error on every prompt.
+command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
+command -v zoxide   >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+
+# fzf ships shell integration for zsh but NONE for PowerShell, so this is
+# one of the few genuinely POSIX-only pieces of the setup.
+if command -v fzf >/dev/null 2>&1; then
+  eval "$(fzf --zsh)" 2>/dev/null || true
+fi
+
+# --- codespaces ------------------------------------------------------------
+# CODESPACES is set by the platform and is the documented hook for
+# conditionals. A codespace is throwaway and headless: no GUI, no fonts,
+# and its own git credential helper is already configured, so do not fight
+# it here.
+if [[ -n "${CODESPACES:-}" ]]; then
+  alias open='echo "no GUI in a codespace" >&2; false'
+fi
+
+# --- local overrides -------------------------------------------------------
+# Gitignored, absent by default, and the right home for anything machine
+# specific or not fit to publish.
+[[ -r "${HOME}/.zshrc.local" ]] && source "${HOME}/.zshrc.local"

@@ -1,0 +1,29 @@
+# --- .zshenv: read by EVERY zsh, including non-interactive ---
+#
+# THIS FILE MUST NEVER WRITE TO STDOUT. Not a greeting, not a fortune, not a
+# stray `echo` while debugging.
+#
+# Verified against a real sshd: a single `echo` here breaks scp (exit 1),
+# sftp (exit 255) and rsync (exit 2) outright, with "Received message too
+# long" or "protocol version mismatch -- is your shell clean?". Zero bytes
+# transfer. stderr is harmless for all three, but keep this file silent
+# regardless so `ssh host cmd` stays parseable.
+#
+# In zsh this is a .zshenv-only hazard: a remote non-interactive
+# `ssh host cmd` reads THIS FILE AND NOTHING ELSE. .zshrc and .zprofile may
+# print freely. The familiar "keep your rc file quiet" advice is a bash
+# problem misapplied to zsh.
+#
+# ALSO NOT HERE: aliases and setopt. Both leak into every zsh script and
+# every `zsh -c`, so `alias ls='ls -la'` silently changes what your scripts
+# parse. Those belong in .zshrc.
+#
+# PATH IS SET HERE AND AGAIN IN .zprofile, ON PURPOSE. On macOS
+# /etc/zprofile runs path_helper AFTER this file and moves your entries
+# behind every system path, so Homebrew ends up shadowed by /usr/bin.
+# Setting it here means scripts and `zsh -c` see it; re-asserting it in
+# .zprofile means it survives path_helper for interactive shells.
+
+[ -r "${HOME}/.config/sh/env.sh" ] && . "${HOME}/.config/sh/env.sh"
+
+export ZDOTDIR="${ZDOTDIR:-${HOME}}"

@@ -1,0 +1,75 @@
+{{/*
+  THE OS SWITCHBOARD.
+
+  This is the only file in the repository that knows about the platform
+  split. Everything else is a plain file that its own editor highlights and
+  a human can grep. When you want to know why something did or did not land
+  on a machine, the answer is here and nowhere else.
+
+  Three rules that differ from .gitignore and will bite otherwise:
+
+    1. Patterns match the TARGET path, never the source path.
+       Write `.zshrc`, never `dot_zshrc`.
+    2. `!` re-includes take priority over ALL ignores regardless of order.
+       This is not git's last-match-wins.
+    3. Always forward slashes, including for Windows targets.
+
+  This file is a template even without a .tmpl suffix.
+
+  To see what a different machine would do, from any machine:
+    chezmoi ignored --override-data '{"chezmoi":{"os":"windows"}}'
+
+  GOTCHA WORTH KNOWING: ignoring a file does NOT remove one that was already
+  applied. The orphan then becomes invisible to `chezmoi managed`, `status`
+  and `verify`, so continuous integration reports clean while stale config
+  sits on disk. To actually delete something, use a `remove_` entry.
+*/}}
+
+{{- $isDarwin  := eq .chezmoi.os "darwin" -}}
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+
+{{/* ---------- repository infrastructure ----------------------------------
+  .chezmoiroot already scopes chezmoi to home/, so nothing at the repository
+  root can reach a home directory. These entries are belt and braces for the
+  case where someone runs chezmoi against the repository root by mistake.
+*/}}
+README.md
+LICENSE
+Makefile
+install.sh
+.github/**
+docs/**
+packages/**
+scripts/**
+
+{{ if not $isDarwin }}
+{{/* ---------- macOS only ---------------------------------------------- */}}
+Library/**
+.config/terminal/**
+.hushlogin
+{{ end }}
+
+{{ if $isWindows }}
+{{/* ---------- everything POSIX, off on Windows -------------------------
+  zsh does not exist on native Windows. PowerShell is the shell there and
+  shares nothing with these files beyond the tool choices they configure.
+*/}}
+.zshenv
+.zprofile
+.zshrc
+.zsh_plugins.zsh
+.config/zsh/**
+.config/sh/**
+{{ end }}
+
+{{ if not $isWindows }}
+{{/* ---------- Windows only --------------------------------------------
+  The PowerShell profile is deployed to a stable path under .config and a
+  one line shim is written at the real $PROFILE location by a script,
+  because OneDrive Known Folder Move can relocate Documents by policy and
+  chezmoi has no target path templating to follow it.
+*/}}
+.config/powershell/**
+AppData/**
+Documents/**
+{{ end }}

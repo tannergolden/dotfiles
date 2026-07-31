@@ -1,0 +1,141 @@
+{{/*
+  Git lives at ~/.config/git/config rather than ~/.gitconfig.
+
+  Git reads the XDG path, but ~/.gitconfig WINS when both exist. If Git
+  ever seems to ignore this file, look for a stray ~/.gitconfig first.
+*/}}
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $isDarwin  := eq .chezmoi.os "darwin" -}}
+
+[user]
+	name  = {{ .name | quote }}
+	email = {{ .email | quote }}
+	signingkey = ~/.ssh/id_signing_ed25519.pub
+	# THE HIGHEST VALUE LINE IN THIS FILE.
+	# Without it Git invents an identity from $EMAIL or user@hostname when
+	# user.email is unset, and commits with it. Verified: with only
+	# user.name set, `EMAIL=stray@laptop.local git commit -s` produces
+	# `Signed-off-by: ... <stray@laptop.local>` and succeeds. On a public
+	# repository, across several machines, with sign-off required, that
+	# writes machine local addresses into permanent signed history.
+	# With this set, the same command aborts with "Author identity unknown".
+	useConfigOnly = true
+
+[gpg]
+	format = ssh
+
+[gpg "ssh"]
+	# Without this, `git log --show-signature` on a correctly signed commit
+	# reports "No signature" rather than an error. Local verification
+	# silently degrades to nothing and you cannot tell signed from unsigned.
+	allowedSignersFile = ~/.config/git/allowed_signers
+
+[commit]
+	gpgsign = true
+
+[tag]
+	# Default is false, so `git tag -m` produces an unsigned annotated tag.
+	gpgSign = true
+
+[init]
+	defaultBranch = Development
+
+[push]
+	default = simple
+	# Default false, so every new branch fails once with
+	# "The current branch has no upstream branch" before you can push it.
+	autoSetupRemote = true
+	followTags = true
+
+[pull]
+	# Deliberately NOT pull.rebase = true. Git's own documentation says of
+	# that setting: "this is a possibly dangerous operation; do not use it
+	# unless you understand the implications." ff = only fails loudly on
+	# divergence instead of creating a surprise merge, and
+	# branch.autoSetupRebase below gets rebase per branch without the
+	# dangerous global.
+	ff = only
+
+[branch]
+	autoSetupRebase = always
+	sort = -committerdate
+
+[fetch]
+	# Default false. A branch deleted upstream lingers as a stale
+	# remote-tracking ref forever, and each machine accumulates a
+	# different set of them.
+	prune = true
+	pruneTags = true
+
+[rebase]
+	autoStash = true
+	autoSquash = true
+	# Rebasing a stack of branches otherwise leaves every intermediate
+	# branch pointing at pre-rebase commits.
+	updateRefs = true
+
+[merge]
+	# Default is `merge`, which shows only the two sides. zdiff3 also shows
+	# the common ancestor, so you can see what each side changed instead of
+	# guessing which one to keep.
+	conflictStyle = zdiff3
+
+[diff]
+	# Default is `myers`. histogram produces better hunks on code with
+	# repeated blocks, which means fewer spurious conflicts later.
+	algorithm = histogram
+	colorMoved = zebra
+	mnemonicPrefix = true
+	renames = copies
+
+[rerere]
+	# Replays a conflict resolution you have already made. With rebase
+	# heavy topic branches you would otherwise resolve the same conflict
+	# on every rebase.
+	enabled = true
+
+[transfer]
+	# Aborts on a malformed object or a malicious .gitmodules. It is a
+	# detector rather than a guarantee, and it costs CPU on every fetch.
+	fsckObjects = true
+
+[help]
+	# Default is `show`. Never `immediate`, which runs a command you did
+	# not type.
+	autoCorrect = prompt
+
+[column]
+	ui = auto
+
+[core]
+	pager = less -FiRX
+{{- if $isWindows }}
+	# Not an upstream Git setting. It exists only in the Git for Windows
+	# fork, defaults to false, and without it paths over 260 characters
+	# fail with "Filename too long".
+	longpaths = true
+	# .gitattributes governs line endings and beats this in both
+	# directions. Set false so the Git for Windows installer default of
+	# true cannot introduce invisible per machine behaviour.
+	autocrlf = false
+	fscache = true
+{{- end }}
+{{- if $isDarwin }}
+	# macOS decomposes filenames; every other platform composes them.
+	# Without this a filename with an accent appears permanently modified
+	# on the other machines.
+	precomposeUnicode = true
+{{- end }}
+
+{{ if $isDarwin -}}
+[credential]
+	helper = osxkeychain
+{{- else if $isWindows -}}
+[credential]
+	helper = manager
+{{- end }}
+
+[include]
+	# Anything machine specific or not fit to publish goes here. The file
+	# is gitignored and its absence is not an error.
+	path = ~/.config/git/config.local

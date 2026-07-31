@@ -1,0 +1,35 @@
+{{/*
+  Per machine configuration, asked once at `chezmoi init` and remembered.
+
+  `promptStringOnce` reads an existing answer from the config when there is
+  one, so re-running init does not re-ask. `chezmoi init --promptDefaults`
+  takes every default below and asks nothing, which is what makes an
+  unattended bootstrap and a continuous integration run possible.
+
+  Keep this list short. Every question here is one a future you has to
+  answer on a new machine while wanting to be doing something else.
+*/}}
+
+{{- $email := promptStringOnce . "email" "Git commit email" "24684994+tannergolden@users.noreply.github.com" -}}
+{{- $name  := promptStringOnce . "name"  "Git commit name"  "Tanner Golden" -}}
+
+{{/*
+  A codespace is a throwaway Linux container: no GUI, no fonts, no system
+  preferences, and a shell that has to come up fast. The platform sets
+  CODESPACES itself, so this is detected rather than asked.
+*/}}
+{{- $isCodespaces := env "CODESPACES" | not | not -}}
+
+encryption = ""
+
+[data]
+  name         = {{ $name | quote }}
+  email        = {{ $email | quote }}
+  isCodespaces = {{ $isCodespaces }}
+
+[git]
+  autoCommit = false
+  autoPush   = false
+
+[diff]
+  exclude = ["scripts"]
