@@ -194,12 +194,25 @@ install_ollama() {
     *) echo "  no ollama build for $(uname -m), skipping" >&2; return 0 ;;
   esac
   local url="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-${tarch}.tar.zst"
-  if curl -fsSL "${url}" 2>/dev/null | zstd -d 2>/dev/null | tar -x -C "${HOME}/.local" 2>/dev/null; then
-    command -v ollama >/dev/null 2>&1 || [ -x "${BIN_DIR}/ollama" ] \
-      || echo "  ollama extracted but no binary at ${BIN_DIR}/ollama" >&2
+  # STAGED THROUGH A TEMP DIR, NOT STREAMED INTO ~/.local. Streaming tar
+  # straight into the destination means an interrupted download leaves a
+  # truncated bin/ollama in place, and the `command -v` guard above then
+  # reports it installed forever. Extract fully, verify the binary exists,
+  # only then move into place.
+  local tmp; tmp="$(mktemp -d)"
+  if curl -fsSL "${url}" 2>/dev/null | zstd -d 2>/dev/null | tar -x -C "${tmp}" 2>/dev/null \
+     && [ -x "${tmp}/bin/ollama" ]; then
+    # bin/ollama and lib/ollama must stay siblings under one prefix.
+    if [ -d "${tmp}/lib/ollama" ]; then
+      mkdir -p "${HOME}/.local/lib"
+      rm -rf "${HOME}/.local/lib/ollama"
+      mv "${tmp}/lib/ollama" "${HOME}/.local/lib/ollama"
+    fi
+    install -m 0755 "${tmp}/bin/ollama" "${BIN_DIR}/ollama"
   else
     echo "  ollama download failed, continuing" >&2
   fi
+  rm -rf "${tmp}"
 }
 
 # Dispatch by name. A `case` rather than constructing a function name from

@@ -54,7 +54,12 @@ foreach ($agent in $agents) {
         } -ArgumentList $agent.Bin
         $version = if (Wait-Job $job -Timeout 10) { Receive-Job $job } else { '(version check timed out)' }
         Remove-Job $job -Force
-        Write-Host ('{0} {1,-14} {2}' -f "$([char]0x2713)", $agent.Bin, "$version") -ForegroundColor Green
+        # Same shape as the POSIX twin: version first, product second -
+        # most version strings identify the tool, but "agy" alone does not.
+        Write-Host "$([char]0x2713) " -ForegroundColor Green -NoNewline
+        Write-Host ('{0,-14} ' -f $agent.Bin) -ForegroundColor Blue -NoNewline
+        Write-Host "$version  " -NoNewline
+        Write-Host $agent.Label -ForegroundColor DarkGray
     } else {
         $missing += $agent.Bin
     }

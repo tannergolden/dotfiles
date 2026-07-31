@@ -62,12 +62,15 @@ fi
 
 version_of() {
   # Raw first line, bounded: a Node CLI takes ~1s, Python up to ~3s, and a
-  # misbehaving one must not hang a dashboard pane forever.
+  # misbehaving one must not hang a dashboard pane forever. </dev/null is
+  # load-bearing: this runs inside the roster's while-read loop, so a CLI
+  # that reads stdin would otherwise swallow the REST OF THE ROSTER as its
+  # input and the loop would end early.
   local out
   if command -v timeout >/dev/null 2>&1; then
-    out="$(timeout 10 "$1" --version 2>&1 | head -1 || true)"
+    out="$(timeout 10 "$1" --version </dev/null 2>&1 | head -1 || true)"
   else
-    out="$("$1" --version 2>&1 | head -1 || true)"
+    out="$("$1" --version </dev/null 2>&1 | head -1 || true)"
   fi
   printf '%s' "${out}"
 }

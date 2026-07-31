@@ -62,15 +62,15 @@ attach() {
   # `switch-client` from outside has no client to switch. Both are real,
   # so both branches exist.
   if [ -n "${TMUX:-}" ]; then
-    exec tmux switch-client -t "${SESSION}"
+    exec tmux switch-client -t "=${SESSION}"
   else
-    exec tmux attach-session -t "${SESSION}"
+    exec tmux attach-session -t "=${SESSION}"
   fi
 }
 
 case "${1:-}" in
   kill)
-    tmux kill-session -t "${SESSION}" 2>/dev/null \
+    tmux kill-session -t "=${SESSION}" 2>/dev/null \
       && echo "session '${SESSION}' killed" \
       || echo "no '${SESSION}' session to kill"
     exit 0
@@ -82,7 +82,12 @@ case "${1:-}" in
 esac
 
 # Already built? Just go there. Re-running must never stack a second grid.
-if tmux has-session -t "${SESSION}" 2>/dev/null; then
+#
+# Every -t in this file says =ai-dash, not ai-dash, because tmux targets
+# PREFIX-match by default: a user's own "ai-dashboard" session would be
+# attached to here and, worse, destroyed by `ai-dash kill`. The = prefix
+# demands an exact name.
+if tmux has-session -t "=${SESSION}" 2>/dev/null; then
   attach
 fi
 
@@ -96,27 +101,33 @@ LINES="$(tput lines 2>/dev/null || echo 50)"
 # runs them via sh -c), not here.
 tmux new-session -d -s "${SESSION}" -n "${WINDOW}" -x "${COLS}" -y "${LINES}" \
   'fastfetch; exec "${SHELL:-/bin/sh}"'
-tmux split-window -t "${SESSION}:${WINDOW}"
-tmux split-window -t "${SESSION}:${WINDOW}" 'ai-agents; exec "${SHELL:-/bin/sh}"'
-tmux split-window -t "${SESSION}:${WINDOW}" 'ai-model chat; exec "${SHELL:-/bin/sh}"'
-tmux select-layout -t "${SESSION}:${WINDOW}" tiled
+tmux split-window -t "=${SESSION}:${WINDOW}"
+tmux split-window -t "=${SESSION}:${WINDOW}" 'ai-agents; exec "${SHELL:-/bin/sh}"'
+tmux split-window -t "=${SESSION}:${WINDOW}" 'ai-model chat; exec "${SHELL:-/bin/sh}"'
+tmux select-layout -t "=${SESSION}:${WINDOW}" tiled
 
 # Catppuccin Mocha, session-scoped. Official palette hexes; needs a
 # 256-colour terminal, which is every terminal this repository configures.
-tmux set-option -t "${SESSION}" status-style "bg=#1e1e2e,fg=#cdd6f4"
-tmux set-option -t "${SESSION}" status-left "#[fg=#1e1e2e,bg=#89b4fa,bold] #S #[default] "
-tmux set-option -t "${SESSION}" status-right "#[fg=#a6adc8]%H:%M "
-tmux set-option -t "${SESSION}" window-status-format "#[fg=#6c7086] #I #W "
-tmux set-option -t "${SESSION}" window-status-current-format "#[fg=#cba6f7,bold] #I #W "
-tmux set-option -w -t "${SESSION}:${WINDOW}" pane-border-style "fg=#313244"
-tmux set-option -w -t "${SESSION}:${WINDOW}" pane-active-border-style "fg=#89b4fa"
+#
+# These target the WINDOW even though the options are session-scoped,
+# because set-option takes a pane-style target whose parser rejects a
+# bare "=session" ("no such session", verified on tmux 3.4) while
+# "=session:window" resolves - and the session an option lands on is
+# derived from whatever target is given.
+tmux set-option -t "=${SESSION}:${WINDOW}" status-style "bg=#1e1e2e,fg=#cdd6f4"
+tmux set-option -t "=${SESSION}:${WINDOW}" status-left "#[fg=#1e1e2e,bg=#89b4fa,bold] #S #[default] "
+tmux set-option -t "=${SESSION}:${WINDOW}" status-right "#[fg=#a6adc8]%H:%M "
+tmux set-option -t "=${SESSION}:${WINDOW}" window-status-format "#[fg=#6c7086] #I #W "
+tmux set-option -t "=${SESSION}:${WINDOW}" window-status-current-format "#[fg=#cba6f7,bold] #I #W "
+tmux set-option -w -t "=${SESSION}:${WINDOW}" pane-border-style "fg=#313244"
+tmux set-option -w -t "=${SESSION}:${WINDOW}" pane-active-border-style "fg=#89b4fa"
 
 # Land on the blank pane - it is the one meant for typing. Panes are
 # addressed by unique id rather than index, because a user's tmux.conf may
 # set pane-base-index and shift every number. Creation order is fixed:
 # 0 fastfetch, 1 blank, 2 agents, 3 chat; tiled lays them out row-major,
 # so the blank pane is top-right.
-BLANK_PANE="$(tmux list-panes -t "${SESSION}:${WINDOW}" -F '#{pane_id}' | sed -n '2p')"
+BLANK_PANE="$(tmux list-panes -t "=${SESSION}:${WINDOW}" -F '#{pane_id}' | sed -n '2p')"
 if [ -n "${BLANK_PANE}" ]; then
   tmux select-pane -t "${BLANK_PANE}"
 fi

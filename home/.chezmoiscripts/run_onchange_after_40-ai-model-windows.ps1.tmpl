@@ -15,6 +15,14 @@ if ($env:CI_STUB -eq '1') {
     exit 0
 }
 
+# On a first bootstrap scoop has only just written its shims, and the
+# environment chezmoi inherited may predate them - the same first-apply
+# trap the POSIX twin guards against with ~/.local/bin.
+$shims = Join-Path $HOME 'scoop\shims'
+if ((Test-Path $shims) -and ($env:PATH -notlike "*$shims*")) {
+    $env:PATH = "$shims;$env:PATH"
+}
+
 # Degrade, never abort: a machine where scoop has not delivered ollama yet
 # still deserves a completed apply.
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
@@ -24,9 +32,19 @@ if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
 
 # -Auto caps the unattended download (default 32GB); anything bigger is
 # pulled by a person running `ai-model install` deliberately.
-& (Join-Path $HOME '.local\bin\ai-model.ps1') install -Auto
-if ($LASTEXITCODE -ne 0) {
-    Write-Warning 'ai-model install reported errors; continuing'
+#
+# try/catch, not just $LASTEXITCODE: ai-model.ps1 runs under its own
+# $ErrorActionPreference = 'Stop' and reports failure by THROWING, and a
+# throw from a script invoked with & propagates into this one - without
+# the catch it would take the whole chezmoi apply down with it, which is
+# exactly what "degrade, never abort" forbids.
+try {
+    & (Join-Path $HOME '.local\bin\ai-model.ps1') install -Auto
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning 'ai-model install reported errors; continuing'
+    }
+} catch {
+    Write-Warning "ai-model install reported errors; continuing: $($_.Exception.Message)"
 }
 exit 0
 {{- end }}

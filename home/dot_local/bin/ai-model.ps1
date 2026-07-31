@@ -78,13 +78,17 @@ function Find-NvidiaSmi {
 }
 
 function Get-Budget {
-    # Returns @{ Kind; Gb }.
+    # Returns @{ Kind; Gb }. Floors everywhere, never [int] casts:
+    # PowerShell's [int] rounds half-to-even, so 43.5GB would become 44
+    # here while the POSIX twin's integer arithmetic floors it to 43 -
+    # and two scripts claiming lockstep must not pick different tiers on
+    # identical hardware.
     $ramBytes = [uint64](Get-CimInstance -ClassName Win32_ComputerSystem).TotalPhysicalMemory
 
-    # Windows-on-ARM is unified memory, so it budgets like Apple Silicon's
-    # conservative fraction rather than like a dGPU machine.
+    # Windows-on-ARM is unified memory shared with the OS, so it budgets
+    # like the CPU-only case: 3/4 of RAM.
     if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') {
-        return @{ Kind = 'arm64-unified'; Gb = [int]($ramBytes / 1GB * 3 / 4) }
+        return @{ Kind = 'arm64-unified'; Gb = [int][math]::Floor($ramBytes / 1GB * 3 / 4) }
     }
 
     $smi = Find-NvidiaSmi
@@ -93,9 +97,10 @@ function Get-Budget {
         if ($LASTEXITCODE -eq 0 -and $lines) {
             # Largest single card, not the sum: one model cannot run at
             # full speed across mismatched GPUs.
-            $mib = ($lines | ForEach-Object { [int]($_ -replace '[^0-9]', '') } |
+            $mib = ($lines | Where-Object { $_.Trim() -match '^[0-9]+$' } |
+                ForEach-Object { [int]$_.Trim() } |
                 Measure-Object -Maximum).Maximum
-            if ($mib -gt 0) { return @{ Kind = 'nvidia'; Gb = [int]($mib / 1024) } }
+            if ($mib -gt 0) { return @{ Kind = 'nvidia'; Gb = [int][math]::Floor($mib / 1024) } }
         }
     }
 
@@ -109,11 +114,11 @@ function Get-Budget {
         # Same 4GiB floor as the POSIX script: below that it is an iGPU
         # carve-out and the machine budgets as CPU-only.
         if ($vramBytes -ge 4GB) {
-            return @{ Kind = 'gpu'; Gb = [int]($vramBytes / 1GB) }
+            return @{ Kind = 'gpu'; Gb = [int][math]::Floor($vramBytes / 1GB) }
         }
     }
 
-    return @{ Kind = 'cpu'; Gb = [int]($ramBytes / 1GB * 3 / 4) }
+    return @{ Kind = 'cpu'; Gb = [int][math]::Floor($ramBytes / 1GB * 3 / 4) }
 }
 
 # --- ladder lookup ---------------------------------------------------------

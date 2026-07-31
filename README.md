@@ -201,7 +201,7 @@ ai-model     # detect the hardware, pick the strongest local model, pull it, cha
 +----------------+----------------+
 ```
 
-The panes are tmux on macOS and Linux and Windows Terminal splits on Windows, because no terminal exposes splits to a script portably and tmux has no native Windows build. The session rides your normal tmux server under the name `ai-dash`, styled Catppuccin Mocha **for that session only**, so your own tmux theming is never touched. `ai-dash kill` tears it down.
+The panes are tmux on macOS and Linux and Windows Terminal splits on Windows, because no terminal exposes splits to a script portably and tmux has no native Windows build. The session rides your normal tmux server under the name `ai-dash`, styled Catppuccin Mocha **for that session only**, so your own tmux theming is never touched. `ai-dash kill` tears it down on macOS and Linux; on Windows closing the window is the whole teardown, because Windows Terminal has no detached session to kill.
 
 ### How the model is chosen
 
@@ -219,7 +219,12 @@ Three deliberate guard rails, because model pulls are measured in tens of gigaby
 
 - **Unattended pulls are capped at 32GB** (`AI_MODEL_AUTO_MAX_GB`). A 128GB machine's first `chezmoi apply` will not silently start an 81GB download; it says what the machine could hold and lets you run `ai-model install` once, on purpose.
 - **Disk is checked before pulling**, with 20% headroom, because Ollama itself has no free-space preflight and fails mid-download without one. Interrupted pulls resume.
-- **Codespaces skip the ollama runtime entirely** (~1.4GB down, ~4GB unpacked, on a 32GB throwaway disk). Set `AI_LOCAL_MODELS=1` before bootstrap to opt a codespace in; everything else in the dashboard still works there.
+- **Codespaces skip the ollama runtime entirely** (~1.4GB down, ~4GB unpacked, on a 32GB throwaway disk); everything else in the dashboard still works there. To opt in, set `AI_LOCAL_MODELS=1` as a [Codespaces secret](https://github.com/settings/codespaces) so it exists when a **new** codespace bootstraps — provisioning only re-runs when its content changes, so exporting the variable inside an existing codespace does nothing. In an existing one, install by hand instead:
+
+  ```bash
+  curl -fsSL https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst \
+    | zstd -d | tar -x -C ~/.local && ai-model install
+  ```
 
 `AI_MODEL=<tag>` overrides the ladder outright, and `AI_MODEL_MAX_GB` caps what it may choose. `ai-model status` shows the detection, the ladder's verdict and what is installed, without changing anything.
 

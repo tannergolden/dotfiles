@@ -22,6 +22,15 @@ if [ "${CI_STUB:-0}" = "1" ]; then
   exit 0
 fi
 
+# PATH FIRST, GUARD SECOND, and the order is load-bearing. On a first
+# Linux bootstrap the package stage has just unpacked ollama into
+# ~/.local/bin, but the environment chezmoi inherited predates that
+# directory being on PATH. Without this line the guard below would miss a
+# freshly installed ollama, record a clean exit-0 skip, and run_onchange
+# would never revisit it - the model stage would be silently dead until
+# the next edit of the ai-model script.
+export PATH="${HOME}/.local/bin:${PATH}"
+
 # No ollama, no model - and that is a legitimate state, not an error: the
 # codespace default skips the runtime, and a bare machine may not have run
 # the package stage yet. Degrade exactly like every other provisioning
