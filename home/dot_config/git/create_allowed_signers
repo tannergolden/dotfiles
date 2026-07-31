@@ -1,0 +1,50 @@
+# --- SSH signing trust list ---
+#
+# `create_` prefix: chezmoi writes this file once and then NEVER overwrites
+# it, so your real entries survive every future `chezmoi apply`. Edit it in
+# place on each machine.
+#
+# Safe to commit if you want to: it holds only public keys and an address
+# you already publish in every commit header. It is designed to be shared.
+#
+# WHY IT MUST EXIST AT ALL. Without gpg.ssh.allowedSignersFile pointing at
+# a real file, `git log --show-signature` on a correctly signed commit
+# reports "No signature" rather than an error. Local verification silently
+# degrades to nothing and you cannot tell a signed commit from an unsigned
+# one.
+#
+# FORMAT
+#   <principal> [options] <keytype> <base64-key>
+#
+# ADD YOUR SIGNING KEY:
+#   ssh-keygen -t ed25519 -C "signing" -f ~/.ssh/id_signing_ed25519
+#   printf '%s %s\n' "24684994+tannergolden@users.noreply.github.com" \
+#     "$(cat ~/.ssh/id_signing_ed25519.pub | cut -d' ' -f1,2)" \
+#     >> ~/.config/git/allowed_signers
+#
+# Then register the PUBLIC half on GitHub under Settings, SSH and GPG keys,
+# as a SIGNING key. That is a separate registration from an authentication
+# key; a key added only for authentication will sign commits that GitHub
+# then shows as Unverified.
+#
+# PIN THE NAMESPACE. `namespaces="git"` stops a signature made over a file
+# being replayed as a commit signature. Verified: signing with -n git and
+# verifying with -n file is rejected.
+#
+#   me@example.com namespaces="git" ssh-ed25519 AAAAC3Nz...
+#
+# KEY ROTATION, WITHOUT LOSING OLD COMMITS. Git evaluates the validity
+# window against the COMMIT time, not the current time, so an old key can
+# be retired while every commit it signed stays verifiable forever:
+#
+#   me@example.com namespaces="git",valid-before="20270101" ssh-ed25519 AAAA...old
+#   me@example.com namespaces="git",valid-after="20270101"  ssh-ed25519 AAAA...new
+#
+# That is offline, in-repository, revocable key rotation with no secret
+# manager involved.
+#
+# ONE THING THIS FILE DOES NOT DO. It answers "was this signed by a key I
+# trust", NOT "was this signed by the person in the Author field". Git
+# reports the principal from THIS file and still returns a good signature
+# even when that principal differs from the commit author. Binding a key to
+# an identity is the forge's job.

@@ -90,8 +90,17 @@ ensure_chezmoi() {
     "https://github.com/twpayne/chezmoi/releases/download/${CHEZMOI_VERSION}/chezmoi_${ver}_checksums.txt" \
     || die "could not download checksums"
 
-  ( cd "${tmp}" && grep " ${tarball}\$" checksums.txt | shasum -a 256 -c - ) \
-    || die "checksum mismatch for ${tarball}"
+  # sha256sum is GNU/Linux, shasum is the macOS spelling, and neither is
+  # guaranteed on the other. Pick whichever exists rather than assuming.
+  if command -v sha256sum >/dev/null 2>&1; then
+    ( cd "${tmp}" && grep " ${tarball}\$" checksums.txt | sha256sum -c - ) \
+      || die "checksum mismatch for ${tarball}"
+  elif command -v shasum >/dev/null 2>&1; then
+    ( cd "${tmp}" && grep " ${tarball}\$" checksums.txt | shasum -a 256 -c - ) \
+      || die "checksum mismatch for ${tarball}"
+  else
+    die "no sha256 tool available; refusing to install an unverified binary"
+  fi
 
   tar -xzf "${tmp}/${tarball}" -C "${tmp}" chezmoi
   install -m 0755 "${tmp}/chezmoi" "${BIN_DIR}/chezmoi"

@@ -1,0 +1,78 @@
+# --- starship prompt ---
+#
+# NO NERD FONT GLYPHS, DELIBERATELY.
+#
+# The Terminal.app profile in this repository specifies Monaco 12, which is
+# not a patched Nerd Font. starship lists a Nerd Font as a prerequisite,
+# and the failure mode when one is missing is worse than it sounds: the
+# glyphs live in Unicode Private Use Areas with ambiguous width, so the
+# terminal's cell arithmetic and the shell's prompt-length arithmetic
+# disagree. The visible result is not a missing icon but a cursor that
+# drifts from its apparent position, and long command lines that garble
+# when you re-edit them. That reads as flakiness rather than as a font
+# problem, which is what makes it expensive.
+#
+# So the symbols below are plain text. If you later install a Nerd Font and
+# set it in the Terminal profile, this file is the one place to change.
+#
+# One config, three shells: starship reads STARSHIP_CONFIG or this default
+# path identically on macOS, Linux and Windows, and only its per-shell init
+# line differs. It is one of the few pieces of this setup that genuinely is
+# shared rather than duplicated.
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$cmd_duration\
+$line_break\
+$character"""
+
+add_newline = true
+command_timeout = 1000
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"
+vimcmd_symbol = "[<](bold green)"
+
+[directory]
+style = "bold cyan"
+truncation_length = 3
+truncate_to_repo = true
+read_only = " [ro]"
+
+[git_branch]
+symbol = ""
+format = "on [$branch]($style) "
+style = "bold purple"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "bold yellow"
+conflicted = "!"
+ahead = "^${count}"
+behind = "v${count}"
+diverged = "^${ahead_count}v${behind_count}"
+untracked = "?"
+stashed = "$"
+modified = "*"
+staged = "+"
+renamed = "r"
+deleted = "x"
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+style = "bold yellow"
+
+# Off by default. A prompt that reports a runtime version on every line is
+# noise until the moment it is not, and each of these costs a subprocess.
+[nodejs]
+disabled = true
+[python]
+disabled = true
+[rust]
+disabled = true
+[golang]
+disabled = true

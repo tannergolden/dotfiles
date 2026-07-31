@@ -1,0 +1,150 @@
+# --- Prove a bootstrap works on a machine nobody has ---
+#
+# THIS WORKFLOW IS THE ONLY PLACE macOS AND WINDOWS ARE EXERCISED AT ALL.
+# The whole design was built and reasoned about on Linux, so on both of
+# those platforms this is the first real test rather than a regression
+# check. Treat a failure here as information, not as an inconvenience.
+#
+# WHAT "CLEAN MACHINE" CAN AND CANNOT MEAN HERE, stated so a green tick is
+# not overread:
+#
+#   * Neither runner offers a disposable container, so isolation is a
+#     throwaway $HOME and nothing more. Anything the bootstrap touches
+#     outside $HOME is neither isolated nor clean.
+#   * macos-latest ships Homebrew ALREADY INSTALLED, so a real `brew
+#     install` here would prove nothing about a bare machine while costing
+#     minutes. Package installation is therefore stubbed and asserted on
+#     the planned list instead.
+#   * Both runners are slow. Everything that does not need the real
+#     operating system runs on the cheap Linux linter job first, so a
+#     template typo fails in twenty seconds rather than six minutes.
+
+name: '🚦 Bootstrap'
+
+on:
+  push:
+    branches: ['Development', 'Experimental', 'Preview', 'Release']
+  pull_request:
+    branches: ['Development', 'Experimental', 'Preview', 'Release']
+  # Weekly, because an install channel or an upstream release URL can die
+  # on untouched code. This is the only thing that tells you before you are
+  # standing at a new laptop.
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  # Asserted below to be the version actually on PATH. Without that check a
+  # preinstalled or newer chezmoi silently changes what is being tested.
+  CHEZMOI_VERSION: 'v2.71.1'
+  CI_STUB: '1'
+
+jobs:
+  # The cheap job. Renders every template for every platform from a single
+  # Linux host, because --override-data changes both template rendering and
+  # .chezmoiignore evaluation. Not a supported target: a compiler.
+  lint:
+    name: '🧹 Lint & Render'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: '📂 Checkout'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: '📦 Install chezmoi'
+        run: |
+          set -euo pipefail
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" -t "${CHEZMOI_VERSION}"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: '🔍 Pinned chezmoi is the one on PATH'
+        run: |
+          set -euo pipefail
+          got="$(chezmoi --version | head -1)"
+          echo "${got}"
+          case "${got}" in
+            *"${CHEZMOI_VERSION#v}"*) echo "ok pinned version in use" ;;
+            *) echo "::error::expected ${CHEZMOI_VERSION}, got ${got}"; exit 1 ;;
+          esac
+
+      - name: '🧹 ShellCheck'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          make lint-shell
+
+      - name: '🌐 Every template renders for every platform'
+        run: make render
+
+      - name: '🛡️ No attribute prefix leaked into a target path'
+        run: make prefixes
+
+  bootstrap:
+    name: '🚀 Bootstrap (${{ matrix.os }})'
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    # One platform failing must not hide the state of the others.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    permissions:
+      contents: read
+    steps:
+      - name: '📂 Checkout'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: '📦 Install chezmoi (POSIX)'
+        if: runner.os != 'Windows'
+        run: |
+          set -euo pipefail
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" -t "${CHEZMOI_VERSION}"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: '📦 Install chezmoi (Windows)'
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bin = Join-Path $HOME '.local\bin'
+          New-Item -ItemType Directory -Path $bin -Force | Out-Null
+          iex "&{$(irm 'https://get.chezmoi.io/ps1')} -b '$bin' -t '$env:CHEZMOI_VERSION'"
+          Add-Content -Path $env:GITHUB_PATH -Value $bin
+
+      # Asserted rather than assumed. GitHub's Windows runners normally run
+      # elevated, which is what lets chezmoi create symlinks at all, but a
+      # runner image change would otherwise turn that into a silent,
+      # confusing failure later.
+      - name: '🔗 Windows can create symlinks'
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $t = Join-Path $env:RUNNER_TEMP 'symlink-probe'
+          New-Item -ItemType Directory -Path $t -Force | Out-Null
+          Set-Content -Path (Join-Path $t 'real.txt') -Value 'x'
+          try {
+            New-Item -ItemType SymbolicLink -Path (Join-Path $t 'link.txt') `
+                     -Target (Join-Path $t 'real.txt') -ErrorAction Stop | Out-Null
+            Write-Host 'ok symlink creation permitted'
+          } catch {
+            Write-Host '::warning::symlink creation NOT permitted on this runner'
+          }
+
+      # One smoke script on all three runners. Git Bash is present on the
+      # Windows image, so `shell: bash` works there and there is no second
+      # copy of the suite to drift out of step.
+      - name: '🧪 Smoke test'
+        shell: bash
+        run: ./scripts/smoke-test.sh
