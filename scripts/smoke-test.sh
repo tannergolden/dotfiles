@@ -269,6 +269,67 @@ check "the fresh archive is readable" \
 
 rm -f "${HOME}/.canary-must-survive"
 
+# --- 11. --reset removes only what it says, and gives it all back ---------
+#
+# This is the only thing in the repository that deletes a file it does not
+# manage, so it gets the most coverage. Three properties are asserted:
+# reporting changes nothing, removal is confined to the documented list,
+# and everything removed comes back through the ordinary restore.
+
+RC="${REPO_DIR}/scripts/reset-conflicts.sh"
+RHOME="${SANDBOX}/reset-home"
+mkdir -p "${RHOME}/.config/git"
+# The verified case: this beats .config/git/config outright.
+printf '[user]\n\temail = stray@example.com\n' > "${RHOME}/.gitconfig"
+# A documented escape hatch, which must survive.
+printf '# mine\n' > "${RHOME}/.zshrc.local"
+printf '# mine\n' > "${RHOME}/.config/git/config.local"
+# An unrelated file, which must never be touched.
+printf 'unrelated\n' > "${RHOME}/.bashrc"
+
+check "reset reports the stray .gitconfig" \
+  'HOME="${RHOME}" "${RC}" "${CHEZMOI}" "${REPO_DIR}" >"${SANDBOX}/reset.out" 2>&1; grep -q "would remove .*\.gitconfig" "${SANDBOX}/reset.out"'
+check "reporting removed NOTHING" '[ -f "${RHOME}/.gitconfig" ]'
+
+RBK="${SANDBOX}/reset-backup"
+mkdir -p "${RBK}"
+printf 'absent\t.nothing\t-\n' > "${RBK}/manifest.tsv"
+check "reset --with-backup succeeds" \
+  'HOME="${RHOME}" "${RC}" "${CHEZMOI}" "${REPO_DIR}" "${RBK}"'
+check "reset removed the stray .gitconfig" '[ ! -e "${RHOME}/.gitconfig" ]'
+check "reset preserved it before removing it" \
+  '[ -f "${RBK}/conflicts/.gitconfig" ]'
+check "reset recorded it in conflicts.tsv" \
+  'grep -q "^\.gitconfig	" "${RBK}/conflicts.tsv"'
+
+# The three that prove the blast radius is bounded.
+check "reset KEPT .zshrc.local, a documented escape hatch" \
+  '[ -f "${RHOME}/.zshrc.local" ]'
+check "reset KEPT .config/git/config.local, the other escape hatch" \
+  '[ -f "${RHOME}/.config/git/config.local" ]'
+check "reset did not touch an unrelated file" \
+  '[ -f "${RHOME}/.bashrc" ]'
+
+check "restore puts back what reset cleared" \
+  'HOME="${RHOME}" "${REPO_DIR}/scripts/restore-backup.sh" "${RBK}"'
+check "the stray .gitconfig is back, byte for byte" \
+  'grep -q "stray@example.com" "${RHOME}/.gitconfig"'
+
+# Removal must never outrun preservation. A backup directory that cannot
+# be created has to stop the run with the file still on disk.
+#
+# The unwritable directory is a path UNDER A REGULAR FILE, not a directory
+# with its mode stripped. Mode bits do not stop uid 0, so the mode version
+# of this test passed on a CI runner and failed for anyone running the
+# suite as root, which makes it a test of the environment rather than of
+# the script. mkdir fails with ENOTDIR for everyone.
+NOT_A_DIR="${SANDBOX}/reset-blocker"
+printf 'this is a file, not a directory\n' > "${NOT_A_DIR}"
+check "reset refuses when it cannot preserve" \
+  '! HOME="${RHOME}" "${RC}" "${CHEZMOI}" "${REPO_DIR}" "${NOT_A_DIR}/bk"'
+check "the file it could not preserve is still there" \
+  '[ -f "${RHOME}/.gitconfig" ]'
+
 printf '\n=== %s passed, %s failed ===\n' "${pass}" "${fail}"
 [ "${fail}" -eq 0 ] || exit 1
 exit 0

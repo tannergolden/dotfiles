@@ -17,6 +17,38 @@ set -euo pipefail
 
 CHEZMOI_VERSION="v2.71.1"
 
+# --- --reset ---------------------------------------------------------------
+#
+# OFF BY DEFAULT, and that is not timidity. Bootstrap runs unattended
+# during codespace creation, from a PUBLIC repository, with nobody present
+# to read a prompt. A default that deletes unmanaged files in that context
+# is indefensible no matter how well chosen the list is.
+#
+# So every run REPORTS what overrides this repository, and only a run that
+# was explicitly asked to will remove any of it. Everything removed is
+# preserved into the same snapshot the backup writes, so the ordinary
+# restore puts it back.
+RESET=false
+for _arg in "$@"; do
+  case "${_arg}" in
+    --reset) RESET=true ;;
+    --help|-h)
+      cat <<'EOF'
+usage: bootstrap.sh [--reset]
+
+  --reset   Also remove configuration that silently overrides this
+            repository, such as a ~/.gitconfig that beats
+            ~/.config/git/config. Everything removed is preserved into the
+            snapshot first and comes back with restore-backup.sh.
+
+Without --reset the conflicts are reported and nothing is removed.
+EOF
+      exit 0
+      ;;
+    *) printf 'unknown argument: %s (try --help)\n' "${_arg}" >&2; exit 2 ;;
+  esac
+done
+
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_DIR="${HOME}/.dotfiles-backup-${STAMP}"
@@ -130,6 +162,22 @@ CHEZMOI="$(command -v chezmoi || echo "${BIN_DIR}/chezmoi")"
 log "snapshotting existing targets to ${BACKUP_DIR}"
 "${REPO_DIR}/scripts/backup-targets.sh" "${CHEZMOI}" "${REPO_DIR}" "${BACKUP_DIR}" \
   || die "backup failed; refusing to apply"
+
+# --- stage 1b: conflicting configuration ----------------------------------
+#
+# AFTER the snapshot, so nothing is removed that has not already been
+# recorded, and BEFORE the apply, so this repository's files land on a
+# machine where nothing quietly outranks them.
+if [ "${RESET}" = "true" ]; then
+  "${REPO_DIR}/scripts/reset-conflicts.sh" "${CHEZMOI}" "${REPO_DIR}" "${BACKUP_DIR}" \
+    || die "reset failed; refusing to apply"
+else
+  # Reported on every run. Knowing that a stray ~/.gitconfig is beating
+  # this configuration is worth more than the two lines it costs, and
+  # finding it out later is how an afternoon disappears.
+  "${REPO_DIR}/scripts/reset-conflicts.sh" "${CHEZMOI}" "${REPO_DIR}" \
+    || warn "could not check for conflicting configuration"
+fi
 
 # --- stage 2: apply --------------------------------------------------------
 # --promptDefaults takes every declared default and asks nothing, which is

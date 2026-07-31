@@ -150,4 +150,34 @@ printf '  %s mode(s) restored' "${restored_modes}"
 [ "${failed_modes}" -eq 0 ] || printf ', %s not settable on this filesystem' "${failed_modes}"
 printf '\n'
 
+# --- 4. put back anything --reset cleared ---------------------------------
+#
+# reset-conflicts.sh preserves each file it removes into conflicts/ and
+# records it in conflicts.tsv. Kept separate from the main archive rather
+# than appended to it, because appending to a compressed tar is not a
+# thing you can do reliably, and because a reader looking at a snapshot
+# should be able to see at a glance which files were removed for
+# conflicting rather than merely overwritten.
+CONFLICTS_TSV="${BACKUP_DIR}/conflicts.tsv"
+CONFLICTS_DIR="${BACKUP_DIR}/conflicts"
+if [ -f "${CONFLICTS_TSV}" ]; then
+  log "restoring configuration that --reset cleared"
+  restored_conflicts=0
+  while IFS="$(printf '\t')" read -r rel mode; do
+    [ -n "${rel}" ] || continue
+    safe_rel "${rel}" || die "conflicts.tsv names a path outside HOME: ${rel}"
+    [ -e "${CONFLICTS_DIR}/${rel}" ] \
+      || die "conflicts.tsv lists ${rel} but ${CONFLICTS_DIR}/${rel} is missing"
+    mkdir -p "$(dirname "${DEST}/${rel}")"
+    cp -R "${CONFLICTS_DIR}/${rel}" "${DEST}/${rel}" \
+      || die "could not restore ${rel}"
+    case "${mode}" in
+      [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7]) chmod "${mode}" "${DEST}/${rel}" 2>/dev/null || : ;;
+    esac
+    printf '  restored %s\n' "${rel}"
+    restored_conflicts=$((restored_conflicts + 1))
+  done < "${CONFLICTS_TSV}"
+  log "restored ${restored_conflicts} file(s) that --reset had cleared"
+fi
+
 log "restore complete from ${BACKUP_DIR}"

@@ -158,4 +158,47 @@ $note = "  $restoredFlags flag(s) restored"
 if ($skippedFlags -gt 0) { $note += ", $skippedFlags unrecorded at backup time" }
 Write-Host $note
 
+# --- 4. put back anything -Reset cleared ----------------------------------
+#
+# reset-conflicts.ps1 preserves each file it removes into conflicts\ and
+# records it in conflicts.tsv. Kept separate from the main archive so a
+# reader can see at a glance which files were removed for conflicting
+# rather than merely overwritten.
+$conflictsTsv = Join-Path $BackupDir 'conflicts.tsv'
+$conflictsDir = Join-Path $BackupDir 'conflicts'
+if (Test-Path -LiteralPath $conflictsTsv -PathType Leaf) {
+    Write-Step 'restoring configuration that -Reset cleared'
+    $restoredConflicts = 0
+    foreach ($line in (Get-Content -LiteralPath $conflictsTsv -Encoding utf8)) {
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        $parts = $line -split "`t", 2
+        if ($parts.Count -ne 2) { Stop-Restore "conflicts.tsv has a malformed row: $line" }
+        $rel  = $parts[0]
+        $flag = $parts[1]
+        if (-not (Test-SafeRelativePath $rel)) {
+            Stop-Restore "conflicts.tsv names a path outside HOME: $rel"
+        }
+        $staged = Join-Path $conflictsDir $rel
+        if (-not (Test-Path -LiteralPath $staged)) {
+            Stop-Restore "conflicts.tsv lists $rel but $staged is missing"
+        }
+        $target = Join-Path $HOME $rel
+        $parent = Split-Path $target -Parent
+        if (-not (Test-Path -LiteralPath $parent)) {
+            New-Item -ItemType Directory -Path $parent -Force | Out-Null
+        }
+        try {
+            Copy-Item -LiteralPath $staged -Destination $target -Recurse -Force
+        } catch {
+            Stop-Restore "could not restore ${rel}: $($_.Exception.Message)"
+        }
+        if ($flag -eq '1' -and (Test-Path -LiteralPath $target -PathType Leaf)) {
+            (Get-Item -LiteralPath $target -Force).IsReadOnly = $true
+        }
+        Write-Host "  restored $rel"
+        $restoredConflicts++
+    }
+    Write-Step "restored $restoredConflicts file(s) that -Reset had cleared"
+}
+
 Write-Step "restore complete from $BackupDir"

@@ -53,7 +53,25 @@ The restore deletes the files bootstrap **created**, extracts the originals, and
 
 ---
 
-## 2️⃣ A Managed File Keeps Reverting
+## 2️⃣ The Configuration Applied but Nothing Changed
+
+`chezmoi verify` reports clean, every managed file is correct, and the machine still behaves the way it did before. The cause is almost always a file this repository does not manage that outranks one it does.
+
+| The file          | What it beats           | Why                                                     |
+| :---------------- | :---------------------- | :------------------------------------------------------ |
+| `~/.gitconfig`    | `~/.config/git/config`  | Git reads both; the home-directory one wins              |
+| `~/.zshrc.local`  | everything in `.zshrc`  | `.zshrc` sources it last, on purpose                     |
+| `Microsoft.PowerShell_profile.ps1` | the profile shim | Loads after `profile.ps1` in PowerShell's fixed order |
+
+```bash
+scripts/reset-conflicts.sh "$(command -v chezmoi)" ~/.dotfiles
+```
+
+That reports and changes nothing. To act on it, re-run bootstrap with `--reset` (`-Reset` on Windows), which preserves each file into the snapshot before removing it. The escape hatches in the middle row are always reported and never removed; if one of those is the cause, editing it is the fix.
+
+---
+
+## 3️⃣ A Managed File Keeps Reverting
 
 That is chezmoi doing its job. Three honest options:
 
@@ -67,7 +85,7 @@ There is a fourth option that looks right and is not: adding the file to `.chezm
 
 ---
 
-## 3️⃣ Remove the Whole Setup
+## 4️⃣ Remove the Whole Setup
 
 ```bash
 chezmoi purge         # removes chezmoi's own config and state, asks first
@@ -78,7 +96,7 @@ The rendered files in `$HOME` stay, which is usually what you want: the machine 
 
 ---
 
-## 4️⃣ Provisioning Ran but a Tool Is Missing
+## 5️⃣ Provisioning Ran but a Tool Is Missing
 
 Package installation degrades per tool rather than aborting, so one dead channel costs one tool. Re-run with the manifest unchanged and nothing reruns; touch the manifest to force it:
 
@@ -91,7 +109,7 @@ The per-machine script state lives in `~/.config/chezmoi/chezmoistate.boltdb`. D
 
 ---
 
-## 5️⃣ Signing Broke
+## 6️⃣ Signing Broke
 
 Commits fail with a gpg error, or GitHub shows **Unverified**:
 
@@ -101,13 +119,13 @@ Commits fail with a gpg error, or GitHub shows **Unverified**:
 
 ---
 
-## 6️⃣ Revert the Theme
+## 7️⃣ Revert the Theme
 
 The Catppuccin Mocha recolour landed as a single commit touching the terminal profile, fzf, bat, delta and starship. One revert of that commit restores the previous look; the Terminal.app profile then needs a re-import via `scripts/macos-interactive.sh`.
 
 ---
 
-## 7️⃣ The Escape Hatch
+## 8️⃣ The Escape Hatch
 
 If chezmoi itself is the problem, the repository is still just files:
 

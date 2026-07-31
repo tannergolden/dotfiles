@@ -29,6 +29,25 @@ It is managed by [chezmoi](https://www.chezmoi.io), which **renders real files i
 > [!IMPORTANT]
 > Bootstrap **snapshots every file it is about to touch** before writing anything, because `chezmoi apply` overwrites existing configuration silently and offers no undo of its own. The snapshot is the undo.
 
+### 🧹 The config that outranks this repository
+
+A machine can differ from this repository in a way `chezmoi verify` cannot see, because the files responsible are ones chezmoi does not manage. The clearest case: Git reads `~/.config/git/config`, which this repository owns, and it also reads `~/.gitconfig` — **and `~/.gitconfig` wins**. Every line here, the signing gate included, loses silently to a file nothing in this repository looks at.
+
+Every bootstrap therefore **reports** what is overriding it. Passing `--reset` also removes it:
+
+```bash
+~/.dotfiles/scripts/bootstrap.sh --reset
+```
+
+```powershell
+& $HOME\.dotfiles\scripts\bootstrap.ps1 -Reset
+```
+
+It is off by default because bootstrap runs unattended during codespace creation, from a public repository, with nobody present to read a prompt. The list is short and specific: files that outrank one this repository owns, and orphans left behind by a file that was once applied here and is now ignored on this platform. Documented escape hatches (`~/.zshrc.local`, `~/.config/git/config.local`) are reported and kept, and everything removed is preserved into the snapshot first, so `restore-backup.sh` brings it back.
+
+> [!NOTE]
+> It does **not** reset Terminal.app or Windows Terminal to their defaults, and that is deliberate. Those preferences hold every profile, window group and setting you have, not just the one this repository contributes. On macOS it could not work anyway: Terminal rewrites its own preferences on quit, so a bootstrap running inside Terminal is racing the process that will overwrite it.
+
 ---
 
 ## 🖥️ Supported Platforms

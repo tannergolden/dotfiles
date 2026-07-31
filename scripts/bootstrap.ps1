@@ -10,7 +10,13 @@
 
 [CmdletBinding()]
 param(
-    [switch]$SkipPackages
+    [switch]$SkipPackages,
+
+    # OFF BY DEFAULT. Every run reports what overrides this repository;
+    # only a run that was explicitly asked to will remove any of it.
+    # Everything removed is preserved into the snapshot first, so
+    # restore-backup.ps1 puts it back.
+    [switch]$Reset
 )
 
 $ErrorActionPreference = 'Stop'
@@ -192,6 +198,26 @@ if ($stagedFiles.Count -gt 0) {
 }
 Remove-Item -Recurse -Force $stage
 Write-Step "$($rows.Count) target(s) recorded, $($stagedFiles.Count) captured"
+
+# --- stage 1b: conflicting configuration ----------------------------------
+#
+# AFTER the snapshot, so nothing is removed that has not already been
+# recorded, and BEFORE the apply, so this repository's files land on a
+# machine where nothing quietly outranks them.
+$resetScript = Join-Path $RepoDir 'scripts\reset-conflicts.ps1'
+if (Test-Path -LiteralPath $resetScript) {
+    if ($Reset) {
+        & $resetScript $chezmoi $RepoDir $BackupDir
+        Assert-LastExitCode 'reset-conflicts.ps1'
+    } else {
+        # Reported on every run. Knowing that a stray ~/.gitconfig is
+        # beating this configuration is worth more than the lines it costs.
+        & $resetScript $chezmoi $RepoDir
+        if ($LASTEXITCODE -ne 0) { Write-Warn 'could not check for conflicting configuration' }
+    }
+} else {
+    Write-Warn "reset-conflicts.ps1 is missing; skipping the conflict check"
+}
 
 # --- stage 2: apply --------------------------------------------------------
 Write-Step "applying dotfiles"
