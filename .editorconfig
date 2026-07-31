@@ -1,0 +1,34 @@
+# https://editorconfig.org
+#
+# Editors search upward and stop at `root = true`, so this must sit at the
+# repository root. It cannot be relocated into config/.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[*.sh]
+indent_size = 2
+
+[*.ps1]
+indent_size = 4
+
+[*.md]
+# Trailing whitespace is a hard line break in Markdown.
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+# Terminal.app writes these; leave its formatting exactly as exported.
+[*.terminal]
+insert_final_newline = false
+trim_trailing_whitespace = false

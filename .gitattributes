@@ -1,0 +1,45 @@
+# --- Line endings ---
+#
+# `.gitattributes` beats `core.autocrlf`, in BOTH directions, and it is the
+# only mechanism that is committed and therefore identical on every machine.
+# `core.autocrlf` is per-machine, invisible, and defaults differently
+# depending on how git was installed. Do not rely on it.
+#
+# This matters more than usual here: the same tree is checked out on macOS,
+# native Windows, and a Codespaces Linux container.
+
+* text=auto eol=lf
+
+# LF is load-bearing. Git Bash on the Windows CI runner executes these, and
+# bash rejects CRLF in a shebang line.
+*.sh   text eol=lf
+*.zsh  text eol=lf
+*.bash text eol=lf
+
+# CRLF is load-bearing here: cmd.exe's parser mishandles LF-terminated
+# batch files.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Convention on Windows, and harmless elsewhere: these are executed by
+# PowerShell directly rather than rendered by chezmoi.
+*.ps1  text eol=crlf
+*.psm1 text eol=crlf
+
+# Terminal.app profiles are XML property lists. Text, so the diff is
+# reviewable; LF, because macOS writes them that way.
+*.terminal text eol=lf
+
+*.py   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.md   text eol=lf
+
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.ico  binary
+*.ttf  binary
+*.otf  binary
