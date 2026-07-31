@@ -35,10 +35,22 @@ perm_of() {
   stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1" 2>/dev/null || echo '644'
 }
 
+# RELATIVE paths, deliberately, and this is load-bearing on Windows.
+#
+# With --path-style=absolute, chezmoi emits native paths: C:\Users\you\...
+# on Windows. This script runs under Git Bash, where $HOME is /c/Users/you
+# or similar, so stripping "${DEST}/" from a backslashed absolute path
+# never matches. Every entry then falls through to the `external` branch,
+# the archive captures nothing, and restore has nothing to restore.
+#
+# That failed silently: the script exited 0 and wrote a manifest full of
+# rows, so it LOOKED like a backup. Relative paths sidestep the whole
+# problem, because they are already what the manifest and the archive want.
+#
 # NUL-separated so a path containing whitespace survives. Scripts are
 # excluded because they are listed as managed but produce no target file.
 TARGETS="${BACKUP_DIR}/.targets"
-"${CHEZMOI}" managed --source="${REPO_DIR}" --path-style=absolute \
+"${CHEZMOI}" managed --source="${REPO_DIR}" --path-style=relative \
   --exclude=scripts,remove -0 > "${TARGETS}" 2>/dev/null || : > "${TARGETS}"
 
 : > "${MANIFEST}"
@@ -48,14 +60,16 @@ PRESENT="${BACKUP_DIR}/.present"
 count_total=0
 count_present=0
 
-while IFS= read -r -d '' target; do
+while IFS= read -r -d '' rel; do
+  [ -n "${rel}" ] || continue
   count_total=$((count_total + 1))
-  rel="${target#"${DEST}"/}"
-  # A target outside $HOME cannot be expressed relative to the archive root.
-  if [ "${rel}" = "${target}" ]; then
-    printf 'external\t%s\t-\n' "${target}" >> "${MANIFEST}"
-    continue
-  fi
+  # chezmoi may emit backslashes on Windows even for relative paths.
+  # Normalise, because everything downstream (tar, the manifest, restore)
+  # speaks forward slashes under Git Bash. Parameter expansion rather than
+  # tr: no subshell per path, and no argument about how many backslashes a
+  # quoted tr pattern really contains.
+  rel="${rel//\\//}"
+  target="${DEST}/${rel}"
   if [ -L "${target}" ]; then
     printf 'symlink\t%s\t%s\n' "${rel}" "$(readlink "${target}")" >> "${MANIFEST}"
     printf '%s\n' "${rel}" >> "${PRESENT}"
