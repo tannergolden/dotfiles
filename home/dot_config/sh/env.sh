@@ -85,6 +85,14 @@ fi
 unset _fd
 # The preview chain degrades: bat, then Debian's batcat, then plain cat.
 export FZF_CTRL_T_OPTS="--preview 'bat --color=always {} 2>/dev/null || batcat --color=always {} 2>/dev/null || cat {}'"
-
+# Catppuccin Mocha, from catppuccin/fzf (MIT). Colours only; behaviour
+# flags stay out of the environment so a script embedding fzf is not
+# surprised by layout options it never asked for.
+export FZF_DEFAULT_OPTS="\
+--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
+--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
+--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
+--color=selected-bg:#45475A \
+--color=border:#6C7086,label:#CDD6F4"
 
 export LANG="${LANG:-en_US.UTF-8}"

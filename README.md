@@ -115,6 +115,7 @@ One file, byte for byte, read the same way on macOS, Windows and Linux.
 | **Aliases**     | `g`, `gs`, `gd`, `gl`, `ll`, `la`, `..`, `...` behave the same          |
 | **Keybindings** | Up and Down do prefix-aware history search in both shells               |
 | **Editor**      | `code --wait`, with the same fallback chain                             |
+| **Colours**     | Catppuccin Mocha: terminal palettes, fzf, bat, delta and starship       |
 
 Those tool configs are genuinely portable for a specific reason: ripgrep and bat both locate their config through an environment variable rather than a fixed path, so one file serves all three platforms with no templating at all.
 
@@ -138,11 +139,13 @@ Two smaller ones worth knowing because they look like bugs:
 - **Debian renames two binaries.** `fd-find` installs as `fdfind` and `bat` as `batcat`. The shell config detects this and aliases them back, so you type `fd` and `bat` everywhere.
 - **The PowerShell profile is loaded through a shim.** OneDrive can relocate `Documents` by policy, so the real profile lives at a fixed path and a generated one-liner points at it.
 
-### 🖥️ The terminal is the honest exception
+### 🖥️ The font is the honest exception
 
-Only macOS has a managed terminal, and full parity is not reachable there. The `Pro` profile specifies **Monaco 12**, which is an Apple-bundled font with no Homebrew cask and no scoop package, so it cannot legitimately be installed on Windows or in a container. Transparency does not map either: Terminal.app uses an alpha value plus a blur radius, Windows Terminal uses opacity plus acrylic, and they are different rendering models rather than different spellings.
+The **colour scheme travels**: Catppuccin Mocha is applied to the Terminal.app `Pro` profile directly, delivered to Windows Terminal as a JSON fragment with one one-time selection step, and carried into fzf, bat, delta and the prompt, each taken from the theme's own licensed ports rather than copied from another repository.
 
-In a codespace the question does not arise, because the terminal is VS Code's integrated one and its appearance comes from Settings Sync rather than from this repository.
+The **font does not**. `Pro` specifies Monaco 12, an Apple-bundled face with no Homebrew cask and no scoop package, so it cannot legitimately be installed on Windows or in a container. Windows Terminal keeps its own default face under the same palette.
+
+In a codespace neither question arises, because the terminal is VS Code's integrated one and its appearance comes from Settings Sync rather than from this repository.
 
 ### 🧩 How the split is implemented
 

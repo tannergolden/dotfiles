@@ -125,6 +125,9 @@
 	# delta needs a conflict style that shows the base, which is why
 	# merge.conflictStyle below is zdiff3 rather than the default.
 	true-color = always
+	# Defined in catppuccin.gitconfig, included below. delta resolves the
+	# feature name at run time, so include order does not matter.
+	features = catppuccin-mocha
 {{- if $isWindows }}
 	# Not an upstream Git setting. It exists only in the Git for Windows
 	# fork, defaults to false, and without it paths over 260 characters
@@ -152,6 +155,8 @@
 {{- end }}
 
 [include]
+	# Catppuccin Mocha for delta, vendored from catppuccin/delta (MIT).
+	path = ~/.config/git/catppuccin.gitconfig
 	# Anything machine specific or not fit to publish goes here. The file
-	# is gitignored and its absence is not an error.
+	# is gitignored and its absence is not an error. Last, so it wins.
 	path = ~/.config/git/config.local

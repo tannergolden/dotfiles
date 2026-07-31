@@ -45,11 +45,11 @@ Then add the public key to `~/.config/git/allowed_signers`, which chezmoi create
 
 None of these are in a `defaults write` script, and that is a deliberate refusal rather than an omission.
 
-| Setting | Do it here |
-| :------ | :--------- |
-| Firewall | System Settings → Network → Firewall |
-| FileVault | System Settings → Privacy & Security → FileVault |
-| Screen lock delay | System Settings → Lock Screen |
+| Setting             | Do it here                                             |
+| :------------------ | :----------------------------------------------------- |
+| Firewall            | System Settings → Network → Firewall                   |
+| FileVault           | System Settings → Privacy & Security → FileVault       |
+| Screen lock delay   | System Settings → Lock Screen                          |
 | Touch ID for `sudo` | Uncomment the relevant line in `/etc/pam.d/sudo_local` |
 
 > [!WARNING]
@@ -73,11 +73,21 @@ Per-user, no administrator rights required. Bootstrap reports this rather than c
 
 Run `scripts/macos-interactive.sh`, then **quit Terminal completely** and reopen it.
 
-The restart is not superstition. `defaults(1)` warns that modifying the preferences of a running application means it "won't see the change and might even overwrite the default", and Terminal rewrites its own preferences on quit. Since bootstrap is running *inside* Terminal, the write is racing the process that will overwrite it. If the profile does not stick, that race is why; re-run the script with Terminal closed.
+The restart is not superstition. `defaults(1)` warns that modifying the preferences of a running application means it "won't see the change and might even overwrite the default", and Terminal rewrites its own preferences on quit. Since bootstrap is running _inside_ Terminal, the write is racing the process that will overwrite it. If the profile does not stick, that race is why; re-run the script with Terminal closed.
 
 ---
 
-## 5️⃣ Codespaces
+## 5️⃣ Windows Terminal: Pick the Scheme Once
+
+The Catppuccin Mocha scheme arrives as a **fragment**, which is the one mechanism the settings UI never rewrites. Fragments can add schemes but cannot select one, so a single manual step remains:
+
+- [ ] Windows Terminal → Settings → your profile → Appearance → Color scheme → **Catppuccin Mocha**
+
+Windows Terminal reads fragments at launch, so restart it first if the scheme is not listed.
+
+---
+
+## 6️⃣ Codespaces
 
 - [ ] Enable **Automatically install dotfiles** in [Codespaces settings](https://github.com/settings/codespaces)
 - [ ] Select this repository from the dropdown

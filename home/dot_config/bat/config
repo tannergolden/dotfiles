@@ -7,9 +7,12 @@
 # Format is a list of command line arguments, one per line, quoted where a
 # value contains spaces.
 
-# A theme that ships with bat, so it needs no extra install and looks the
-# same everywhere. `bat --list-themes` shows the rest.
---theme="Monokai Extended"
+# Catppuccin Mocha, vendored in themes/ from catppuccin/bat (MIT) so the
+# same palette renders on every platform with no network fetch. A custom
+# theme only becomes visible after `bat cache --build`, which a
+# provisioning script runs whenever the theme file changes; until that has
+# run once, bat falls back to its default theme rather than failing.
+--theme="Catppuccin Mocha"
 
 # Show line numbers and a changed-line gutter, but not the heavy box
 # drawing around each file. `full` is the default and is a lot of frame

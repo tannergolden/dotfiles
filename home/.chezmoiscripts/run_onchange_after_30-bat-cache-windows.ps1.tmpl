@@ -1,0 +1,20 @@
+{{- if eq .chezmoi.os "windows" -}}
+# --- Rebuild bat's theme cache when the vendored theme changes ---
+#
+# Twin of the POSIX script; see it for the mechanism. The hash keys this
+# script to the theme file so run_onchange_ fires when the theme changes.
+#
+# theme hash: {{ include "dot_config/bat/themes/Catppuccin Mocha.tmTheme" | sha256sum }}
+
+if ($env:CI_STUB -eq '1') {
+    Write-Host 'CI_STUB=1: would rebuild the bat theme cache'
+    exit 0
+}
+
+if (Get-Command bat -ErrorAction SilentlyContinue) {
+    bat cache --build | Out-Null
+    Write-Host '==> bat theme cache rebuilt'
+} else {
+    Write-Warning 'bat not installed yet; theme cache will build on a later apply'
+}
+{{- end }}
