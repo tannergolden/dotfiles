@@ -1,0 +1,32 @@
+{{- if eq .chezmoi.os "windows" -}}
+# --- Choose and pull the local model, after the tools exist ---
+#
+# The Windows twin of the POSIX 40-ai-model script: all logic lives in the
+# managed ai-model.ps1, this only decides whether to invoke it. Keyed to
+# that script's content so editing the ladder re-fires selection on the
+# next apply.
+#
+# ai-model hash: {{ include "dot_local/bin/ai-model.ps1" | sha256sum }}
+
+$ErrorActionPreference = 'Continue'
+
+if ($env:CI_STUB -eq '1') {
+    Write-Host 'CI_STUB=1: would choose and pull a local model'
+    exit 0
+}
+
+# Degrade, never abort: a machine where scoop has not delivered ollama yet
+# still deserves a completed apply.
+if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+    Write-Warning 'ollama not installed; skipping local model selection'
+    exit 0
+}
+
+# -Auto caps the unattended download (default 32GB); anything bigger is
+# pulled by a person running `ai-model install` deliberately.
+& (Join-Path $HOME '.local\bin\ai-model.ps1') install -Auto
+if ($LASTEXITCODE -ne 0) {
+    Write-Warning 'ai-model install reported errors; continuing'
+}
+exit 0
+{{- end }}

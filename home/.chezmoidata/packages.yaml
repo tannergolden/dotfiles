@@ -29,14 +29,27 @@ packages:
     brew:
       - bat
       - eza
+      # neofetch is archived upstream (read-only since 2024-04-26);
+      # fastfetch is the maintained successor with the same layout.
+      - fastfetch
       - fd
       - fzf
       - gh
       - git
       - git-delta
       - jq
+      # THE FORMULA, NOT THE CASK, and the difference matters: the cask is
+      # now `ollama-app` (menu-bar GUI, login item) and CONFLICTS with the
+      # formula. The formula is CLI + server with no autostart; the
+      # ai-model script starts `ollama serve` on demand, and
+      # `brew services start ollama` exists for anyone wanting it
+      # always-on. On Apple Silicon the formula builds MLX support in.
+      - ollama
       - ripgrep
       - starship
+      # POSIX only: the dashboard's pane machinery. There is no native
+      # Windows tmux; ai-dash.ps1 drives Windows Terminal panes instead.
+      - tmux
       - zoxide
     # THESE ARE CASKS, NOT FORMULAE, and the distinction is not cosmetic:
     # `brew install claude-code` fails, `brew install --cask claude-code`
@@ -80,16 +93,31 @@ packages:
       - git-delta
       - jq
       - ripgrep
+      # POSIX only: the dashboard's pane machinery. Ubuntu 24.04 ships
+      # tmux 3.4, whose split-window -p is outright broken upstream - the
+      # ai-dash script deliberately never uses it.
+      - tmux
       - zsh
+      # Not a tool anyone types: the ollama Linux archive is .tar.zst and
+      # the extraction needs the zstd binary present.
+      - zstd
     # Fetched from upstream releases, because apt either has no usable
     # version or none at all. Each name maps to a function in the Linux
     # provisioning script; adding a name here without adding that function
     # logs a clear error rather than failing silently.
+    #
+    # fastfetch is upstream, not apt, because Ubuntu 24.04 - what a
+    # Codespace runs - has NO fastfetch package at all (it first enters
+    # the archive in 25.10). ollama is upstream because its official
+    # install script hard-requires root and systemd; the release tarball
+    # into ~/.local needs neither, which is what a container allows.
     upstream:
       - starship
       - zoxide
       - claude-code
       - antigravity-cli
+      - fastfetch
+      - ollama
 
   # Windows. scoop for anything that can install per-user, winget for the
   # one package that insists on elevating.
@@ -107,10 +135,16 @@ packages:
       - claude-code
       - delta
       - eza
+      - fastfetch
       - fd
       - fzf
       - gh
       - jq
+      # Main-bucket ollama is the CLI + server WITHOUT the tray app (that
+      # one is extras/ollama-full). No autostart, no login item, no UAC;
+      # the ai-model script starts `ollama serve` on demand, exactly as it
+      # does for the brew formula on macOS.
+      - ollama
       - ripgrep
       - starship
       - zoxide

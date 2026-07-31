@@ -43,6 +43,7 @@ lint-shell: ## ShellCheck over the shell this repository ships
 	@command -v shellcheck >/dev/null 2>&1 \
 		|| { echo "shellcheck not installed; skipping (CI installs it)"; exit 0; }
 	@shellcheck --severity=style install.sh scripts/*.sh \
+		home/dot_local/bin/executable_ai-* \
 		&& echo "ok   shellcheck clean"
 
 lint-powershell: ## Parse every .ps1, which nothing checked before

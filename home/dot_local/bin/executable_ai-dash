@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# --- ai-dash: the 2x2 terminal dashboard ---
+#
+#   +----------------+----------------+
+#   | fastfetch      | (blank shell)  |
+#   +----------------+----------------+
+#   | ai-agents      | ai-model chat  |
+#   +----------------+----------------+
+#
+# WHY tmux AND NOT THE TERMINAL'S OWN SPLITS. No terminal exposes splits
+# to a script portably: Ghostty's splits are keybind-only (the request for
+# CLI split actions was closed as not planned), Terminal.app has nothing,
+# and each emulator that can would need its own code. tmux is one
+# mechanism that behaves identically inside all of them. Windows has no
+# native tmux at all, which is why this file has a PowerShell sibling
+# driving Windows Terminal panes instead.
+#
+# THE SESSION RIDES THE USER'S NORMAL tmux SERVER, deliberately. A
+# separate socket (-L) would isolate harder but breaks switch-client from
+# an existing tmux session - you cannot switch across servers. Creating a
+# named session touches nobody's tmux.conf; the Catppuccin styling below
+# is applied to THIS SESSION ONLY, so a user with their own tmux theme
+# keeps it everywhere else.
+#
+# SPLIT SIZING USES NOTHING VERSION-SENSITIVE. `split-window -p` is
+# deprecated since tmux 2.9 and outright broken in tmux 3.4 - the exact
+# version Ubuntu 24.04 ships ("size missing", a confirmed upstream bug).
+# Three plain splits plus `select-layout tiled` produce an even 2x2 on
+# every tmux back to antiquity, so percentages are never needed at all.
+#
+# PANES DROP TO A SHELL WHEN THEIR COMMAND ENDS ('cmd; exec shell') rather
+# than using remain-on-exit: a dead pane can only be respawned, a shell
+# can be used.
+
+# SC2016 is disabled deliberately, not as a cover-up: every single-quoted
+# ${SHELL} below is meant for the PANE's sh -c, not for this script, and
+# double quotes would freeze in whatever shell launched the dashboard.
+# ShellCheck cannot see that the string is another shell's program, same
+# as the pwsh block in scripts/check-powershell.sh. The directive sits
+# before the first command because that is what makes it file-wide.
+# shellcheck disable=SC2016
+
+set -euo pipefail
+
+SESSION="ai-dash"
+WINDOW="ai"
+
+command -v tmux >/dev/null 2>&1 \
+  || { echo "ai-dash needs tmux; run 'chezmoi apply' to install it" >&2; exit 1; }
+
+attach() {
+  # A tty is required to attach. Without one (CI, a hook), creating the
+  # session is still useful, so say where it went instead of erroring.
+  # `exit`, not `return`: every caller is done once the session is
+  # reachable, and returning here would fall through into creating a
+  # duplicate session.
+  if [ ! -t 0 ] || [ ! -t 1 ]; then
+    echo "no terminal to attach; session '${SESSION}' is ready (tmux attach -t ${SESSION})"
+    exit 0
+  fi
+  # `tmux attach` from inside tmux trips the nesting guard;
+  # `switch-client` from outside has no client to switch. Both are real,
+  # so both branches exist.
+  if [ -n "${TMUX:-}" ]; then
+    exec tmux switch-client -t "${SESSION}"
+  else
+    exec tmux attach-session -t "${SESSION}"
+  fi
+}
+
+case "${1:-}" in
+  kill)
+    tmux kill-session -t "${SESSION}" 2>/dev/null \
+      && echo "session '${SESSION}' killed" \
+      || echo "no '${SESSION}' session to kill"
+    exit 0
+    ;;
+  -h|--help|help)
+    echo "usage: ai-dash [kill]"
+    exit 0
+    ;;
+esac
+
+# Already built? Just go there. Re-running must never stack a second grid.
+if tmux has-session -t "${SESSION}" 2>/dev/null; then
+  attach
+fi
+
+# Size the detached session like the terminal it will land in, so the
+# tiled layout is computed for real proportions rather than 80x24.
+COLS="$(tput cols 2>/dev/null || echo 200)"
+LINES="$(tput lines 2>/dev/null || echo 50)"
+
+# Each pane runs its command and then becomes a plain shell. The command
+# strings are single-quoted so ${SHELL} resolves inside the pane (tmux
+# runs them via sh -c), not here.
+tmux new-session -d -s "${SESSION}" -n "${WINDOW}" -x "${COLS}" -y "${LINES}" \
+  'fastfetch; exec "${SHELL:-/bin/sh}"'
+tmux split-window -t "${SESSION}:${WINDOW}"
+tmux split-window -t "${SESSION}:${WINDOW}" 'ai-agents; exec "${SHELL:-/bin/sh}"'
+tmux split-window -t "${SESSION}:${WINDOW}" 'ai-model chat; exec "${SHELL:-/bin/sh}"'
+tmux select-layout -t "${SESSION}:${WINDOW}" tiled
+
+# Catppuccin Mocha, session-scoped. Official palette hexes; needs a
+# 256-colour terminal, which is every terminal this repository configures.
+tmux set-option -t "${SESSION}" status-style "bg=#1e1e2e,fg=#cdd6f4"
+tmux set-option -t "${SESSION}" status-left "#[fg=#1e1e2e,bg=#89b4fa,bold] #S #[default] "
+tmux set-option -t "${SESSION}" status-right "#[fg=#a6adc8]%H:%M "
+tmux set-option -t "${SESSION}" window-status-format "#[fg=#6c7086] #I #W "
+tmux set-option -t "${SESSION}" window-status-current-format "#[fg=#cba6f7,bold] #I #W "
+tmux set-option -w -t "${SESSION}:${WINDOW}" pane-border-style "fg=#313244"
+tmux set-option -w -t "${SESSION}:${WINDOW}" pane-active-border-style "fg=#89b4fa"
+
+# Land on the blank pane - it is the one meant for typing. Panes are
+# addressed by unique id rather than index, because a user's tmux.conf may
+# set pane-base-index and shift every number. Creation order is fixed:
+# 0 fastfetch, 1 blank, 2 agents, 3 chat; tiled lays them out row-major,
+# so the blank pane is top-right.
+BLANK_PANE="$(tmux list-panes -t "${SESSION}:${WINDOW}" -F '#{pane_id}' | sed -n '2p')"
+if [ -n "${BLANK_PANE}" ]; then
+  tmux select-pane -t "${BLANK_PANE}"
+fi
+
+attach

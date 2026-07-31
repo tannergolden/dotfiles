@@ -101,7 +101,8 @@ Nothing to run. Enable **Automatically install dotfiles** in your [Codespaces se
 │   ├── .chezmoiignore     # 🔀 the one file deciding what applies where
 │   ├── .chezmoidata/      # 📋 the package manifest, one list per platform
 │   ├── .chezmoiscripts/   # 📦 provisioning, keyed to the manifest
-│   └── dot_config/        # ⚙️ tool configuration
+│   ├── dot_config/        # ⚙️ tool configuration
+│   └── dot_local/         # 🤖 ai-dash, ai-agents, ai-model
 ├── scripts/               # 🔧 bootstrap, backup, restore, guards
 ├── docs/                  # 📚 manual steps and recovery
 ├── install.sh             # ☁️ Codespaces entrypoint
@@ -124,7 +125,7 @@ One file, byte for byte, read the same way on macOS, Windows and Linux.
 
 | Surface         | How it stays identical                                                  |
 | :-------------- | :---------------------------------------------------------------------- |
-| **Tool set**    | The same 13 tools, whichever package manager delivers them              |
+| **Tool set**    | The same 15 tools, whichever package manager delivers them              |
 | **Prompt**      | One `starship.toml`; only the per-shell `init` line differs             |
 | **ripgrep**     | One `ripgreprc`, found via `RIPGREP_CONFIG_PATH`                        |
 | **bat**         | One `config`, found via `BAT_CONFIG_PATH`                               |
@@ -134,6 +135,8 @@ One file, byte for byte, read the same way on macOS, Windows and Linux.
 | **Aliases**     | `g`, `gs`, `gd`, `gl`, `ll`, `la`, `..`, `...` behave the same          |
 | **Keybindings** | Up and Down do prefix-aware history search in both shells               |
 | **Editor**      | `code --wait`, with the same fallback chain                             |
+| **System info** | One fastfetch `config.jsonc`; `<home>/.config` is searched on all three |
+| **AI dashboard**| `ai-dash`, `ai-agents` and `ai-model` behave the same                   |
 | **Colours**     | Catppuccin Mocha: terminal palettes, fzf, bat, delta and starship       |
 
 Those tool configs are genuinely portable for a specific reason: ripgrep and bat both locate their config through an environment variable rather than a fixed path, so one file serves all three platforms with no templating at all.
@@ -147,6 +150,7 @@ None of these are choices; each is something a platform forces.
 | **Shell language**       | zsh                              | PowerShell       | Unrelated languages. Aliases are written twice because `Set-Alias` cannot take arguments |
 | **Package manager**      | Homebrew · apt                   | scoop · winget   | Same tools, three delivery routes                                                        |
 | **Terminal**             | Terminal.app `Pro`               | Windows Terminal | The one real gap. See below                                                              |
+| **Dashboard panes**      | tmux                             | `wt` split-pane  | tmux has no native Windows build; Windows Terminal's pane CLI is the platform's own      |
 | **fzf key bindings**     | <kbd>Ctrl</kbd>+<kbd>R</kbd> etc | not available    | fzf ships no PowerShell integration upstream                                             |
 | **SSH multiplexing**     | `ControlMaster` on               | unsupported      | Win32-OpenSSH has no Unix-domain-socket multiplexing                                     |
 | **Keychain integration** | `UseKeychain` (macOS only)       | agent service    | An Apple-only directive; unguarded it _terminates_ ssh elsewhere                         |
@@ -176,6 +180,53 @@ Templating is used sparingly on purpose. Across a survey of real cross-platform 
 # See exactly what any platform would do, from any platform
 chezmoi ignored --override-data '{"chezmoi":{"os":"windows"}}'
 ```
+
+---
+
+## 🤖 Local AI, Sized To The Machine
+
+Three commands, identical on every platform, delivered as bash on macOS and Linux and as PowerShell twins on Windows:
+
+```bash
+ai-dash      # the 2x2 dashboard below
+ai-agents    # every known AI agent CLI, with the version of each one installed
+ai-model     # detect the hardware, pick the strongest local model, pull it, chat
+```
+
+```text
++----------------+----------------+
+| fastfetch      |  (blank shell) |
++----------------+----------------+
+| ai-agents      |  ai-model chat |
++----------------+----------------+
+```
+
+The panes are tmux on macOS and Linux and Windows Terminal splits on Windows, because no terminal exposes splits to a script portably and tmux has no native Windows build. The session rides your normal tmux server under the name `ai-dash`, styled Catppuccin Mocha **for that session only**, so your own tmux theming is never touched. `ai-dash kill` tears it down.
+
+### How the model is chosen
+
+`chezmoi apply` runs `ai-model install --auto` after provisioning. It measures what the machine can actually serve, not what is on the box:
+
+| Hardware                  | Budget                                                              |
+| :------------------------ | :------------------------------------------------------------------ |
+| Apple Silicon             | the Metal wired-memory cap: ⅔ of unified memory up to 32GiB, ¾ above, or your own `iogpu.wired_limit_mb` if you raised it |
+| Discrete NVIDIA / AMD GPU | the largest single card's VRAM                                      |
+| CPU only (and containers) | ¾ of system RAM, container cgroup limits respected                  |
+
+It then pulls the most capable open-weight model whose download fits that budget with honest headroom, from a ladder verified against the Ollama library (July 2026): `qwen3.5:122b-a10b` at the top, through `gpt-oss:120b`, `qwen3.6:35b`, `glm-4.7-flash` and `gpt-oss:20b`, down to `qwen3:0.6b` on the smallest machines. Every rung supports tool calling. The chosen tag is recorded in `~/.local/state/ai-dash/model`, per machine, never in this repository — your Mac and your Linux box are supposed to disagree.
+
+Three deliberate guard rails, because model pulls are measured in tens of gigabytes:
+
+- **Unattended pulls are capped at 32GB** (`AI_MODEL_AUTO_MAX_GB`). A 128GB machine's first `chezmoi apply` will not silently start an 81GB download; it says what the machine could hold and lets you run `ai-model install` once, on purpose.
+- **Disk is checked before pulling**, with 20% headroom, because Ollama itself has no free-space preflight and fails mid-download without one. Interrupted pulls resume.
+- **Codespaces skip the ollama runtime entirely** (~1.4GB down, ~4GB unpacked, on a 32GB throwaway disk). Set `AI_LOCAL_MODELS=1` before bootstrap to opt a codespace in; everything else in the dashboard still works there.
+
+`AI_MODEL=<tag>` overrides the ladder outright, and `AI_MODEL_MAX_GB` caps what it may choose. `ai-model status` shows the detection, the ladder's verdict and what is installed, without changing anything.
+
+> [!NOTE]
+> The server side is the ollama **CLI**, not the menu-bar app: the brew formula on macOS and the scoop main-bucket package on Windows, which install no login items. The scripts start `ollama serve` on demand and log it to `~/.local/state/ai-dash/`. If you want it always-on on macOS, `brew services start ollama` is one command away.
+
+The agent roster in `ai-agents` is curated, not discovered — there is no registry of agent CLIs, and the landscape renames itself yearly (`q` became `kiro-cli`, `gh copilot` died in favour of a standalone `copilot`, Charm's opencode became `crush`). Versions are printed raw because their formats are not contractual.
 
 ---
 
@@ -255,18 +306,21 @@ That returns every file bootstrap overwrote, deletes every file it created, and 
 
 ### 3. Remove the tools as well
 
-No step above touches the 13 installed packages, deliberately: a tool you also use outside this setup should not vanish because you stopped managing your dotfiles. Remove them by hand if you want them gone.
+No step above touches the installed packages, deliberately: a tool you also use outside this setup should not vanish because you stopped managing your dotfiles. Remove them by hand if you want them gone.
 
 ```bash
-brew uninstall bat eza fd fzf gh git-delta jq ripgrep starship zoxide
+brew uninstall bat eza fastfetch fd fzf gh git-delta jq ollama ripgrep starship tmux zoxide
 brew uninstall --cask claude-code antigravity-cli
 ```
 
 ```powershell
-scoop uninstall bat delta eza fd fzf gh jq ripgrep starship zoxide claude-code antigravity-cli
+scoop uninstall bat delta eza fastfetch fd fzf gh jq ollama ripgrep starship zoxide claude-code antigravity-cli
 ```
 
 **`git` is missing from both lines on purpose.** It is in the manifest, and removing it would take your version control with it. Uninstall it deliberately or not at all.
+
+> [!IMPORTANT]
+> Uninstalling ollama does **not** remove the models, and the models are the part measured in tens of gigabytes. They live in `~/.ollama/models` (or wherever `OLLAMA_MODELS` points); delete `~/.ollama` to reclaim the space. On Linux the runtime itself was unpacked to `~/.local/bin/ollama` and `~/.local/lib/ollama`, and fastfetch to `~/.local/bin/fastfetch` and `~/.local/share/fastfetch` — remove those by hand too, since no package manager owns them.
 
 > [!WARNING]
 > Never `brew bundle cleanup --force` to do this. It removes everything **not** in the Brewfile, which is every unrelated package on the machine, and it is not what "cleanup" sounds like.

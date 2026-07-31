@@ -1,0 +1,49 @@
+// --- fastfetch: one config for macOS, Linux and Windows ---
+//
+// WHY fastfetch AND NOT neofetch. neofetch was archived by its author on
+// 2024-04-26 and is read-only upstream; fastfetch is its maintained
+// successor and renders the same two-column layout ending in the classic
+// colour blocks.
+//
+// ONE FILE GENUINELY COVERS ALL THREE PLATFORMS, for two verified
+// reasons. First, the path: fastfetch searches <home>/.config/fastfetch/
+// on every platform - on Windows explicitly, not via XDG - so this lands
+// where it is read without templating. Second, the modules: anything a
+// platform cannot answer (DE and WM in a container, GPU over ssh) is
+// silently omitted, because display.showErrors defaults to false. No
+// branching needed.
+//
+// COLOURS ARE NAMED, NOT HEX, on purpose. "blue" resolves through the
+// terminal palette, which this repository sets to Catppuccin Mocha
+// everywhere - so the output matches the theme without hardcoding a
+// second copy of it here.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "auto",
+    "padding": { "top": 1, "right": 3 }
+  },
+  "display": {
+    "separator": ": ",
+    "color": { "keys": "blue", "title": "blue" }
+  },
+  "modules": [
+    "title",
+    "separator",
+    "os",
+    "host",
+    { "type": "kernel", "format": "{release}" },
+    "uptime",
+    { "type": "packages", "combined": true },
+    "shell",
+    { "type": "display", "key": "Resolution", "compactType": "original" },
+    "de",
+    "wm",
+    "terminal",
+    "cpu",
+    { "type": "gpu", "key": "GPU", "format": "{name}" },
+    { "type": "memory", "format": "{used} / {total}" },
+    "break",
+    { "type": "colors", "symbol": "block", "block": { "width": 3, "range": [0, 15] } }
+  ]
+}

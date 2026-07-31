@@ -136,6 +136,72 @@ install_antigravity_cli() {
   rm -rf "${tmp}"
 }
 
+install_fastfetch() {
+  command -v fastfetch >/dev/null 2>&1 && return 0
+  echo "==> fastfetch (upstream release)"
+  # Ubuntu 24.04 has no fastfetch package (it enters the archive at
+  # 25.10), so the release tarball is the route. It is genuinely
+  # user-level: the binary finds its presets via ../share relative to
+  # itself, so bin/ and share/ land under ~/.local and nothing needs root.
+  local tarch; case "$(uname -m)" in
+    x86_64|amd64) tarch="amd64" ;;
+    aarch64|arm64) tarch="aarch64" ;;
+    *) echo "  no fastfetch build for $(uname -m), skipping" >&2; return 0 ;;
+  esac
+  local tmp; tmp="$(mktemp -d)"
+  local url="https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-${tarch}.tar.gz"
+  if curl -fsSL -o "${tmp}/ff.tar.gz" "${url}" 2>/dev/null \
+     && tar -xzf "${tmp}/ff.tar.gz" -C "${tmp}"; then
+    # Archive layout: fastfetch-linux-<arch>/usr/{bin,share}.
+    local root="${tmp}/fastfetch-linux-${tarch}/usr"
+    if [ -x "${root}/bin/fastfetch" ]; then
+      install -m 0755 "${root}/bin/fastfetch" "${BIN_DIR}/fastfetch"
+      mkdir -p "${HOME}/.local/share"
+      rm -rf "${HOME}/.local/share/fastfetch"
+      cp -R "${root}/share/fastfetch" "${HOME}/.local/share/fastfetch" 2>/dev/null \
+        || echo "  fastfetch presets not copied; the binary still works" >&2
+    else
+      echo "  fastfetch binary not found in the archive, continuing" >&2
+    fi
+  else
+    echo "  fastfetch download failed, continuing" >&2
+  fi
+  rm -rf "${tmp}"
+}
+
+install_ollama() {
+  command -v ollama >/dev/null 2>&1 && return 0
+  # A codespace is throwaway, its disk is 32GB, and this archive is
+  # ~1.4GB with ~4GB unpacked - pulling that on every codespace creation
+  # would tax creation time for a CPU-only model nobody asked for. Opt in
+  # instead; the README documents the one-liner.
+  if [ -n "${CODESPACES:-}" ] && [ "${AI_LOCAL_MODELS:-0}" != "1" ]; then
+    echo "  codespace: skipping the ~1.4GB ollama runtime (set AI_LOCAL_MODELS=1 to opt in)" >&2
+    return 0
+  fi
+  echo "==> ollama (upstream release, ~1.4GB)"
+  # The official install script hard-requires root and wants systemd; the
+  # release archive needs neither. It is .tar.zst - current releases ship
+  # NO .tgz - hence zstd in the apt list. bin/ollama and lib/ollama must
+  # stay siblings, which ~/.local provides.
+  if ! command -v zstd >/dev/null 2>&1; then
+    echo "  zstd is not installed and the ollama archive needs it, skipping" >&2
+    return 0
+  fi
+  local tarch; case "$(uname -m)" in
+    x86_64|amd64) tarch="amd64" ;;
+    aarch64|arm64) tarch="arm64" ;;
+    *) echo "  no ollama build for $(uname -m), skipping" >&2; return 0 ;;
+  esac
+  local url="https://github.com/ollama/ollama/releases/latest/download/ollama-linux-${tarch}.tar.zst"
+  if curl -fsSL "${url}" 2>/dev/null | zstd -d 2>/dev/null | tar -x -C "${HOME}/.local" 2>/dev/null; then
+    command -v ollama >/dev/null 2>&1 || [ -x "${BIN_DIR}/ollama" ] \
+      || echo "  ollama extracted but no binary at ${BIN_DIR}/ollama" >&2
+  else
+    echo "  ollama download failed, continuing" >&2
+  fi
+}
+
 # Dispatch by name. A `case` rather than constructing a function name from
 # the data, because a hyphenated package name is not a legal shell
 # identifier and `install_antigravity-cli` would be a parse error.
@@ -145,6 +211,8 @@ for tool in {{ range .packages.linux.upstream }}{{ . }} {{ end }}; do
     zoxide)          install_zoxide ;;
     claude-code)     install_claude_code ;;
     antigravity-cli) install_antigravity_cli ;;
+    fastfetch)       install_fastfetch ;;
+    ollama)          install_ollama ;;
     *) echo "  no installer defined for '${tool}'; add one to this script" >&2 ;;
   esac
 done

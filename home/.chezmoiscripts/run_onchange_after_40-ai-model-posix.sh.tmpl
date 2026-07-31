@@ -1,0 +1,39 @@
+{{- if ne .chezmoi.os "windows" -}}
+#!/usr/bin/env bash
+# --- Choose and pull the local model, after the tools exist ---
+#
+# `after_`, because the ai-model script this delegates to is itself a
+# managed file and must be on disk first. All of the logic - hardware
+# detection, the model ladder, the disk preflight, the unattended size
+# cap - lives in that one script, so a person running `ai-model install`
+# and provisioning running it unattended cannot drift apart.
+#
+# Keyed to the ai-model script the same way the bat cache is keyed to its
+# theme: the hash below is interpolated from the file, so editing the
+# ladder re-fires selection on the next apply. That is the entire
+# mechanism.
+#
+# ai-model hash: {{ include "dot_local/bin/executable_ai-model" | sha256sum }}
+
+set -euo pipefail
+
+if [ "${CI_STUB:-0}" = "1" ]; then
+  echo "CI_STUB=1: would choose and pull a local model"
+  exit 0
+fi
+
+# No ollama, no model - and that is a legitimate state, not an error: the
+# codespace default skips the runtime, and a bare machine may not have run
+# the package stage yet. Degrade exactly like every other provisioning
+# script here: report, exit 0, never cost anyone a working apply.
+if ! command -v ollama >/dev/null 2>&1; then
+  echo "ollama not installed; skipping local model selection" >&2
+  exit 0
+fi
+
+# --auto caps the unattended download (default 32GB); anything bigger is a
+# decision, and decisions get typed by a person: `ai-model install`.
+"${HOME}/.local/bin/ai-model" install --auto || {
+  echo "ai-model install reported errors; continuing" >&2
+}
+{{- end }}

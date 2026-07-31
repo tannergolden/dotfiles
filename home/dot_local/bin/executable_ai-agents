@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# --- ai-agents: which AI agent CLIs this machine actually has ---
+#
+# One glance answers "what can I reach for here": every known agent CLI,
+# with the version of each one installed. The dashboard's third pane runs
+# this; it also works standalone.
+#
+# THE ROSTER IS CURATED, NOT DISCOVERED. There is no registry of agent
+# CLIs, and guessing from PATH would list every binary named like a pet
+# project. The table below is the landscape as verified on 2026-07-31,
+# canonical binary names only. Renames this table already survived, so the
+# next one is expected: `q` became kiro-cli, `gh copilot` died in favour
+# of a standalone `copilot`, Charm's opencode became crush, Amp's npm home
+# moved. Update the table, nothing else.
+#
+# VERSIONS ARE PRINTED RAW. Output shapes differ per tool ("2.1.220
+# (Claude Code)", "codex-cli 0.146.0", a bare number, a build timestamp)
+# and none are contractual, so nothing here parses them. Every CLI in the
+# table prints its version offline; a timeout guards the exceptions the
+# future will invent. macOS has no `timeout(1)`, hence the guard.
+#
+# KNOWN COLLISION: `goose` is also the name of a database-migration tool
+# and the version line will say so honestly if that is what is installed.
+
+set -euo pipefail
+
+# binary|product
+AGENTS='
+claude|Claude Code (Anthropic)
+codex|Codex CLI (OpenAI)
+gemini|Gemini CLI (Google)
+agy|Antigravity CLI (Google)
+copilot|Copilot CLI (GitHub)
+cursor-agent|Cursor CLI (Anysphere)
+kiro-cli|Kiro CLI (AWS, was Amazon Q)
+aider|Aider
+opencode|OpenCode (Anomaly)
+crush|Crush (Charm)
+goose|Goose (AAIF)
+amp|Amp (Sourcegraph)
+qwen|Qwen Code (Alibaba)
+droid|Droid (Factory)
+auggie|Auggie (Augment)
+cline|Cline
+cn|Continue CLI
+kilo|Kilo Code
+codebuff|Codebuff
+kimi|Kimi Code (Moonshot)
+grok|Grok Build (xAI)
+iflow|iFlow CLI
+openhands|OpenHands
+jules|Jules (Google)
+'
+
+# Colour only when a human is looking. The ANSI names inherit the
+# terminal's Catppuccin palette, exactly like the fastfetch config.
+if [ -t 1 ]; then
+  C_OK=$'\033[32m'; C_DIM=$'\033[2m'; C_NAME=$'\033[1;34m'; C_RST=$'\033[0m'
+else
+  C_OK=""; C_DIM=""; C_NAME=""; C_RST=""
+fi
+
+version_of() {
+  # Raw first line, bounded: a Node CLI takes ~1s, Python up to ~3s, and a
+  # misbehaving one must not hang a dashboard pane forever.
+  local out
+  if command -v timeout >/dev/null 2>&1; then
+    out="$(timeout 10 "$1" --version 2>&1 | head -1 || true)"
+  else
+    out="$("$1" --version 2>&1 | head -1 || true)"
+  fi
+  printf '%s' "${out}"
+}
+
+found=0
+total=0
+missing=""
+
+printf '%sAI agent CLIs%s\n\n' "${C_NAME}" "${C_RST}"
+
+while IFS='|' read -r bin label; do
+  if [ -z "${bin}" ]; then continue; fi
+  total=$(( total + 1 ))
+  if command -v "${bin}" >/dev/null 2>&1; then
+    found=$(( found + 1 ))
+    # Version first, product second: most version strings identify the
+    # tool by themselves, but "agy" or "cn" alone identify nothing.
+    printf '%s✓%s %s%-14s%s %s  %s%s%s\n' \
+      "${C_OK}" "${C_RST}" "${C_NAME}" "${bin}" "${C_RST}" \
+      "$(version_of "${bin}")" "${C_DIM}" "${label}" "${C_RST}"
+  else
+    missing="${missing}${bin} "
+  fi
+done <<EOF
+${AGENTS}
+EOF
+
+printf '\n%s of %s installed\n' "${found}" "${total}"
+if [ -n "${missing}" ]; then
+  printf '%snot installed: %s%s\n' "${C_DIM}" "${missing}" "${C_RST}"
+fi

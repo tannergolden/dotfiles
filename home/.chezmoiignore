@@ -55,6 +55,8 @@ Library/**
   shares nothing with these files beyond the tool choices they configure.
   The ssh multiplexing directory goes too: Win32-OpenSSH has no Unix
   domain socket multiplexing, so ~/.ssh/cm would be a dead directory.
+  The extensionless ai scripts are bash; their .ps1 twins carry the same
+  commands on Windows.
 */}}
 .zshenv
 .zprofile
@@ -63,6 +65,9 @@ Library/**
 .config/zsh/**
 .config/sh/**
 .ssh/cm/**
+.local/bin/ai-dash
+.local/bin/ai-agents
+.local/bin/ai-model
 {{ end }}
 
 {{ if not $isWindows }}
@@ -70,9 +75,13 @@ Library/**
   The PowerShell profile is deployed to a stable path under .config and a
   one line shim is written at the real $PROFILE location by a script,
   because OneDrive Known Folder Move can relocate Documents by policy and
-  chezmoi has no target path templating to follow it.
+  chezmoi has no target path templating to follow it. The ai .ps1 scripts
+  are the Windows halves of the extensionless bash ones above.
 */}}
 .config/powershell/**
 AppData/**
 Documents/**
+.local/bin/ai-dash.ps1
+.local/bin/ai-agents.ps1
+.local/bin/ai-model.ps1
 {{ end }}
