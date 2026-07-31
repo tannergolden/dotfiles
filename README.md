@@ -347,7 +347,9 @@ Every other way back, from reverting a single file to diagnosing why a change ke
 > [!TIP]
 > Conventions live in [📐 Engineering Standards](https://github.com/tannergolden/standards) and are followed here by link rather than by copying, so nothing goes stale. Commit format, sign-off, branch naming and the `make` interface all come from there.
 
-This repository takes **the conventions and not the automation**, which is the account's rule for its core repositories. It calls none of the published gate workflows and holds no trigger stubs for them; the checks that run here are its own, in [`.github/workflows/bootstrap.yaml`](.github/workflows/bootstrap.yaml), and they are the ones worth running on a dotfiles repository: ShellCheck, a PowerShell parse, every template rendered for every platform, and the full bootstrap and restore proof on macOS, Windows and Linux.
+This repository takes **the conventions and not the automation**, which is the account's rule for its core repositories. It calls none of the published **gate** workflows; the checks that run here are its own, in [`.github/workflows/bootstrap.yaml`](.github/workflows/bootstrap.yaml), and they are the ones worth running on a dotfiles repository: ShellCheck, a PowerShell parse, every template rendered for every platform, and the full bootstrap and restore proof on macOS, Windows and Linux.
+
+One trigger stub is the exception, and it is not a gate. [`.github/workflows/dependabot-automerge.yml`](.github/workflows/dependabot-automerge.yml) calls the shared workflow that approves and queues Dependabot's patch and minor updates to the actions `bootstrap.yaml` pins, leaving majors for a human. Pinning an action is a rule this repository already follows, and a pin nobody moves holds one eventually-vulnerable revision forever; the account decided that half of the rule is shared rather than rewritten per repository.
 
 ---
 

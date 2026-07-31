@@ -1,0 +1,49 @@
+# --- Dependabot Automation ---
+#
+# 🦾 Automate Dependabot
+#
+# Purpose: approve and queue Dependabot's patch and minor updates for the
+# actions `bootstrap.yaml` pins. Majors are left for a human, because a major
+# is where a breaking change lives.
+#
+# ⚠️ THE FIRST TRIGGER STUB IN THIS REPOSITORY, AND A DELIBERATE EXCEPTION.
+# The README says this repository takes the conventions and not the
+# automation, and that still holds for the gates: nothing here calls the
+# shared CI, secret-scanning or release workflows, because a dotfiles tree has
+# nothing for them to check that `bootstrap.yaml` does not already prove.
+# This is not a gate. It is the maintenance half of a rule the repository
+# already follows, since a pinned action nobody moves holds one
+# eventually-vulnerable revision forever, and the account decided that
+# maintenance is shared rather than rewritten per repository.
+#
+# Called, never copied, and pinned to a commit rather than to `@v1`: the
+# moving tag would change what runs here without anyone reading the change.
+#
+# `.yml`, not the `.yaml` that `bootstrap.yaml` carries. The contributing
+# guide published for the account asks for `kebab-case.yml`, and matching a
+# single older filename would spread the exception rather than end it.
+#
+# NO `timeout-minutes`, because a job that calls a reusable workflow cannot
+# carry one. The called workflow sets its own, per job.
+#
+# ---
+
+name: '🦾 Automate Dependabot'
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  dependabot:
+    permissions:
+      contents: write # allow the squash merge once required checks pass
+      pull-requests: write # approve the pull request
+    uses: tannergolden/standards/.github/workflows/dependabot-automerge.yml@a6ee0c23a1614b75a69353190dd7dd67faf59101 # v1.6.0
+    secrets: inherit # zizmor: ignore[secrets-inherit] - first-party callee at the ref pinned above.

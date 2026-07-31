@@ -8,18 +8,33 @@
 # commit-message.prefix makes every update a Conventional Commit, because
 # on a squash merge the PR title becomes the commit that lands, and the
 # changelog tooling silently drops non-conforming messages.
+#
+# THE SETTINGS BELOW ARE THE ACCOUNT'S, NOT THIS REPOSITORY'S. Every
+# repository that runs Dependabot runs the same configuration, so a decision
+# about cadence, grouping or labelling is made once rather than drifting into
+# five slightly different files. Monthly rather than weekly: grouping makes
+# the cadence the only remaining source of noise, and a pin four weeks old is
+# not worth a weekly interruption.
+#
+# `type: build` is part of the account's label taxonomy, which a repository
+# provisions by running 🎯 Apply Standards once. Until that runs here the
+# label is simply absent: Dependabot warns and opens the pull request anyway.
 
 version: 2
 updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'weekly'
-      day: 'monday'
+      interval: 'monthly'
       time: '07:00'
+      timezone: 'Etc/UTC'
+    open-pull-requests-limit: 5
     commit-message:
       prefix: 'build'
       include: 'scope'
+    labels:
+      - 'type: build'
+      - 'dependencies'
     groups:
       github-actions:
         patterns: ['*']
