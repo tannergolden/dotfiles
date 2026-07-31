@@ -14,7 +14,7 @@ category: docs
 
 **Everything bootstrap deliberately leaves to a person, and the reason for each.**
 
-_A short list, kept short on purpose._
+_A short list, kept short on purpose — and shorter than it used to be._
 
 </div>
 
@@ -22,24 +22,33 @@ _A short list, kept short on purpose._
 
 ## 🎯 Why This List Exists
 
-Every item here fails one of three tests: it needs a credential no script should hold, it needs a decision no file can make, or it can only be done through a graphical interface that refuses to be scripted. Automating them anyway produces something worse than a manual step, which is a step that **looks** automated and quietly does nothing.
+Every item here fails one of two tests: it needs a **credential** no fresh machine holds, or it needs a **decision** no file can make. Automating those anyway produces something worse than a manual step, which is a step that **looks** automated and quietly does nothing.
+
+Everything else is automated. Bootstrap generates the SSH keys and adds the signing key to the local trust list, imports the Terminal.app profile and applies the macOS defaults, sets the per-user Windows execution policy, selects the Windows Terminal colour scheme, and installs Homebrew, scoop and PowerShell 7 when the machine lacks them. None of those appear below any more, because none of them need you.
 
 ---
 
-## 1️⃣ Register Your Signing Key
+## 1️⃣ Tell GitHub About This Machine's Keys
 
-Generate the key, then register the **public** half on GitHub.
+Bootstrap generated the keypairs; registering the **public** halves needs your GitHub credential, which is exactly the thing a script from a public repository must never hold. Two ways, pick one:
+
+**Sign in once, then let bootstrap do it** — it registers both keys on any run where `gh` is authenticated:
 
 ```bash
-ssh-keygen -t ed25519 -C "signing" -f ~/.ssh/id_signing_ed25519
+gh auth login
+~/.dotfiles/scripts/bootstrap.sh
 ```
 
+**Or paste them yourself** at [github.com/settings/keys](https://github.com/settings/keys):
+
+- [ ] `~/.ssh/id_auth_ed25519.pub` under **Authentication keys**
+- [ ] `~/.ssh/id_signing_ed25519.pub` under **Signing keys**
+
 > [!CAUTION]
-> An authentication key and a signing key are **two separate registrations of the same file**. A key registered only under _Authentication keys_ will sign commits that GitHub then displays as **Unverified**, with no error anywhere to explain it. Add it under _Signing keys_ as well.
+> Authentication and signing are **two separate registrations**. A key registered only under _Authentication keys_ will sign commits that GitHub then displays as **Unverified**, with no error anywhere to explain it.
 
-Then add the public key to `~/.config/git/allowed_signers`, which chezmoi creates once and never overwrites. Without an entry there, `git log --show-signature` reports `No signature` on correctly signed commits rather than failing, so local verification silently degrades to nothing.
-
-Finally run `chezmoi apply` once more. Commit signing is gated on the key actually existing, so commits on a fresh machine work before this step instead of failing with an unexplained gpg error; the apply after key generation is what switches `commit.gpgsign` on.
+> [!NOTE]
+> The generated keys carry no passphrase — that is the price of an install that asks nothing, stated rather than hidden. They never leave the machine, and FileVault or BitLocker (below) is the disk-level control. Want passphrased keys instead? Generate them under the same filenames and re-run bootstrap; it only ever fills absence, never replaces what you made.
 
 ---
 
@@ -59,42 +68,12 @@ None of these are in a `defaults write` script, and that is a deliberate refusal
 
 ---
 
-## 3️⃣ Windows: Execution Policy
-
-The default execution policy on Windows 10 and 11 clients is `Restricted`, which blocks **all** script files including PowerShell profiles. Your profile will simply never load, silently.
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-Per-user, no administrator rights required. Bootstrap reports this rather than changing it, because silently mutating a machine's persistent security policy from a public repository is not a script's decision to make.
-
----
-
-## 4️⃣ macOS: Terminal Profile
-
-Run `scripts/macos-interactive.sh`, then **quit Terminal completely** and reopen it.
-
-The restart is not superstition. `defaults(1)` warns that modifying the preferences of a running application means it "won't see the change and might even overwrite the default", and Terminal rewrites its own preferences on quit. Since bootstrap is running _inside_ Terminal, the write is racing the process that will overwrite it. If the profile does not stick, that race is why; re-run the script with Terminal closed.
-
----
-
-## 5️⃣ Windows Terminal: Pick the Scheme Once
-
-The Catppuccin Mocha scheme arrives as a **fragment**, which is the one mechanism the settings UI never rewrites. Fragments can add schemes but cannot select one, so a single manual step remains:
-
-- [ ] Windows Terminal → Settings → your profile → Appearance → Color scheme → **Catppuccin Mocha**
-
-Windows Terminal reads fragments at launch, so restart it first if the scheme is not listed.
-
----
-
-## 6️⃣ Codespaces
+## 3️⃣ Codespaces
 
 - [ ] Enable **Automatically install dotfiles** in [Codespaces settings](https://github.com/settings/codespaces)
 - [ ] Select this repository from the dropdown
 
-Nothing else. Each new codespace clones the repository and runs `install.sh` during creation. If it seems not to have run, check `/workspaces/.codespaces/.persistedshare/EnvironmentLog.txt`.
+A settings toggle on github.com is a credentialed decision about your account, which is why it cannot be a script here. Each new codespace then clones the repository and runs `install.sh` during creation with nothing to do by hand. If it seems not to have run, check `/workspaces/.codespaces/.persistedshare/EnvironmentLog.txt`.
 
 ---
 

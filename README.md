@@ -64,32 +64,34 @@ Native Windows, not WSL. Linux is supported because a codespace is a Linux conta
 
 ## 🚀 Quick Start
 
+**One command. Zero questions.** Every answer a setup wizard would ask is either declared in this repository or measured from the machine, so there is nothing left to prompt for. The install fetches the repository itself, takes the snapshot, applies everything, generates and trusts SSH keys, installs the package manager if the platform's own is missing, and themes the terminal.
+
 > [!WARNING]
-> Read a bootstrap script before running it. That is generic advice, and it is also GitHub's own guidance for dotfiles repositories, which are able to run arbitrary code during codespace creation.
+> Read a bootstrap script before piping it into a shell. That is generic advice, and it is also GitHub's own guidance for dotfiles repositories, which are able to run arbitrary code during codespace creation. Both files are short and commented for exactly this audience: [`install.sh`](install.sh), [`scripts/bootstrap.ps1`](scripts/bootstrap.ps1).
 
 ### macOS and Linux
 
-- [ ] Clone the repository
-- [ ] Run the bootstrap script
-- [ ] Complete the interactive steps it prints at the end
-
 ```bash
-git clone https://github.com/tannergolden/dotfiles ~/.dotfiles
-~/.dotfiles/scripts/bootstrap.sh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/tannergolden/dotfiles/Development/install.sh)"
 ```
 
 ### Windows
 
-Run from PowerShell 7 or later.
+From any PowerShell, including the stock 5.1 — it installs PowerShell 7 itself if the machine lacks it:
 
 ```powershell
-git clone https://github.com/tannergolden/dotfiles $HOME\.dotfiles
-& $HOME\.dotfiles\scripts\bootstrap.ps1
+irm https://raw.githubusercontent.com/tannergolden/dotfiles/Development/scripts/bootstrap.ps1 | iex
 ```
 
 ### GitHub Codespaces
 
-Nothing to run. Enable **Automatically install dotfiles** in your [Codespaces settings](https://github.com/settings/codespaces) and select this repository. Every new codespace clones it and executes `install.sh` during creation.
+Not even one command. Enable **Automatically install dotfiles** in your [Codespaces settings](https://github.com/settings/codespaces) and select this repository. Every new codespace clones it and executes `install.sh` during creation.
+
+### What "zero input" does and does not promise
+
+The operating systems keep two gates no script may bypass, and being honest about them beats pretending: on a fresh Mac, installing Homebrew makes `sudo` ask for **your account password** once; on stock Windows, installing PowerShell 7 raises **one UAC consent**. Neither is a decision the bootstrap is asking you to make — there is nothing to read and choose, only the OS confirming you are you. Everything this repository decides is decided in the repository.
+
+Prefer the two-step form? A clone followed by `~/.dotfiles/scripts/bootstrap.sh` (or `& $HOME\.dotfiles\scripts\bootstrap.ps1`) behaves identically — the one-liner is the same script fetching itself first.
 
 ---
 
@@ -105,7 +107,7 @@ Nothing to run. Enable **Automatically install dotfiles** in your [Codespaces se
 │   └── dot_local/         # 🤖 ai-dash, ai-agents, ai-model
 ├── scripts/               # 🔧 bootstrap, backup, restore, guards
 ├── docs/                  # 📚 manual steps and recovery
-├── install.sh             # ☁️ Codespaces entrypoint
+├── install.sh             # ☁️ the one command; also the Codespaces entrypoint
 └── .chezmoiroot           # 📍 scopes chezmoi to home/
 ```
 

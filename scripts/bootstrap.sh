@@ -68,8 +68,10 @@ esac
 # codespace-specific conditionals.
 IN_CODESPACES="${CODESPACES:-false}"
 
-# A TTY is the difference between "may prompt" and "must not". CI runners
-# and Codespaces provisioning both run without one.
+# NOTHING PROMPTS EITHER WAY - install is one command with zero input.
+# The distinction that remains is mechanical: without a tty, chezmoi gets
+# --no-tty and a closed stdin so it cannot even try to open one. CI
+# runners and Codespaces provisioning are the without-a-tty case.
 if [ -t 0 ] && [ -t 1 ] && [ "${CI:-false}" != "true" ]; then
   INTERACTIVE=true
 else
@@ -158,6 +160,42 @@ ensure_chezmoi() {
 ensure_chezmoi
 CHEZMOI="$(command -v chezmoi || echo "${BIN_DIR}/chezmoi")"
 
+# --- stage 0b: Homebrew ----------------------------------------------------
+# On a fresh Mac the provisioning script inside `chezmoi apply` finds no
+# brew and degrades to "install it and re-run", which is two manual steps.
+# Install is one command with zero input, so Homebrew is put in place here,
+# BEFORE apply, with its own NONINTERACTIVE mode. The one thing that can
+# still stop and ask is sudo wanting your account password - that is
+# Apple's gate on writing /opt/homebrew, not a decision this script is
+# asking you to make, and there is no legitimate way around it.
+if [ "${PLATFORM}" = "darwin" ] && ! command -v brew >/dev/null 2>&1; then
+  log "installing Homebrew (sudo may ask for your macOS password once - Apple's gate, not a prompt of ours)"
+  if NONINTERACTIVE=1 /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+    # brew is not on PATH yet in this same process; shellenv fixes that so
+    # the provisioning inside apply can find it. Apple Silicon first, then
+    # Intel, same order env.sh probes.
+    if [ -x /opt/homebrew/bin/brew ]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+      eval "$(/usr/local/bin/brew shellenv)"
+    fi
+  else
+    warn "Homebrew install failed; packages will be skipped until 'chezmoi apply' after you install it"
+  fi
+fi
+
+# --- stage 0c: SSH keys ----------------------------------------------------
+# BEFORE apply, because the git config template gates commit.gpgsign on
+# the signing key existing at render time: a key generated now means
+# signing is on from the very first apply, instead of after a second one
+# somebody has to remember. Skipped in a codespace, which authenticates
+# through the platform's own credential helper and signs nothing locally.
+if [ "${IN_CODESPACES}" = "false" ]; then
+  "${REPO_DIR}/scripts/generate-keys.sh" keys \
+    || warn "key generation failed; git works, commits are unsigned"
+fi
+
 # --- stage 1: back up every target before anything is written -------------
 log "snapshotting existing targets to ${BACKUP_DIR}"
 "${REPO_DIR}/scripts/backup-targets.sh" "${CHEZMOI}" "${REPO_DIR}" "${BACKUP_DIR}" \
@@ -180,8 +218,11 @@ else
 fi
 
 # --- stage 2: apply --------------------------------------------------------
-# --promptDefaults takes every declared default and asks nothing, which is
-# what makes an unattended run possible. An interactive run gets the prompts.
+# --promptDefaults ON EVERY RUN, interactive included. Install is one
+# command with zero input, so nothing here may ask; the declared defaults
+# ARE this repository owner's identity, which makes them the right answer,
+# not a guess. Anyone forking this edits the defaults in
+# home/.chezmoi.toml.tmpl, which is also where they are documented.
 #
 # APPLY IS NOT ATOMIC. It writes target by target, so a failure part way
 # through leaves a home directory that is part old and part new. `set -e`
@@ -206,13 +247,14 @@ EOF
 }
 
 if [ "${INTERACTIVE}" = "true" ]; then
-  "${CHEZMOI}" init --apply --source="${REPO_DIR}" || apply_failed "$?"
+  "${CHEZMOI}" init --apply --source="${REPO_DIR}" --promptDefaults \
+    || apply_failed "$?"
 else
   "${CHEZMOI}" init --apply --source="${REPO_DIR}" --promptDefaults --no-tty </dev/null \
     || apply_failed "$?"
 fi
 
-# --- stage 3: report -------------------------------------------------------
+# --- stage 3: verify --------------------------------------------------------
 log "verifying"
 if "${CHEZMOI}" verify --source="${REPO_DIR}"; then
   log "target state matches source state"
@@ -220,6 +262,90 @@ else
   warn "drift reported by 'chezmoi verify'; run 'chezmoi diff' to inspect"
 fi
 
+# --- stage 4: the signing trust list ---------------------------------------
+# AFTER apply, because allowed_signers is a `create_` target that does not
+# exist until apply has run once. The email comes from the chezmoi data the
+# init above just persisted, so the trust entry matches the commit identity
+# without asking anyone anything.
+if [ "${IN_CODESPACES}" = "false" ]; then
+  IDENTITY_EMAIL="$("${CHEZMOI}" execute-template '{{ .email }}' 2>/dev/null || true)"
+  if [ -n "${IDENTITY_EMAIL}" ]; then
+    "${REPO_DIR}/scripts/generate-keys.sh" trust "${IDENTITY_EMAIL}" \
+      || warn "could not update allowed_signers; local signature verification stays off"
+  else
+    warn "could not read the commit email from chezmoi data; allowed_signers not updated"
+  fi
+fi
+
+# --- stage 5: register the keys on GitHub, when a credential exists --------
+# The one genuinely manual step left is telling GitHub about the new public
+# keys, because that needs a credential no fresh machine holds. But a
+# machine that HAS one - gh already logged in - should not hand the job
+# back to a person. Best effort, loud on both outcomes, never fatal.
+#
+# Registration is TWICE PER KEY-USE on purpose: a key added only under
+# Authentication signs commits GitHub then shows as Unverified, with no
+# error anywhere explaining why.
+KEYS_REGISTERED=false
+if [ "${IN_CODESPACES}" = "false" ] && [ "${CI:-false}" != "true" ] \
+   && command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  register_key() { # pubkey-path type title-suffix
+    [ -f "$1" ] || return 0
+    _blob="$(cut -d' ' -f2 "$1")"
+    if gh ssh-key list 2>/dev/null | grep -qF "${_blob}"; then
+      log "already on GitHub: $1"
+      return 0
+    fi
+    if gh ssh-key add "$1" --type "$2" --title "$(hostname) $3" 2>/dev/null; then
+      log "registered on GitHub ($2): $1"
+    else
+      warn "could not register $1; if the token lacks scope, run: gh auth refresh -s admin:public_key,admin:ssh_signing_key"
+      return 1
+    fi
+  }
+  REG_OK=true
+  register_key "${HOME}/.ssh/id_auth_ed25519.pub"    authentication auth || REG_OK=false
+  register_key "${HOME}/.ssh/id_signing_ed25519.pub" signing        signing || REG_OK=false
+  [ "${REG_OK}" = "true" ] && KEYS_REGISTERED=true
+fi
+
+# --- stage 6: macOS defaults and the Terminal profile ----------------------
+# Automated rather than pointed at, but only inside a real GUI login
+# session: `launchctl managername` says Aqua there and nothing else, which
+# keeps this away from ssh sessions and CI runners where `defaults` and
+# `open` would write to the wrong place or hang.
+MACOS_DEFAULTS_RAN=false
+if [ "${PLATFORM}" = "darwin" ] && [ "${CI:-false}" != "true" ] \
+   && [ "$(launchctl managername 2>/dev/null || true)" = "Aqua" ]; then
+  log "applying macOS defaults and the Terminal profile"
+  if "${REPO_DIR}/scripts/macos-defaults.sh"; then
+    MACOS_DEFAULTS_RAN=true
+  else
+    warn "macos-defaults.sh reported errors; re-run it by hand"
+  fi
+fi
+
+# --- stage 7: a tarball install becomes a clone ----------------------------
+# The one-command install fetches a tarball when git is missing (on a
+# fresh Mac, invoking the git stub pops a GUI dialog). Provisioning has
+# installed a real git by now, so graft history back so `chezmoi update`
+# works from here on. Fresh install, so reset --hard forfeits nothing.
+if [ "${IN_CODESPACES}" = "false" ] && [ ! -e "${REPO_DIR}/.git" ] \
+   && command -v git >/dev/null 2>&1; then
+  DOTFILES_REF="${DOTFILES_REF:-Development}"
+  log "turning the tarball at ${REPO_DIR} into a git clone (${DOTFILES_REF})"
+  if git -C "${REPO_DIR}" init -q -b "${DOTFILES_REF}" \
+     && git -C "${REPO_DIR}" remote add origin "https://github.com/tannergolden/dotfiles" \
+     && git -C "${REPO_DIR}" fetch -q origin "${DOTFILES_REF}" \
+     && git -C "${REPO_DIR}" reset -q --hard "origin/${DOTFILES_REF}" \
+     && git -C "${REPO_DIR}" branch -q --set-upstream-to="origin/${DOTFILES_REF}"; then
+    log "history restored; future updates are 'chezmoi update'"
+  else
+    warn "could not graft git history; installs still work, updates need a fresh clone"
+  fi
+fi
+
+# --- stage 8: report --------------------------------------------------------
 cat <<EOF
 
   Bootstrap complete.
@@ -231,10 +357,28 @@ cat <<EOF
 
 EOF
 
-if [ "${INTERACTIVE}" = "true" ] && [ "${PLATFORM}" = "darwin" ]; then
+if [ "${IN_CODESPACES}" = "false" ] && [ "${KEYS_REGISTERED}" = "false" ] \
+   && [ -f "${HOME}/.ssh/id_signing_ed25519.pub" ]; then
   cat <<'EOF'
-  Remaining steps need a person and are not run automatically:
-    scripts/macos-interactive.sh    Terminal.app profile, macOS defaults
+  One step needs a credential no fresh machine holds - telling GitHub
+  about this machine's new public keys. Either sign in once and re-run
+  bootstrap, which registers them for you:
+
+    gh auth login
+
+  or paste them yourself at https://github.com/settings/keys:
+
+    ~/.ssh/id_auth_ed25519.pub       as an Authentication key
+    ~/.ssh/id_signing_ed25519.pub    as a Signing key (a SEPARATE list)
+
+EOF
+fi
+
+if [ "${MACOS_DEFAULTS_RAN}" = "true" ]; then
+  cat <<'EOF'
+  Quit Terminal completely (Cmd-Q) and reopen it to land in the Pro
+  profile. Terminal rewrites its preferences on quit, so a restart is
+  what makes the imported profile stick.
 
 EOF
 fi

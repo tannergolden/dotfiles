@@ -178,6 +178,48 @@ cm apply --force >/dev/null 2>&1
 before="$(cm apply --force 2>&1 | grep -c 'would install' || true)"
 check "provisioning does not re-run on an unchanged apply" '[ "${before}" = "0" ]'
 
+# --- 9b. keys without a person ---------------------------------------------
+# The zero-input contract: bootstrap generates keys BEFORE apply so the
+# git config's signing gate flips on the same machine state, and appends
+# the machine's own key to the trust list AFTER apply. Exercised here
+# against the sandbox HOME, exactly as bootstrap drives it.
+GK="${REPO_DIR}/scripts/generate-keys.sh"
+if command -v ssh-keygen >/dev/null 2>&1; then
+  # Before any key exists, the rendered config must keep signing OFF - a
+  # hardcoded true fails every commit on a machine with no key, with a
+  # gpg error that says nothing about why.
+  check "gpgsign is off while no signing key exists" \
+    'grep -q "gpgsign = false" "${HOME}/.config/git/config"'
+
+  check "generate-keys.sh keys exits 0" '"${GK}" keys'
+  check "auth keypair generated" \
+    '[ -f "${HOME}/.ssh/id_auth_ed25519" ] && [ -f "${HOME}/.ssh/id_auth_ed25519.pub" ]'
+  check "signing keypair generated" \
+    '[ -f "${HOME}/.ssh/id_signing_ed25519" ] && [ -f "${HOME}/.ssh/id_signing_ed25519.pub" ]'
+
+  # It only ever fills absence: a second run must replace nothing, or a
+  # re-bootstrap would rotate keys behind their owner's back.
+  KEY_BEFORE="$(cat "${HOME}/.ssh/id_signing_ed25519.pub")"
+  check "a second keys run exits 0" '"${GK}" keys'
+  check "a second keys run replaces nothing" \
+    '[ "$(cat "${HOME}/.ssh/id_signing_ed25519.pub")" = "${KEY_BEFORE}" ]'
+
+  # The gate itself: the key now exists, so a re-apply flips signing on.
+  check "re-apply exits 0 with keys present" 'cm apply --force'
+  check "gpgsign flipped on by the key existing" \
+    'grep -q "gpgsign = true" "${HOME}/.config/git/config"'
+
+  # The trust list: appended once, never twice.
+  check "trust append exits 0" '"${GK}" trust "smoke@example.invalid"'
+  check "allowed_signers holds the machine key" \
+    'grep -q "smoke@example.invalid namespaces=\"git\" ssh-ed25519" "${HOME}/.config/git/allowed_signers"'
+  check "a second trust run exits 0" '"${GK}" trust "smoke@example.invalid"'
+  check "the trust entry is not duplicated" \
+    '[ "$(grep -c "smoke@example.invalid" "${HOME}/.config/git/allowed_signers")" = "1" ]'
+else
+  ok "ssh-keygen unavailable; key checks skipped (generate-keys.sh degrades the same way)"
+fi
+
 # --- 10. the guards themselves must be able to fire ------------------------
 #
 # EVERY ASSERTION BELOW IS ABOUT A FAILURE PATH, which is the part of a

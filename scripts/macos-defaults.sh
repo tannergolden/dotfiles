@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# --- macOS steps that need a person, or a restart, or both ---
+# --- macOS defaults and the Terminal profile ---
 #
-# Deliberately NOT part of `chezmoi apply`. Everything here either races a
-# running application, needs a logout, or opens a window.
+# Run automatically by bootstrap inside a real GUI login session, and
+# runnable by hand any time. Deliberately NOT part of `chezmoi apply`:
+# everything here either races a running application, needs a logout or a
+# Terminal restart to take effect, or opens a window, none of which
+# belongs inside an apply that must stay silent and idempotent.
 #
 # BASH 3.2 ONLY.
 
@@ -153,7 +156,5 @@ fi
 # processes' pending state.
 
 log "done"
-printf '\nStill yours to do by hand, because no script can:\n'
-printf '  - Register your SSH signing key on GitHub under Signing keys,\n'
-printf '    which is a SEPARATE registration from Authentication keys.\n'
-printf '  - Security settings. See %s/docs/Manual-Setup.md\n\n' "${REPO_DIR}"
+printf '\nStill yours to do by hand, because no script can decide them for\n'
+printf 'you: the security settings. See %s/docs/Manual-Setup.md\n\n' "${REPO_DIR}"

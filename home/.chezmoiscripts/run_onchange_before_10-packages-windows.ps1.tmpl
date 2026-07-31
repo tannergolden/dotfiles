@@ -17,9 +17,34 @@ if ($env:CI_STUB -eq '1') {
 }
 
 # --- scoop -----------------------------------------------------------------
+# Installed here rather than reported missing: install is one command with
+# zero input, and "install scoop yourself, then re-run" was two manual
+# steps hiding inside a warning. The official installer is per-user, no
+# UAC; it refuses an elevated console unless told otherwise, hence the
+# -RunAsAdmin pass-through for the odd machine that runs everything
+# elevated. The shims path is appended for THIS process because the
+# installer's PATH edit only reaches shells started after it.
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-    Write-Warning "scoop is not installed. Install it from https://scoop.sh, then re-run 'chezmoi apply'."
-    Write-Warning "Skipping per-user packages. This does not abort the rest of the apply."
+    Write-Host "==> installing scoop (per-user, no UAC)"
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+               ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    try {
+        if ($isAdmin) {
+            Invoke-Expression "& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin"
+        } else {
+            Invoke-RestMethod get.scoop.sh | Invoke-Expression
+        }
+    } catch {
+        Write-Warning "scoop install failed: $($_.Exception.Message)"
+    }
+    $shims = Join-Path $HOME 'scoop\shims'
+    if ((Test-Path $shims) -and ($env:PATH -notlike "*$shims*")) {
+        $env:PATH = "$shims;$env:PATH"
+    }
+}
+
+if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+    Write-Warning "scoop is still unavailable; skipping per-user packages. This does not abort the rest of the apply."
 } else {
     Write-Host "==> scoop install ({{ len .packages.windows.scoop }} packages)"
     {{ range .packages.windows.scoop -}}

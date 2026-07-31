@@ -1,13 +1,17 @@
 {{/*
-  Per machine configuration, asked once at `chezmoi init` and remembered.
+  Per machine configuration. NOBODY IS EVER ASKED: bootstrap passes
+  --promptDefaults on every run, interactive included, because install is
+  one command with zero input and the defaults below ARE the right
+  answers - they are this repository owner's identity, declared here, not
+  guessed. A fork changes the two defaults on this page and gets the same
+  zero-question install.
 
-  `promptStringOnce` reads an existing answer from the config when there is
-  one, so re-running init does not re-ask. `chezmoi init --promptDefaults`
-  takes every default below and asks nothing, which is what makes an
-  unattended bootstrap and a continuous integration run possible.
+  `promptStringOnce` still reads an existing answer from the config when
+  there is one, so a value set by hand (edit ~/.config/chezmoi/chezmoi.toml,
+  then `chezmoi init`) survives every later run.
 
-  Keep this list short. Every question here is one a future you has to
-  answer on a new machine while wanting to be doing something else.
+  Keep this list short. Every entry here is machine state a future you
+  has to reason about while wanting to be doing something else.
 */}}
 
 {{- $email := promptStringOnce . "email" "Git commit email" "24684994+tannergolden@users.noreply.github.com" -}}

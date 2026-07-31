@@ -134,7 +134,7 @@ Commits fail with a gpg error, or GitHub shows **Unverified**:
 
 ## 7️⃣ Revert the Theme
 
-The Catppuccin Mocha recolour landed as a single commit touching the terminal profile, fzf, bat, delta and starship. One revert of that commit restores the previous look; the Terminal.app profile then needs a re-import via `scripts/macos-interactive.sh`.
+The Catppuccin Mocha recolour landed as a single commit touching the terminal profile, fzf, bat, delta and starship. One revert of that commit restores the previous look; the Terminal.app profile then needs a re-import via `scripts/macos-defaults.sh`.
 
 ---
 

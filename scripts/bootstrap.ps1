@@ -1,12 +1,20 @@
 # --- Bootstrap: blank Windows machine to working environment ---
 #
-# Run from PowerShell 7 or later:
-#   & $HOME\.dotfiles\scripts\bootstrap.ps1
+# THE ONE COMMAND, from any stock Windows PowerShell:
 #
-# If it will not run at all, the execution policy is why. See the note at
-# the end of this file.
-
-#Requires -Version 7.0
+#   irm https://raw.githubusercontent.com/tannergolden/dotfiles/Development/scripts/bootstrap.ps1 | iex
+#
+# Or, from a clone: & $HOME\.dotfiles\scripts\bootstrap.ps1
+#
+# NO `#Requires -Version 7.0` AT THE TOP, DELIBERATELY, although the body
+# needs 7. A stock machine has only Windows PowerShell 5.1, and #Requires
+# would stop there with an instruction to a person - the exact manual step
+# being removed. Instead the preamble below is written to PARSE under 5.1
+# (no ternaries, no null-coalescing, no chain operators anywhere in this
+# file), detects the downlevel host, installs PowerShell 7 through winget,
+# and re-executes itself under it. The single UAC consent that raises is
+# Windows' gate on machine-wide installs, not a decision this script asks
+# anyone to make.
 
 [CmdletBinding()]
 param(
@@ -20,6 +28,80 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# --- self-locate, self-fetch, self-upgrade ---------------------------------
+# $MyInvocation has no path when this script arrives through `irm | iex`,
+# which is the fingerprint of the one-command install: nothing is on disk
+# yet. Fetch the repository first - git when a real one exists, the GitHub
+# zipball otherwise - then hand over to the cloned copy of this same file.
+function Find-Pwsh7 {
+    $cmd = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    $default = Join-Path $env:ProgramFiles 'PowerShell\7\pwsh.exe'
+    if (Test-Path $default) { return $default }
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { return $null }
+    Write-Host '==> installing PowerShell 7 (one UAC consent; Windows'' gate on machine-wide installs)'
+    winget install --exact --id Microsoft.PowerShell --silent `
+        --accept-package-agreements --accept-source-agreements
+    if (Test-Path $default) { return $default }
+    $cmd = Get-Command pwsh -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    return $null
+}
+
+$script:SelfPath = $MyInvocation.MyCommand.Path
+if (-not $script:SelfPath) {
+    $slug   = 'tannergolden/dotfiles'
+    $ref    = if ($env:DOTFILES_REF) { $env:DOTFILES_REF } else { 'Development' }
+    $target = if ($env:DOTFILES_DIR) { $env:DOTFILES_DIR } else { Join-Path $HOME '.dotfiles' }
+
+    if (-not (Test-Path (Join-Path $target 'scripts\bootstrap.ps1'))) {
+        if (Test-Path $target) {
+            Write-Error "$target exists but is not this repository; move it aside first"
+            exit 1
+        }
+        Write-Host "==> fetching $slug@$ref to $target"
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            git clone --branch $ref "https://github.com/$slug" $target
+            if ($LASTEXITCODE -ne 0) { Write-Error 'git clone failed'; exit 1 }
+        } else {
+            # No git on a stock machine. The zipball needs nothing but
+            # PowerShell itself; provisioning installs a real git later
+            # and bootstrap grafts history back so updates work.
+            $tmp = Join-Path $env:TEMP ([guid]::NewGuid())
+            New-Item -ItemType Directory -Path $tmp -Force | Out-Null
+            $zip = Join-Path $tmp 'dotfiles.zip'
+            Invoke-WebRequest -UseBasicParsing -OutFile $zip `
+                -Uri "https://codeload.github.com/$slug/zip/refs/heads/$ref"
+            Expand-Archive -Path $zip -DestinationPath $tmp -Force
+            # The zipball wraps everything in one top directory named
+            # after the ref; unwrap it so the layout matches a clone.
+            $inner = Get-ChildItem -Path $tmp -Directory | Select-Object -First 1
+            Move-Item -Path $inner.FullName -Destination $target
+            Remove-Item -Recurse -Force $tmp
+        }
+    }
+
+    $script:SelfPath = Join-Path $target 'scripts\bootstrap.ps1'
+}
+
+if ($PSVersionTable.PSVersion.Major -lt 7 -or $MyInvocation.MyCommand.Path -ne $script:SelfPath) {
+    # Either a downlevel host, or the piped copy handing over to the
+    # fetched file (so $PSScriptRoot and every relative path work).
+    # -ExecutionPolicy Bypass covers the fresh machine whose Restricted
+    # policy would otherwise refuse the file before the policy stage
+    # below has had its chance to fix that policy properly.
+    $pwsh = Find-Pwsh7
+    if (-not $pwsh) {
+        Write-Error 'PowerShell 7 is required and winget could not provide it; install it from https://aka.ms/powershell and re-run'
+        exit 1
+    }
+    $fwd = @()
+    foreach ($k in $PSBoundParameters.Keys) { if ($PSBoundParameters[$k]) { $fwd += "-$k" } }
+    & $pwsh -NoProfile -ExecutionPolicy Bypass -File $script:SelfPath @fwd
+    exit $LASTEXITCODE
+}
+
 Set-StrictMode -Version Latest
 
 $ChezmoiVersion = 'v2.71.1'
@@ -110,6 +192,39 @@ if (-not $chezmoi) {
     $chezmoi = $chezmoi.Source
 }
 Write-Step "chezmoi: $chezmoi"
+
+# --- stage 0b: SSH keys ----------------------------------------------------
+# BEFORE apply, because the git config template gates commit.gpgsign on the
+# signing key existing at render time: a key generated now means signing is
+# on from the very first apply. ssh-keygen ships with Windows' inbox
+# OpenSSH client; the System32 probe covers a PATH that has not seen it.
+#
+# NO PASSPHRASE, STATED RATHER THAN HIDDEN: these keys never leave the
+# machine, and install is one command with zero input. Generate your own
+# passphrased keys under the same names and this stage will not touch them,
+# it only ever fills absence.
+$sshKeygen = $null
+$cmd = Get-Command ssh-keygen -ErrorAction SilentlyContinue
+if ($cmd) { $sshKeygen = $cmd.Source }
+elseif (Test-Path (Join-Path $env:SystemRoot 'System32\OpenSSH\ssh-keygen.exe')) {
+    $sshKeygen = Join-Path $env:SystemRoot 'System32\OpenSSH\ssh-keygen.exe'
+}
+if ($sshKeygen) {
+    $sshDir = Join-Path $HOME '.ssh'
+    New-Item -ItemType Directory -Path $sshDir -Force | Out-Null
+    foreach ($pair in @(@('id_auth_ed25519', 'auth'), @('id_signing_ed25519', 'signing'))) {
+        $keyPath = Join-Path $sshDir $pair[0]
+        if (Test-Path $keyPath) {
+            Write-Step "key exists: $keyPath"
+        } else {
+            & $sshKeygen -q -t ed25519 -N '' -C $pair[1] -f $keyPath
+            if ($LASTEXITCODE -eq 0) { Write-Step "generated $keyPath" }
+            else { Write-Warn "could not generate $keyPath; git works, commits stay unsigned" }
+        }
+    }
+} else {
+    Write-Warn 'ssh-keygen not found; skipping key setup (git still works, unsigned)'
+}
 
 # --- stage 1: back up ------------------------------------------------------
 # chezmoi apply overwrites silently and is not atomic. On Windows it is
@@ -256,6 +371,160 @@ if ($LASTEXITCODE -eq 0) {
     Write-Warn "drift reported by 'chezmoi verify'; run 'chezmoi diff' to inspect"
 }
 
+# --- stage 4: the signing trust list ---------------------------------------
+# AFTER apply, because allowed_signers is a `create_` target that does not
+# exist until apply has run once. The email comes from the chezmoi data the
+# init above persisted, so the trust entry matches the commit identity
+# without asking anyone anything.
+$signingPub = Join-Path $HOME '.ssh\id_signing_ed25519.pub'
+$signers    = Join-Path $HOME '.config\git\allowed_signers'
+if ((Test-Path $signingPub) -and (Test-Path $signers)) {
+    $identityEmail = (& $chezmoi execute-template '{{ .email }}' 2>$null)
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($identityEmail)) {
+        $keyBlob = ((Get-Content $signingPub -First 1) -split ' ')[0..1] -join ' '
+        $already = Select-String -Path $signers -SimpleMatch $keyBlob -Quiet
+        if ($already) {
+            Write-Step 'signing key already in allowed_signers'
+        } else {
+            # namespaces="git" pins the signature context, exactly as the
+            # allowed_signers file's own comments document.
+            Add-Content -Path $signers -Value "$identityEmail namespaces=`"git`" $keyBlob"
+            Write-Step "added signing key to allowed_signers for $identityEmail"
+        }
+    } else {
+        Write-Warn 'could not read the commit email from chezmoi data; allowed_signers not updated'
+    }
+}
+
+# --- stage 5: register the keys on GitHub, when a credential exists --------
+# The one genuinely manual step left is telling GitHub about the new
+# public keys, because that needs a credential no fresh machine holds. A
+# machine that HAS one - gh already logged in - should not hand the job
+# back to a person. Best effort, loud on both outcomes, never fatal.
+$keysRegistered = $false
+if ((-not $env:CI) -and (Get-Command gh -ErrorAction SilentlyContinue)) {
+    gh auth status 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        $regOk = $true
+        foreach ($spec in @(
+            @{ Path = Join-Path $HOME '.ssh\id_auth_ed25519.pub';    Type = 'authentication'; Title = 'auth' },
+            @{ Path = Join-Path $HOME '.ssh\id_signing_ed25519.pub'; Type = 'signing';        Title = 'signing' }
+        )) {
+            if (-not (Test-Path $spec.Path)) { continue }
+            $blob = ((Get-Content $spec.Path -First 1) -split ' ')[1]
+            $listed = (gh ssh-key list 2>$null) -match [regex]::Escape($blob)
+            if ($listed) { Write-Step "already on GitHub: $($spec.Path)"; continue }
+            gh ssh-key add $spec.Path --type $spec.Type --title "$env:COMPUTERNAME $($spec.Title)" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Step "registered on GitHub ($($spec.Type)): $($spec.Path)"
+            } else {
+                Write-Warn "could not register $($spec.Path); if the token lacks scope, run: gh auth refresh -s admin:public_key,admin:ssh_signing_key"
+                $regOk = $false
+            }
+        }
+        $keysRegistered = $regOk
+    }
+}
+
+# --- stage 6: execution policy ---------------------------------------------
+# The default on Windows 10 and 11 clients is Restricted, which blocks all
+# script files INCLUDING profiles: everything this bootstrap just installed
+# would sit there and never load, which reads as "nothing was installed".
+# Install is one command with zero input, so the per-user policy is set
+# here, loudly, rather than printed as homework. RemoteSigned per-user is
+# Microsoft's own recommendation for exactly this; no administrator rights
+# are involved, and a group policy that pins the setting wins anyway - the
+# catch below reports that honestly instead of pretending.
+$policy = Get-ExecutionPolicy -Scope CurrentUser
+if ($policy -in @('Restricted', 'Undefined')) {
+    try {
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+        Write-Step "execution policy for CurrentUser: '$policy' -> RemoteSigned; the profile can now load"
+    } catch {
+        Write-Warn "could not change the execution policy (group policy may pin it): $($_.Exception.Message)"
+    }
+}
+
+# --- stage 7: Windows Terminal picks the scheme ----------------------------
+# The fragment under AppData ADDS the Catppuccin Mocha scheme, but a
+# fragment cannot SELECT one - that used to be the documented manual step.
+# Windows Terminal rewrites settings.json itself constantly, so editing it
+# programmatically is normal for that file; comments it may contain are
+# understood by ConvertFrom-Json and lost on rewrite, which the Terminal's
+# own settings UI also does. A sidecar .bak preserves the exact previous
+# bytes. Covers stable, preview and unpackaged installs; a machine with no
+# Terminal at all is skipped silently.
+$wtCandidates = @(
+    (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
+    (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json'),
+    (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+)
+foreach ($settingsPath in $wtCandidates) {
+    $settingsDir = Split-Path $settingsPath -Parent
+    if (Test-Path $settingsPath) {
+        try {
+            $wt = Get-Content $settingsPath -Raw | ConvertFrom-Json -AsHashtable
+        } catch {
+            Write-Warn "could not parse $settingsPath; leaving it alone"
+            continue
+        }
+        if (-not $wt.ContainsKey('profiles')) { $wt['profiles'] = [ordered]@{} }
+        if ($wt['profiles'] -is [System.Collections.IList]) {
+            # The ancient list-only profiles format predates both defaults
+            # and fragments; rewriting it wholesale risks more than a
+            # colour scheme is worth.
+            Write-Warn "$settingsPath uses the legacy profiles format; pick the scheme in Settings once"
+            continue
+        }
+        if (-not $wt['profiles'].Contains('defaults')) { $wt['profiles']['defaults'] = [ordered]@{} }
+        if ($wt['profiles']['defaults']['colorScheme'] -eq 'Catppuccin Mocha') {
+            Write-Step "Windows Terminal already uses Catppuccin Mocha ($settingsPath)"
+            continue
+        }
+        Copy-Item -LiteralPath $settingsPath -Destination "$settingsPath.pre-dotfiles.bak" -Force
+        $wt['profiles']['defaults']['colorScheme'] = 'Catppuccin Mocha'
+        $wt | ConvertTo-Json -Depth 64 | Set-Content -Path $settingsPath -Encoding utf8
+        Write-Step "Windows Terminal default scheme set to Catppuccin Mocha (previous file at $settingsPath.pre-dotfiles.bak)"
+    } elseif (Test-Path $settingsDir) {
+        # Terminal is installed but has never run: a minimal settings file
+        # is honoured on first launch, and the fragment supplies the
+        # scheme definition itself.
+        [ordered]@{ profiles = [ordered]@{ defaults = [ordered]@{ colorScheme = 'Catppuccin Mocha' } } } |
+            ConvertTo-Json -Depth 8 | Set-Content -Path $settingsPath -Encoding utf8
+        Write-Step "Windows Terminal will start on Catppuccin Mocha ($settingsPath)"
+    }
+}
+
+# --- stage 8: a zipball install becomes a clone ----------------------------
+# The one-command install fetches a zipball when git is missing.
+# Provisioning has installed Git.Git by now (its PATH entry reaches new
+# shells, not this one, hence the explicit probe), so graft history back
+# so `chezmoi update` works from here on. Fresh install: reset --hard
+# forfeits nothing.
+if (-not (Test-Path (Join-Path $RepoDir '.git'))) {
+    $git = $null
+    $cmd = Get-Command git -ErrorAction SilentlyContinue
+    if ($cmd) { $git = $cmd.Source }
+    elseif (Test-Path (Join-Path $env:ProgramFiles 'Git\cmd\git.exe')) {
+        $git = Join-Path $env:ProgramFiles 'Git\cmd\git.exe'
+    }
+    if ($git) {
+        $ref = if ($env:DOTFILES_REF) { $env:DOTFILES_REF } else { 'Development' }
+        Write-Step "turning the zipball at $RepoDir into a git clone ($ref)"
+        & $git -C $RepoDir init -q -b $ref
+        if ($LASTEXITCODE -eq 0) { & $git -C $RepoDir remote add origin 'https://github.com/tannergolden/dotfiles' }
+        if ($LASTEXITCODE -eq 0) { & $git -C $RepoDir fetch -q origin $ref }
+        if ($LASTEXITCODE -eq 0) { & $git -C $RepoDir reset -q --hard "origin/$ref" }
+        if ($LASTEXITCODE -eq 0) { & $git -C $RepoDir branch -q --set-upstream-to="origin/$ref" }
+        if ($LASTEXITCODE -eq 0) {
+            Write-Step "history restored; future updates are 'chezmoi update'"
+        } else {
+            Write-Warn 'could not graft git history; installs still work, updates need a fresh clone'
+        }
+    }
+}
+
+# --- stage 9: report --------------------------------------------------------
 Write-Host @"
 
   Bootstrap complete.
@@ -267,20 +536,18 @@ Write-Host @"
 
 "@
 
-# --- execution policy ------------------------------------------------------
-# The default on Windows 10 and 11 clients is Restricted, which blocks all
-# script files INCLUDING profiles. Bypass on this invocation does nothing
-# for tomorrow's shell. Reported rather than changed: silently mutating a
-# machine's persistent security policy from a public repository is not
-# something a bootstrap should do unasked.
-$policy = Get-ExecutionPolicy -Scope CurrentUser
-if ($policy -in @('Restricted', 'Undefined')) {
-    Write-Warn @"
-Execution policy for CurrentUser is '$policy'.
-Your PowerShell profile will NOT load until this changes:
+if ((-not $keysRegistered) -and (Test-Path (Join-Path $HOME '.ssh\id_signing_ed25519.pub'))) {
+    Write-Host @"
+  One step needs a credential no fresh machine holds - telling GitHub
+  about this machine's new public keys. Either sign in once and re-run
+  bootstrap, which registers them for you:
 
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    gh auth login
 
-Per-user, no administrator rights needed.
+  or paste them yourself at https://github.com/settings/keys:
+
+    ~\.ssh\id_auth_ed25519.pub       as an Authentication key
+    ~\.ssh\id_signing_ed25519.pub    as a Signing key (a SEPARATE list)
+
 "@
 }
