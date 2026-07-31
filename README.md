@@ -188,7 +188,7 @@ chezmoi ignored --override-data '{"chezmoi":{"os":"windows"}}'
 Three commands, identical on every platform, delivered as bash on macOS and Linux and as PowerShell twins on Windows:
 
 ```bash
-ai-dash      # the 2x2 dashboard below
+ai-dash      # the 2x2 dashboard below — also opens itself when a terminal does
 ai-agents    # every known AI agent CLI, with the version of each one installed
 ai-model     # detect the hardware, pick the strongest local model, pull it, chat
 ```
@@ -202,6 +202,34 @@ ai-model     # detect the hardware, pick the strongest local model, pull it, cha
 ```
 
 The panes are tmux on macOS and Linux and Windows Terminal splits on Windows, because no terminal exposes splits to a script portably and tmux has no native Windows build. The session rides your normal tmux server under the name `ai-dash`, styled Catppuccin Mocha **for that session only**, so your own tmux theming is never touched. `ai-dash kill` tears it down on macOS and Linux; on Windows closing the window is the whole teardown, because Windows Terminal has no detached session to kill.
+
+### The dashboard opens itself
+
+A machine this repository set up **looks set up the moment a terminal opens** — no command to remember. Both shells end their startup with `ai-dash auto`, which decides what this particular terminal should get:
+
+| Where you open a terminal            | What appears                                                        |
+| :----------------------------------- | :------------------------------------------------------------------ |
+| First terminal (macOS / Linux)       | The full dashboard, built or re-attached                            |
+| First terminal since boot (Windows)  | The dashboard, in its own Windows Terminal window                   |
+| Any further terminal                 | The fastfetch panel, then a plain shell                             |
+| VS Code, Codespaces, ssh             | The fastfetch panel, then a plain shell — never a window takeover   |
+| CI, hooks, anything without a tty    | Nothing, silently                                                   |
+
+The asymmetry in the first two rows is the platforms' own: tmux has a detached session `auto` can ask about — *is the dashboard already on screen somewhere?* — so on macOS and Linux a second window shows the panel while the first holds the dashboard, and closing or detaching (`prefix-d`) hands the session to the next terminal you open. Windows Terminal has no session to interrogate, so the honest question there is *has it opened since boot?*
+
+Recursion is the trap in a feature like this, because **every pane of the dashboard is itself a new shell reading the same startup files**. The tmux panes stop at the `$TMUX` guard; the Windows panes are `pwsh -NoExit -Command ...` and are excluded because they carry arguments, where a plain interactive tab carries none — an environment-variable marker cannot work there, since panes inherit their environment from the long-lived `WindowsTerminal.exe` process, not from whoever asked for the split.
+
+Not wanted? One line, in the gitignored local override, honoured before anything visible happens:
+
+```bash
+# ~/.zshrc.local
+export AI_DASH_AUTO=0
+```
+
+```powershell
+# ~/.config/powershell/profile.local.ps1
+$env:AI_DASH_AUTO = '0'
+```
 
 ### How the model is chosen
 

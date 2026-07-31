@@ -45,9 +45,6 @@ set -euo pipefail
 SESSION="ai-dash"
 WINDOW="ai"
 
-command -v tmux >/dev/null 2>&1 \
-  || { echo "ai-dash needs tmux; run 'chezmoi apply' to install it" >&2; exit 1; }
-
 attach() {
   # A tty is required to attach. Without one (CI, a hook), creating the
   # session is still useful, so say where it went instead of erroring.
@@ -75,11 +72,61 @@ case "${1:-}" in
       || echo "no '${SESSION}' session to kill"
     exit 0
     ;;
+  auto)
+    # The shell startup files call this on EVERY interactive shell, so
+    # every guard below exits 0 silently: auto mode is a courtesy, never
+    # an error a new prompt should pay for. Manual `ai-dash` stays loud.
+    #
+    # THE TMUX GUARD IS THE ONE THAT PREVENTS RECURSION. Every pane of
+    # the dashboard is itself an interactive shell reading .zshrc, which
+    # calls back into this script. Inside any tmux, $TMUX is set, so the
+    # panes stop here and the dashboard cannot try to open itself from
+    # within itself.
+    [ -z "${TMUX:-}" ] || exit 0
+    # No tty, no takeover: CI, hooks, editors running `zsh -c`, and
+    # anything with redirected stdio all land here.
+    if [ ! -t 0 ] || [ ! -t 1 ]; then exit 0; fi
+    [ "${TERM:-}" != "dumb" ] || exit 0
+    [ -n "${TERM:-}" ] || exit 0
+    [ -z "${CI:-}" ] || exit 0
+    # The escape hatch, honoured before anything visible happens. Set it
+    # in ~/.zshrc.local (sourced before this runs) to keep plain shells.
+    [ "${AI_DASH_AUTO:-1}" = "1" ] || exit 0
+    # Where taking the window over would be wrong - VS Code's integrated
+    # terminal (codespaces included, and its task shells are still
+    # interactive ptys), or an ssh session into this machine - show the
+    # system panel inline instead. The machine still greets you as
+    # configured; it just does not commandeer someone else's layout.
+    if [ "${TERM_PROGRAM:-}" = "vscode" ] || [ -n "${CODESPACES:-}" ] \
+       || [ -n "${SSH_CONNECTION:-}" ]; then
+      command -v fastfetch >/dev/null 2>&1 && fastfetch
+      exit 0
+    fi
+    # Provisioning not landed yet: degrade to the panel rather than to a
+    # blank prompt, and never to an error.
+    if ! command -v tmux >/dev/null 2>&1; then
+      command -v fastfetch >/dev/null 2>&1 && fastfetch
+      exit 0
+    fi
+    # The dashboard is already on screen in some other window: leave this
+    # one a plain shell with the panel, rather than mirroring one session
+    # into every window you open. Detach (prefix-d) or close that window
+    # and the next terminal picks the session back up.
+    if tmux has-session -t "=${SESSION}" 2>/dev/null \
+       && [ -n "$(tmux list-clients -t "=${SESSION}" 2>/dev/null)" ]; then
+      command -v fastfetch >/dev/null 2>&1 && fastfetch
+      exit 0
+    fi
+    # Fall through: build the grid, or attach to an unwatched session.
+    ;;
   -h|--help|help)
-    echo "usage: ai-dash [kill]"
+    echo "usage: ai-dash [auto|kill]"
     exit 0
     ;;
 esac
+
+command -v tmux >/dev/null 2>&1 \
+  || { echo "ai-dash needs tmux; run 'chezmoi apply' to install it" >&2; exit 1; }
 
 # Already built? Just go there. Re-running must never stack a second grid.
 #
@@ -99,8 +146,14 @@ LINES="$(tput lines 2>/dev/null || echo 50)"
 # Each pane runs its command and then becomes a plain shell. The command
 # strings are single-quoted so ${SHELL} resolves inside the pane (tmux
 # runs them via sh -c), not here.
+# `|| attach` covers the losing side of a race: two windows opening at
+# once (Terminal.app restoring a window group at login does exactly this)
+# can both find no session above, and the second create then fails with
+# "duplicate session". The loser attaches to the winner's grid instead.
+# stderr is not suppressed: a real failure still says why, and the race
+# loser's one-line complaint disappears behind the attach screen-clear.
 tmux new-session -d -s "${SESSION}" -n "${WINDOW}" -x "${COLS}" -y "${LINES}" \
-  'fastfetch; exec "${SHELL:-/bin/sh}"'
+  'fastfetch; exec "${SHELL:-/bin/sh}"' || attach
 tmux split-window -t "=${SESSION}:${WINDOW}"
 tmux split-window -t "=${SESSION}:${WINDOW}" 'ai-agents; exec "${SHELL:-/bin/sh}"'
 tmux split-window -t "=${SESSION}:${WINDOW}" 'ai-model chat; exec "${SHELL:-/bin/sh}"'

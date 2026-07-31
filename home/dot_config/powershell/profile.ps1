@@ -115,3 +115,16 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 # --- local overrides -------------------------------------------------------
 $local:localProfile = Join-Path $env:XDG_CONFIG_HOME 'powershell\profile.local.ps1'
 if (Test-Path $local:localProfile) { . $local:localProfile }
+
+# --- the dashboard opens itself --------------------------------------------
+# LAST, after the local overrides, so `$env:AI_DASH_AUTO = '0'` in
+# profile.local.ps1 can veto it. A machine this repository set up should
+# look set up the moment a terminal opens. Every judgement call lives in
+# ai-dash.ps1's auto command, not here: dashboard panes cannot recurse
+# (they carry arguments; a plain interactive tab carries none), VS Code
+# and ssh get the fastfetch panel inline, and the dashboard window opens
+# once per boot rather than once per tab. .zshrc ends with the same
+# call, so both shells open the same way. Absolute path, not PATH: the
+# profile above prepends ~/.local/bin, but this must not gamble on it.
+$local:aiDash = Join-Path $HOME '.local\bin\ai-dash.ps1'
+if (Test-Path $local:aiDash) { & $local:aiDash auto }

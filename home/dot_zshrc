@@ -159,3 +159,20 @@ fi
 # Gitignored, absent by default, and the right home for anything machine
 # specific or not fit to publish.
 [[ -r "${HOME}/.zshrc.local" ]] && source "${HOME}/.zshrc.local"
+
+# --- the dashboard opens itself --------------------------------------------
+# LAST, on purpose, twice over: after the prompt and tools above so the
+# shell a pane drops into is fully configured, and after .zshrc.local so
+# `export AI_DASH_AUTO=0` there can veto it.
+#
+# A machine this repository set up should look set up the moment a
+# terminal opens, not after a command is remembered and typed. Every
+# judgement call lives in `ai-dash auto`, not here: panes must not
+# recurse into the dashboard they are part of, VS Code, codespaces and
+# ssh get the fastfetch panel inline rather than a window takeover, and
+# a dashboard already on screen in another window is not mirrored into
+# this one. The PowerShell profile ends with the same call, so both
+# shells open the same way.
+if command -v ai-dash >/dev/null 2>&1; then
+  ai-dash auto
+fi

@@ -34,11 +34,68 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('open', 'kill')]
+    [ValidateSet('open', 'kill', 'auto')]
     [string]$Command = 'open'
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($Command -eq 'auto') {
+    # The profile calls this on EVERY interactive pwsh, so every guard
+    # exits silently: auto mode is a courtesy, never an error a new
+    # prompt should pay for. Manual `ai-dash` stays loud.
+    #
+    # THE ARGUMENT-COUNT CHECK IS THE ONE THAT PREVENTS RECURSION. Every
+    # pane of the dashboard is `pwsh -NoExit -Command ...`, and it loads
+    # this same profile before its -Command runs - an environment-variable
+    # marker cannot work here, because panes inherit their environment
+    # from the long-lived WindowsTerminal.exe process, not from whoever
+    # asked for the split. What panes DO carry is arguments. A plain
+    # interactive tab is bare pwsh.exe with none, and every script or
+    # tooling invocation (-Command, -File, -NonInteractive) has some, so
+    # one count excludes them all.
+    if ([Environment]::GetCommandLineArgs().Count -gt 1) { exit 0 }
+    if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected) { exit 0 }
+    if ($env:CI) { exit 0 }
+    # The escape hatch, honoured before anything visible happens. Set
+    # $env:AI_DASH_AUTO = '0' in profile.local.ps1 to keep plain shells.
+    if ($env:AI_DASH_AUTO -eq '0') { exit 0 }
+
+    function Show-Panel {
+        if (Get-Command fastfetch -ErrorAction SilentlyContinue) { fastfetch }
+    }
+
+    # Where opening a window would be wrong - VS Code's integrated
+    # terminal or an ssh session into this machine - show the system
+    # panel inline instead, so the machine still greets you as
+    # configured without commandeering someone else's layout.
+    if ($env:TERM_PROGRAM -eq 'vscode' -or $env:SSH_CONNECTION) { Show-Panel; exit 0 }
+    # Provisioning not landed yet: the panel, never an error.
+    if (-not (Get-Command wt -ErrorAction SilentlyContinue)) { Show-Panel; exit 0 }
+
+    # ONCE PER BOOT, because Windows Terminal has no detached session to
+    # rejoin: the POSIX side can ask tmux "is the dashboard on screen
+    # anywhere", but here the only honest state is "was it opened since
+    # boot". The flag stores the boot MOMENT rather than merely existing,
+    # so a file surviving from the previous boot cannot suppress the
+    # first terminal of this one. Later tabs this boot get the panel.
+    $stateDir = if ($env:XDG_STATE_HOME) { Join-Path $env:XDG_STATE_HOME 'ai-dash' }
+                else { Join-Path $HOME '.local\state\ai-dash' }
+    $flag = Join-Path $stateDir 'auto-open'
+    $boot = (Get-Date).AddMilliseconds(-[Environment]::TickCount64)
+    if (Test-Path $flag) {
+        $prevBoot = [datetime]::MinValue
+        $prev = Get-Content $flag -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ([datetime]::TryParse($prev, [ref]$prevBoot) -and
+            [math]::Abs(($boot - $prevBoot).TotalSeconds) -lt 120) {
+            Show-Panel
+            exit 0
+        }
+    }
+    New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
+    Set-Content -Path $flag -Value $boot.ToString('o')
+    # Fall through to open the dashboard window.
+}
 
 if ($Command -eq 'kill') {
     # The POSIX twin kills a detached tmux session. Windows Terminal has
