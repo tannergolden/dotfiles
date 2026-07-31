@@ -14,6 +14,14 @@
 # and winget partitions ripgrep by toolchain. A table pretending one name
 # fits all three would simply be wrong.
 
+# PINNED VERSIONS for anything fetched from a URL rather than a package
+# manager. A manager resolves the current version for us; a raw download
+# cannot, so the version has to live somewhere visible and reviewable.
+pins:
+  # The URL embeds both a semantic version and a build id, which is why
+  # this is one opaque string rather than a version number.
+  antigravityCli: '1.1.9-6572839516635136'
+
 packages:
   # macOS. Installed with `brew bundle` against a Brewfile generated from
   # this list, so it is idempotent and quiet on re-run.
@@ -30,7 +38,19 @@ packages:
       - ripgrep
       - starship
       - zoxide
-    cask: []
+    # THESE ARE CASKS, NOT FORMULAE, and the distinction is not cosmetic:
+    # `brew install claude-code` fails, `brew install --cask claude-code`
+    # works. The Brewfile generator emits `cask "..."` for these.
+    #
+    # MIND THE NEIGHBOURING PACKAGE NAMES. `antigravity` is the IDE, a
+    # 2.4.x app bundle. `antigravity-cli` is the terminal client, versioned
+    # 1.1.x separately. Likewise the `claude` cask is the desktop app;
+    # `claude-code` is the CLI, and it is the one that ships a `claude`
+    # binary. Getting either wrong installs a GUI application and no
+    # command.
+    cask:
+      - claude-code
+      - antigravity-cli
 
   # Debian and Ubuntu, which is what a Codespace runs.
   #
@@ -45,14 +65,26 @@ packages:
       - eza
       - fd-find
       - fzf
+      # apt carries 2.45.0 against an upstream 2.97.0, which is a long way
+      # behind. Accepted rather than adding GitHub's third-party apt
+      # repository, because that means importing a signing key and a
+      # sources entry, which is more supply chain surface than the version
+      # gap is worth. In a Codespace this is moot: the platform preinstalls
+      # a current gh.
+      - gh
       - git
       - jq
       - ripgrep
       - zsh
-    # Fetched from upstream releases because apt has no usable version.
+    # Fetched from upstream releases, because apt either has no usable
+    # version or none at all. Each name maps to a function in the Linux
+    # provisioning script; adding a name here without adding that function
+    # logs a clear error rather than failing silently.
     upstream:
       - starship
       - zoxide
+      - claude-code
+      - antigravity-cli
 
   # Windows. scoop for anything that can install per-user, winget for the
   # one package that insists on elevating.
@@ -60,7 +92,14 @@ packages:
     # scoop refuses to run as administrator by design and installs under
     # the user profile, so none of these trigger a UAC prompt.
     scoop:
+      # Same naming trap as macOS: `antigravity` in the Extras bucket is
+      # the IDE, `antigravity-cli` in Main is the terminal client. Both AI
+      # CLIs are also on winget as portable installers
+      # (Anthropic.ClaudeCode, Google.AntigravityCLI) if you ever need that
+      # route, but scoop keeps them per-user with no UAC prompt.
+      - antigravity-cli
       - bat
+      - claude-code
       - delta
       - eza
       - fd

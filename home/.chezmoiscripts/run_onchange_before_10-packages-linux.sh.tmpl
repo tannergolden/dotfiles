@@ -81,7 +81,71 @@ install_zoxide() {
   rm -rf "${tmp}"
 }
 
-{{ range .packages.linux.upstream -}}
-install_{{ . }}
-{{ end }}
+install_claude_code() {
+  command -v claude >/dev/null 2>&1 && return 0
+  # npm is the channel that could actually be verified from here: the
+  # package is real, current, and declares `os: any` with a `claude` bin.
+  # There is also a native install script, but both endpoints for it were
+  # unreachable through the network this was developed behind, so it is
+  # deliberately not used rather than cited unverified.
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "  claude-code needs npm on Linux and node is not installed, skipping" >&2
+    echo "  (a Codespace image normally provides node; a bare box may not)" >&2
+    return 0
+  fi
+  echo "==> claude-code (npm)"
+  # A user-level prefix, so this needs no root and cannot collide with a
+  # distribution-managed node.
+  npm install -g --prefix "${HOME}/.local" @anthropic-ai/claude-code >/dev/null 2>&1 \
+    || echo "  claude-code install failed, continuing" >&2
+}
+
+install_antigravity_cli() {
+  command -v antigravity >/dev/null 2>&1 && return 0
+  echo "==> antigravity-cli (pinned upstream tarball)"
+  # No package manager carries this on Linux, so the tarball is fetched
+  # directly. The URL embeds a version AND a build id, both pinned in
+  # .chezmoidata/packages.yaml so the version is reviewable in a diff
+  # rather than buried in a script.
+  local pin="{{ .pins.antigravityCli }}"
+  local tarch; case "$(uname -m)" in
+    x86_64|amd64) tarch="x64" ;;
+    aarch64|arm64) tarch="arm64" ;;
+    *) echo "  no antigravity-cli build for $(uname -m), skipping" >&2; return 0 ;;
+  esac
+  # The path component and the filename use DIFFERENT spellings of the
+  # architecture on this host: the directory says x64 while the file says
+  # x64 too, but arm uses "arm" in the path and "arm64" in the name.
+  local dirarch; [ "${tarch}" = "x64" ] && dirarch="x64" || dirarch="arm"
+
+  local tmp; tmp="$(mktemp -d)"
+  local url="https://storage.googleapis.com/antigravity-public/antigravity-cli/${pin}/linux-${dirarch}/cli_linux_${tarch}.tar.gz"
+  if curl -fsSL -o "${tmp}/ag.tar.gz" "${url}" 2>/dev/null; then
+    tar -xzf "${tmp}/ag.tar.gz" -C "${tmp}"
+    # The archive layout is not guaranteed stable, so find the binary
+    # rather than assuming it sits at the root.
+    local bin; bin="$(find "${tmp}" -type f -name 'antigravity*' -perm -u+x 2>/dev/null | head -1)"
+    if [ -n "${bin}" ]; then
+      install -m 0755 "${bin}" "${BIN_DIR}/antigravity"
+    else
+      echo "  antigravity binary not found in the archive, continuing" >&2
+    fi
+  else
+    echo "  antigravity-cli download failed, continuing" >&2
+  fi
+  rm -rf "${tmp}"
+}
+
+# Dispatch by name. A `case` rather than constructing a function name from
+# the data, because a hyphenated package name is not a legal shell
+# identifier and `install_antigravity-cli` would be a parse error.
+for tool in {{ range .packages.linux.upstream }}{{ . }} {{ end }}; do
+  case "${tool}" in
+    starship)        install_starship ;;
+    zoxide)          install_zoxide ;;
+    claude-code)     install_claude_code ;;
+    antigravity-cli) install_antigravity_cli ;;
+    *) echo "  no installer defined for '${tool}'; add one to this script" >&2 ;;
+  esac
+done
 {{- end }}

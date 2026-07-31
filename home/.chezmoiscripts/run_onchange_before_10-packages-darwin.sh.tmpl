@@ -24,7 +24,7 @@ set -euo pipefail
 # actually installing here would prove nothing about a bare machine while
 # costing minutes per run.
 if [ "${CI_STUB:-0}" = "1" ]; then
-  echo "CI_STUB=1: would install {{ len .packages.darwin.brew }} formulae"
+  echo "CI_STUB=1: would install {{ len .packages.darwin.brew }} formulae and {{ len .packages.darwin.cask }} cask(s)"
   exit 0
 fi
 
@@ -49,7 +49,7 @@ cask "{{ . }}"
 {{ end -}}
 BREW
 
-echo "==> brew bundle ({{ len .packages.darwin.brew }} formulae)"
+echo "==> brew bundle ({{ len .packages.darwin.brew }} formulae, {{ len .packages.darwin.cask }} cask(s))"
 # `brew bundle` is first-party (merged into Homebrew/brew) and idempotent.
 # It is declarative about SET MEMBERSHIP only: Homebrew has no lockfile and
 # its documentation says it will not have one, so two machines converge on
