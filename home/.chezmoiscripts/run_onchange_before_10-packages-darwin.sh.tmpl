@@ -17,6 +17,20 @@
 # The list below is interpolated from .chezmoidata/packages.yaml, so editing
 # that file changes this script's content and re-triggers it. That is the
 # entire mechanism.
+#
+# THE LINE BELOW IS LOAD-BEARING, NOT A NOTE. run_onchange_ records the
+# hash of a script that exits 0 and does not run it again until its
+# content changes - and the brew-missing branch further down exits 0. So
+# "install Homebrew and re-run chezmoi apply" was advice the tool could
+# not honour: the re-run did nothing, and no package was ever installed
+# until packages.yaml happened to be edited. Interpolating brew's path at
+# render time makes the script's content change the moment brew appears,
+# which re-fires it exactly when the advice says it should.
+#
+# Residual limit, stated rather than papered over: a transient failure
+# INSIDE a run still records success. Degrading rather than aborting is
+# the house choice, and this only heals the manager-absent case.
+# brew at render time: {{ lookPath "brew" }}
 
 set -euo pipefail
 

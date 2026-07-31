@@ -62,8 +62,8 @@ Library/**
 .zprofile
 .zshrc
 .zsh_plugins.zsh
-.config/zsh/**
 .config/sh/**
+.config/tmux/**
 .ssh/cm/**
 .local/bin/ai-dash
 .local/bin/ai-agents

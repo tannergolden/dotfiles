@@ -84,20 +84,51 @@ trap 'rm -f "${ABSENT_LIST}"' EXIT
 
 awk -F'\t' '$1 == "absent" { print $2 }' "${MANIFEST}" | sort -r > "${ABSENT_LIST}"
 
+# DELETION IS TYPE-AWARE, AND THAT IS THE MOST IMPORTANT LINE IN THIS
+# SCRIPT. The manifest records every managed target that did not exist as
+# `absent`, and on a fresh machine that includes DIRECTORIES: ~/.config,
+# ~/.local, ~/.local/bin, ~/.ssh and more. A blanket `rm -rf` on those
+# took everything ANY program had written there since bootstrap - the ssh
+# keys generated during the install, another application's settings,
+# chezmoi's own state - and called it undo. Verified: after a bootstrap
+# into an empty HOME, an unrelated ~/.config/some-app/settings.json and a
+# hand-made ~/.ssh key were both destroyed at exit 0.
+#
+# So: files and symlinks are removed outright, directories only when the
+# reverse sort above has already emptied them. A directory that gained
+# unrelated content is KEPT and reported. `rmdir` is the whole mechanism -
+# it refuses a non-empty directory by definition, so there is no race
+# between testing and deleting.
 removed=0
+kept=0
 while IFS= read -r rel; do
   [ -n "${rel}" ] || continue
   if ! safe_rel "${rel}"; then
     die "manifest names a path outside HOME: ${rel}"
   fi
   target="${DEST}/${rel}"
-  if [ -L "${target}" ] || [ -e "${target}" ]; then
-    rm -rf -- "${target}" || die "could not remove ${target}"
-    printf '  removed %s\n' "${rel}"
-    removed=$((removed + 1))
+  if [ -L "${target}" ] || [ ! -d "${target}" ]; then
+    # A symlink to a directory must be unlinked, never followed, hence
+    # the -L test first.
+    if [ -L "${target}" ] || [ -e "${target}" ]; then
+      rm -f -- "${target}" || die "could not remove ${target}"
+      printf '  removed %s\n' "${rel}"
+      removed=$((removed + 1))
+    fi
+  elif [ -d "${target}" ]; then
+    if rmdir "${target}" 2>/dev/null; then
+      printf '  removed %s\n' "${rel}"
+      removed=$((removed + 1))
+    else
+      printf '  kept    %s (not empty: it gained content after bootstrap)\n' "${rel}"
+      kept=$((kept + 1))
+    fi
   fi
 done < "${ABSENT_LIST}"
 log "removed ${removed} path(s) that bootstrap had created"
+if [ "${kept}" -gt 0 ]; then
+  log "kept ${kept} directory(ies) that gained content after bootstrap"
+fi
 
 # --- 2. put back what was there --------------------------------------------
 if [ -f "${BUNDLE}" ]; then

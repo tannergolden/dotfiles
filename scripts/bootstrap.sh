@@ -231,6 +231,27 @@ fi
 # exists and how to use it, rather than having to know to go and read a
 # document. Hence the explicit trap rather than letting set -e do it.
 log "applying dotfiles"
+
+# Ctrl-C DURING APPLY LEAVES THE SAME HALF-WRITTEN HOME A FAILURE DOES,
+# and it used to leave it silently: the interrupt killed the script before
+# any of the messages below, so the one thing worth knowing - that a
+# snapshot exists and how to use it - was never printed. Installed only
+# now, because before the snapshot succeeded there is nothing to restore.
+interrupted() {
+  cat >&2 <<EOF
+
+  INTERRUPTED part way through applying.
+
+  chezmoi applies file by file, so this machine is part old and part new.
+  Everything that existed beforehand was captured first. To put it back:
+
+    ${REPO_DIR}/scripts/restore-backup.sh ${BACKUP_DIR}
+
+EOF
+  exit 130
+}
+trap interrupted INT TERM
+
 apply_failed() {
   local code="$1"
   cat >&2 <<EOF
@@ -253,6 +274,10 @@ else
   "${CHEZMOI}" init --apply --source="${REPO_DIR}" --promptDefaults --no-tty </dev/null \
     || apply_failed "$?"
 fi
+
+# Past the non-atomic window: an interrupt from here on costs nothing
+# that needs restoring.
+trap - INT TERM
 
 # --- stage 3: verify --------------------------------------------------------
 log "verifying"

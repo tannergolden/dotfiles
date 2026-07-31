@@ -104,24 +104,49 @@ if (Test-Path -LiteralPath $bundle -PathType Leaf) {
 # --- 1. remove what apply created -----------------------------------------
 #
 # Deepest paths first, so children go before their parents.
+# DELETION IS TYPE-AWARE, mirroring restore-backup.sh, and for the same
+# reason: the manifest records every managed target that did not exist as
+# `absent`, which on a fresh profile includes DIRECTORIES (.config,
+# .local, .local\bin, .ssh). Removing those with -Recurse took everything
+# any program had written there since bootstrap - ssh keys, another
+# application's settings, chezmoi's own state - and called it undo.
+#
+# Files and symlinks go outright; a directory is removed only when the
+# descending sort above has already emptied it, and otherwise kept and
+# reported. The emptiness is TESTED rather than left to Remove-Item,
+# because Remove-Item without -Recurse on a non-empty directory PROMPTS
+# interactively - and a Yes at that prompt recurses, which is the exact
+# data loss being prevented.
 Write-Step 'removing paths that did not exist before bootstrap'
 $removed = 0
+$kept = 0
 $absent = $parsed |
     Where-Object { $_.Kind -eq 'absent' } |
     Sort-Object -Property Rel -Descending
 foreach ($row in $absent) {
     $target = Join-Path $dest $row.Rel
-    if (Test-Path -LiteralPath $target) {
-        try {
-            Remove-Item -LiteralPath $target -Recurse -Force
-        } catch {
-            Stop-Restore "could not remove ${target}: $($_.Exception.Message)"
-        }
-        Write-Host "  removed $($row.Rel)"
-        $removed++
+    if (-not (Test-Path -LiteralPath $target)) { continue }
+    $item = Get-Item -LiteralPath $target -Force
+    # LinkType catches a junction or symlink to a directory, which must be
+    # unlinked rather than walked into.
+    $isRealDir = $item.PSIsContainer -and (-not $item.LinkType)
+    if ($isRealDir -and @(Get-ChildItem -LiteralPath $target -Force).Count -gt 0) {
+        Write-Host "  kept    $($row.Rel) (not empty: it gained content after bootstrap)"
+        $kept++
+        continue
     }
+    try {
+        Remove-Item -LiteralPath $target -Force
+    } catch {
+        Stop-Restore "could not remove ${target}: $($_.Exception.Message)"
+    }
+    Write-Host "  removed $($row.Rel)"
+    $removed++
 }
 Write-Step "removed $removed path(s) that bootstrap had created"
+if ($kept -gt 0) {
+    Write-Step "kept $kept directory(ies) that gained content after bootstrap"
+}
 
 # --- 2. put back what was there -------------------------------------------
 if (Test-Path -LiteralPath $bundle -PathType Leaf) {

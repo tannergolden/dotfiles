@@ -51,6 +51,11 @@ packages:
       # Windows tmux; ai-dash.ps1 drives Windows Terminal panes instead.
       - tmux
       - zoxide
+      # The two zsh plugins .zsh_plugins.zsh sources. Windows needs
+      # neither: PSReadLine gives PowerShell inline prediction and
+      # as-you-type colouring natively, which is the parity story.
+      - zsh-autosuggestions
+      - zsh-syntax-highlighting
     # THESE ARE CASKS, NOT FORMULAE, and the distinction is not cosmetic:
     # `brew install claude-code` fails, `brew install --cask claude-code`
     # works. The Brewfile generator emits `cask "..."` for these.
@@ -98,6 +103,11 @@ packages:
       # ai-dash script deliberately never uses it.
       - tmux
       - zsh
+      # The two zsh plugins .zsh_plugins.zsh sources. Ubuntu 24.04 - what
+      # a codespace runs - carries both, installing to
+      # /usr/share/<name>/<name>.zsh, which is one of the paths probed.
+      - zsh-autosuggestions
+      - zsh-syntax-highlighting
       # Not a tool anyone types: the ollama Linux archive is .tar.zst and
       # the extraction needs the zstd binary present.
       - zstd

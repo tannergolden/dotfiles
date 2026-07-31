@@ -24,3 +24,25 @@
 typeset -U path PATH
 
 [ -r "${HOME}/.config/sh/env.sh" ] && . "${HOME}/.config/sh/env.sh"
+
+# RE-SOURCING env.sh ALONE CANNOT FIX THE ORDER, which is why this block
+# exists as well. _pathadd is idempotent by design: it skips any
+# directory already present, and path_helper's rebuild leaves every one
+# of them present - just demoted behind /usr/bin. So the second source
+# adds nothing and the shadowing survives it.
+#
+# Re-asserting the front of the list explicitly is what actually moves
+# them back. `typeset -U` above discards the duplicates left behind, so
+# this is idempotent no matter how many times a shell is nested. The
+# (N-/) qualifier drops entries that are not existing directories, so a
+# machine without Homebrew gets no phantom entries.
+path=(
+  ${HOME}/bin(N-/)
+  ${HOME}/.local/bin(N-/)
+  /opt/homebrew/bin(N-/)
+  /opt/homebrew/sbin(N-/)
+  /usr/local/bin(N-/)
+  /usr/local/sbin(N-/)
+  $path
+)
+export PATH

@@ -55,28 +55,40 @@ PREFIXES='private_|readonly_|executable_|empty_|exact_|encrypted_|create_|modify
 # examined not one path. A check that cannot fail is worse than no check,
 # because it is believed. Now the enumeration is a separate, fatal step and
 # an empty result is itself an error.
-TARGETS="${SCRATCH}/targets"
-if ! cm managed --path-style=relative > "${TARGETS}" 2>"${SCRATCH}/managed-err"; then
-  echo "FAIL could not enumerate managed targets" >&2
-  sed 's/^/       /' "${SCRATCH}/managed-err" >&2 || :
-  exit 1
-fi
-if [ ! -s "${TARGETS}" ]; then
-  echo "FAIL chezmoi reports no managed targets; this check examined nothing" >&2
-  exit 1
-fi
-
+# EVERY PLATFORM'S TARGETS, NOT JUST THIS ONE'S. .chezmoiignore hides
+# whole file sets per OS, so a host-only enumeration checked exactly the
+# files the host happens to use: run from Linux, and every Windows-only
+# and macOS-only source file - the .ps1 twins, the Terminal profile,
+# AppData - was never examined by the one guard that catches a
+# world-readable secret. CI runs this on Linux alone, so those files had
+# no coverage anywhere. --override-data is the same mechanism
+# render-all-os.sh uses.
 leaked=0
 examined=0
-while IFS= read -r target; do
-  [ -n "${target}" ] || continue
-  examined=$((examined + 1))
-  base="$(basename "${target}")"
-  if printf '%s' "${base}" | grep -qE "^\.?(${PREFIXES})"; then
-    echo "FAIL leaked attribute prefix in target path: ${target}"
-    leaked=$((leaked + 1))
+for os in darwin linux windows; do
+  TARGETS="${SCRATCH}/targets-${os}"
+  if ! cm managed --path-style=relative \
+        --override-data "{\"chezmoi\":{\"os\":\"${os}\"}}" \
+        > "${TARGETS}" 2>"${SCRATCH}/managed-err"; then
+    echo "FAIL could not enumerate managed targets for os=${os}" >&2
+    sed 's/^/       /' "${SCRATCH}/managed-err" >&2 || :
+    exit 1
   fi
-done < "${TARGETS}"
+  if [ ! -s "${TARGETS}" ]; then
+    echo "FAIL chezmoi reports no managed targets for os=${os}; this check examined nothing" >&2
+    exit 1
+  fi
+
+  while IFS= read -r target; do
+    [ -n "${target}" ] || continue
+    examined=$((examined + 1))
+    base="$(basename "${target}")"
+    if printf '%s' "${base}" | grep -qE "^\.?(${PREFIXES})"; then
+      echo "FAIL leaked attribute prefix in target path (os=${os}): ${target}"
+      leaked=$((leaked + 1))
+    fi
+  done < "${TARGETS}"
+done
 
 if [ "${examined}" -eq 0 ]; then
   echo "FAIL read the target list but examined nothing" >&2
@@ -84,7 +96,7 @@ if [ "${examined}" -eq 0 ]; then
 fi
 
 if [ "${leaked}" -eq 0 ]; then
-  echo "ok   no attribute prefix leaked into a target path (${examined} examined)"
+  echo "ok   no attribute prefix leaked into a target path (${examined} examined across 3 platforms)"
 else
   cat >&2 <<'EOF'
 

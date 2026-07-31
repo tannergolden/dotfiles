@@ -149,7 +149,18 @@ if (-not $chezmoi) {
     if (Test-Path $local:exe) {
         $chezmoi = $local:exe
     } else {
-        $arch = if ([Environment]::Is64BitOperatingSystem) { 'amd64' } else { '386' }
+        # ARCHITECTURE FROM THE OS, NOT FROM BITNESS. `Is64BitOperatingSystem`
+        # is true on an ARM64 machine too, so it named the amd64 build on a
+        # Windows-on-ARM device - which runs, slowly, under emulation - and
+        # named a 386 build that chezmoi's releases do not contain at all on
+        # anything else, producing a 404 rather than a clear message.
+        $arch = switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
+            'Arm64' { 'arm64' }
+            'X64'   { 'amd64' }
+            default {
+                Stop-Bootstrap "no chezmoi build for $_; install chezmoi manually and re-run"
+            }
+        }
         $ver  = $ChezmoiVersion.TrimStart('v')
         $zip  = "chezmoi_${ver}_windows_${arch}.zip"
         $url  = "https://github.com/twpayne/chezmoi/releases/download/$ChezmoiVersion/$zip"
@@ -336,13 +347,27 @@ if (Test-Path -LiteralPath $resetScript) {
 
 # --- stage 2: apply --------------------------------------------------------
 Write-Step "applying dotfiles"
+# SCOPED TO THE CHILD, NOT LEAKED INTO THIS SESSION. Setting $env:CI_STUB
+# here left it set for the rest of the shell, so every later `chezmoi
+# apply` a person typed in that same window silently stubbed every
+# provisioning script - packages appearing to install and never doing so.
+# It is restored in the finally block below, and chezmoi inherits it for
+# the duration of the call either way.
+$previousStub = $env:CI_STUB
 if ($SkipPackages) { $env:CI_STUB = '1' }
 
-$interactive = [Environment]::UserInteractive -and (-not $env:CI)
-if ($interactive) {
-    & $chezmoi init --apply --source="$RepoDir"
-} else {
-    & $chezmoi init --apply --source="$RepoDir" --promptDefaults --no-tty
+# --promptDefaults ON EVERY RUN, interactive included: install is one
+# command with zero input, and the declared defaults are this
+# repository owner's identity rather than a guess.
+try {
+    $interactive = [Environment]::UserInteractive -and (-not $env:CI)
+    if ($interactive) {
+        & $chezmoi init --apply --source="$RepoDir" --promptDefaults
+    } else {
+        & $chezmoi init --apply --source="$RepoDir" --promptDefaults --no-tty
+    }
+} finally {
+    $env:CI_STUB = $previousStub
 }
 
 # APPLY IS NOT ATOMIC, so a failure here leaves a home directory that is

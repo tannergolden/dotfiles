@@ -20,11 +20,17 @@
 # `lint-docs` is genuinely unimplementable here. It is provided by
 # scripts/update-doc-indexes.py inside the standards repository, and
 # copying a standard into a consuming repository is explicitly forbidden.
-# Spelling and link checking already run in CI through ci.yml, which is
-# where that coverage actually comes from.
+# This repository takes the conventions and not the automation, so it
+# calls no shared gate workflow and there is therefore no spelling or
+# link checking anywhere in it - stated plainly, because this comment
+# used to claim ci.yml provided that coverage and no such workflow is
+# called from here.
 
-CHEZMOI_VERSION ?= v2.71.1
-SHELLCHECK_VERSION ?= 0.9.0
+# NO VERSION PINS LIVE HERE. Two variables used to, and nothing read
+# them: the real chezmoi pin is in scripts/bootstrap.sh and .ps1 (which
+# download and checksum it) and in the workflow's env, and shellcheck is
+# whatever CI's apt provides. A pin nothing enforces is worse than no pin,
+# because it is quoted as though it were true.
 
 .PHONY: help setup lint lint-shell lint-powershell lint-format test build dev \
         deploy render prefixes apply diff verify
@@ -55,7 +61,7 @@ render: ## Render every template for every platform, from this platform
 prefixes: ## Fail if a chezmoi attribute prefix leaked into a target path
 	@scripts/check-prefixes.sh
 
-test: ## Full bootstrap and idempotency proof against a throwaway HOME
+test: ## Apply, backup, restore and idempotency proof against a throwaway HOME
 	@scripts/smoke-test.sh
 
 build: ## Prove the source state renders and applies without touching $HOME

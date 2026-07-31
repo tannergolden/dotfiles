@@ -8,6 +8,19 @@
 # rendered content, which is exactly what makes run_onchange_ fire.
 #
 # theme hash: {{ include "dot_config/bat/themes/Catppuccin Mocha.tmTheme" | sha256sum }}
+#
+# AND KEYED TO bat ITSELF, which is what makes the message at the bottom
+# true. A run_onchange_ script that exits 0 is recorded and never re-run
+# until its content changes, so "the theme cache will build on a later
+# apply" was false: a Mac bootstrapped before Homebrew existed kept bat's
+# default theme forever. These two paths change the content the moment
+# bat lands, which re-fires the rebuild by itself.
+#
+# One apply of lag is expected and harmless: lookPath is evaluated when
+# chezmoi reads the source state, which is BEFORE the packages script in
+# the same run installs bat. The rebuild therefore happens on the next
+# apply rather than this one.
+# bat at render time: {{ lookPath "bat" }}{{ lookPath "batcat" }}
 
 set -euo pipefail
 
@@ -17,10 +30,20 @@ if [ "${CI_STUB:-0}" = "1" ]; then
 fi
 
 # Debian installs the binary as batcat.
+#
+# A FAILED REBUILD MUST NOT ABORT THE APPLY. Under `set -e` a non-zero
+# `bat cache --build` ended the whole run, leaving every target sorting
+# after this script unwritten - a broken theme file costing a working
+# machine. Worse, the failure re-fired this script on every later apply
+# while nothing else was allowed to finish.
 if command -v bat >/dev/null 2>&1; then
-  bat cache --build >/dev/null && echo "==> bat theme cache rebuilt"
+  bat cache --build >/dev/null 2>&1 \
+    && echo "==> bat theme cache rebuilt" \
+    || echo "bat cache --build failed; bat falls back to its default theme" >&2
 elif command -v batcat >/dev/null 2>&1; then
-  batcat cache --build >/dev/null && echo "==> bat theme cache rebuilt"
+  batcat cache --build >/dev/null 2>&1 \
+    && echo "==> bat theme cache rebuilt" \
+    || echo "bat cache --build failed; bat falls back to its default theme" >&2
 else
   echo "bat not installed yet; theme cache will build on a later apply" >&2
 fi

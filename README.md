@@ -54,7 +54,7 @@ It is off by default because bootstrap runs unattended during codespace creation
 
 | Platform               | Shell         | Packages       | Terminal                    |
 | :--------------------- | :------------ | :------------- | :-------------------------- |
-| **macOS**              | zsh           | Homebrew       | Terminal.app, `Pro` profile |
+| **macOS**              | zsh           | Homebrew       | Terminal.app, `Catppuccin Mocha` |
 | **Windows**            | PowerShell 7+ | winget · scoop | Windows Terminal            |
 | **Linux & Codespaces** | zsh           | apt            | provided by the platform    |
 
@@ -136,12 +136,15 @@ One file, byte for byte, read the same way on macOS, Windows and Linux.
 | **SSH**         | One config; the platform-specific part is two blocks                    |
 | **Aliases**     | `g`, `gs`, `gd`, `gl`, `ll`, `la`, `..`, `...` behave the same          |
 | **Keybindings** | Up and Down do prefix-aware history search in both shells               |
+| **Suggestions** | Inline history suggestion and as-you-type colouring in both shells      |
 | **Editor**      | `code --wait`, with the same fallback chain                             |
 | **System info** | One fastfetch `config.jsonc`; `<home>/.config` is searched on all three |
 | **AI dashboard**| `ai-dash`, `ai-agents` and `ai-model` behave the same                   |
 | **Colours**     | Catppuccin Mocha: terminal palettes, fzf, bat, delta and starship       |
 
 Those tool configs are genuinely portable for a specific reason: ripgrep and bat both locate their config through an environment variable rather than a fixed path, so one file serves all three platforms with no templating at all.
+
+Suggestions are the one row where parity is a **result** rather than a shared file: PowerShell has had inline prediction and command colouring built into PSReadLine since the profile was written, and zsh reaches the same place with `zsh-autosuggestions` and `zsh-syntax-highlighting` — two entries in the package manifest and one guarded `source` each, no plugin manager anywhere.
 
 ### ⚖️ The differences, and why each one exists
 
@@ -151,7 +154,7 @@ None of these are choices; each is something a platform forces.
 | :----------------------- | :------------------------------- | :--------------- | :--------------------------------------------------------------------------------------- |
 | **Shell language**       | zsh                              | PowerShell       | Unrelated languages. Aliases are written twice because `Set-Alias` cannot take arguments |
 | **Package manager**      | Homebrew · apt                   | scoop · winget   | Same tools, three delivery routes                                                        |
-| **Terminal**             | Terminal.app `Pro`               | Windows Terminal | The one real gap. See below                                                              |
+| **Terminal**             | Terminal.app, own profile        | Windows Terminal | The one real gap. See below                                                              |
 | **Dashboard panes**      | tmux                             | `wt` split-pane  | tmux has no native Windows build; Windows Terminal's pane CLI is the platform's own      |
 | **fzf key bindings**     | <kbd>Ctrl</kbd>+<kbd>R</kbd> etc | not available    | fzf ships no PowerShell integration upstream                                             |
 | **SSH multiplexing**     | `ControlMaster` on               | unsupported      | Win32-OpenSSH has no Unix-domain-socket multiplexing                                     |
@@ -166,9 +169,9 @@ Two smaller ones worth knowing because they look like bugs:
 
 ### 🖥️ The font is the honest exception
 
-The **colour scheme travels**: Catppuccin Mocha is applied to the Terminal.app `Pro` profile directly, delivered to Windows Terminal as a JSON fragment with one one-time selection step, and carried into fzf, bat, delta and the prompt, each taken from the theme's own licensed ports rather than copied from another repository.
+The **colour scheme travels**: Catppuccin Mocha is applied to Terminal.app as a profile of its own, imported and selected by bootstrap, delivered to Windows Terminal as a JSON fragment that bootstrap then selects, and carried into fzf, bat, delta and the prompt, each taken from the theme's own licensed ports rather than copied from another repository.
 
-The **font does not**. `Pro` specifies Monaco 12, an Apple-bundled face with no Homebrew cask and no scoop package, so it cannot legitimately be installed on Windows or in a container. Windows Terminal keeps its own default face under the same palette.
+The **font does not**. The profile specifies Monaco 12, an Apple-bundled face with no Homebrew cask and no scoop package, so it cannot legitimately be installed on Windows or in a container. Windows Terminal keeps its own default face under the same palette.
 
 In a codespace neither question arises, because the terminal is VS Code's integrated one and its appearance comes from Settings Sync rather than from this repository.
 
@@ -343,19 +346,34 @@ That returns every file bootstrap overwrote, deletes every file it created, and 
 
 No step above touches the installed packages, deliberately: a tool you also use outside this setup should not vanish because you stopped managing your dotfiles. Remove them by hand if you want them gone.
 
+**macOS**
+
 ```bash
-brew uninstall bat eza fastfetch fd fzf gh git-delta jq ollama ripgrep starship tmux zoxide
+brew uninstall bat eza fastfetch fd fzf gh git-delta jq ollama ripgrep starship tmux zoxide \
+  zsh-autosuggestions zsh-syntax-highlighting
 brew uninstall --cask claude-code antigravity-cli
 ```
+
+**Windows**
 
 ```powershell
 scoop uninstall bat delta eza fastfetch fd fzf gh jq ollama ripgrep starship zoxide claude-code antigravity-cli
 ```
 
-**`git` is missing from both lines on purpose.** It is in the manifest, and removing it would take your version control with it. Uninstall it deliberately or not at all.
+**Linux and Codespaces.** Two commands, because two mechanisms delivered the tools: apt for what the archive carries, and hand-unpacked release tarballs under `~/.local` for what it does not.
+
+```bash
+sudo apt-get remove bat eza fd-find fzf gh git-delta jq ripgrep tmux zstd \
+  zsh-autosuggestions zsh-syntax-highlighting
+rm -f ~/.local/bin/{starship,zoxide,antigravity,fastfetch,ollama}
+rm -rf ~/.local/lib/ollama ~/.local/share/fastfetch
+npm uninstall -g --prefix ~/.local @anthropic-ai/claude-code
+```
+
+**`git` is missing from all three lines on purpose.** It is in the manifest, and removing it would take your version control with it. Uninstall it deliberately or not at all — on Windows that means `winget uninstall Git.Git`, since git came from winget rather than scoop. **`zsh` is likewise absent from the Linux line**, because it is your login shell there and apt will not stop you removing the shell you are standing in.
 
 > [!IMPORTANT]
-> Uninstalling ollama does **not** remove the models, and the models are the part measured in tens of gigabytes. They live in `~/.ollama/models` (or wherever `OLLAMA_MODELS` points); delete `~/.ollama` to reclaim the space. On Linux the runtime itself was unpacked to `~/.local/bin/ollama` and `~/.local/lib/ollama`, and fastfetch to `~/.local/bin/fastfetch` and `~/.local/share/fastfetch` — remove those by hand too, since no package manager owns them.
+> Uninstalling ollama does **not** remove the models, and the models are the part measured in tens of gigabytes. They live in `~/.ollama/models` (or wherever `OLLAMA_MODELS` points); delete `~/.ollama` to reclaim the space.
 
 > [!WARNING]
 > Never `brew bundle cleanup --force` to do this. It removes everything **not** in the Brewfile, which is every unrelated package on the machine, and it is not what "cleanup" sounds like.
@@ -377,7 +395,7 @@ Every other way back, from reverting a single file to diagnosing why a change ke
 > [!TIP]
 > Conventions live in [📐 Engineering Standards](https://github.com/tannergolden/standards) and are followed here by link rather than by copying, so nothing goes stale. Commit format, sign-off, branch naming and the `make` interface all come from there.
 
-This repository takes **the conventions and not the automation**, which is the account's rule for its core repositories. It calls none of the published **gate** workflows; the checks that run here are its own, in [`.github/workflows/bootstrap.yaml`](.github/workflows/bootstrap.yaml), and they are the ones worth running on a dotfiles repository: ShellCheck, a PowerShell parse, every template rendered for every platform, and the full bootstrap and restore proof on macOS, Windows and Linux.
+This repository takes **the conventions and not the automation**, which is the account's rule for its core repositories. It calls none of the published **gate** workflows; the checks that run here are its own, in [`.github/workflows/bootstrap.yaml`](.github/workflows/bootstrap.yaml), and they are the ones worth running on a dotfiles repository: ShellCheck, a PowerShell parse, every template rendered for every platform, an attribute-prefix audit across all three platforms' target sets, and — on macOS, Windows and Linux — the apply, backup and restore proof plus a run of the real entry point a new machine uses, `install.sh` on POSIX and `bootstrap.ps1` with a restore round trip on Windows.
 
 One trigger stub is the exception, and it is not a gate. [`.github/workflows/dependabot-automerge.yml`](.github/workflows/dependabot-automerge.yml) calls the shared workflow that approves and queues Dependabot's patch and minor updates to the actions `bootstrap.yaml` pins, leaving majors for a human. Pinning an action is a rule this repository already follows, and a pin nobody moves holds one eventually-vulnerable revision forever; the account decided that half of the rule is shared rather than rewritten per repository.
 

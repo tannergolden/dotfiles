@@ -42,11 +42,17 @@ if (Get-Command fd -ErrorAction SilentlyContinue) {
     $env:FZF_DEFAULT_COMMAND = 'fd --type f --hidden --follow --exclude .git'
 }
 # Catppuccin Mocha, from catppuccin/fzf (MIT). Colours only.
+#
+# Byte-identical to the POSIX twin in .config/sh/env.sh, selected-bg
+# included in its absence: that colour name needs fzf 0.55, and fzf
+# rejects an unknown name with "invalid color specification" rather than
+# ignoring it. Windows scoop fzf is current enough, but the two strings
+# are kept the same so a reader comparing them finds no difference to
+# explain.
 $env:FZF_DEFAULT_OPTS = @(
     '--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8'
     '--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC'
     '--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8'
-    '--color=selected-bg:#45475A'
     '--color=border:#6C7086,label:#CDD6F4'
 ) -join ' '
 
@@ -83,7 +89,36 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
     # Accept one word of an inline prediction; RightArrow accepts all of it.
-    Set-PSReadLineKeyHandler -Chord 'Ctrl+f' -Function AcceptNextSuggestionWord
+    # try/catch for the same reason PredictionSource has one: Windows
+    # PowerShell 5.1 ships PSReadLine 2.0, which has no suggestion
+    # functions at all, and an unknown -Function is a terminating error -
+    # so on that host this line aborted the rest of the profile.
+    try { Set-PSReadLineKeyHandler -Chord 'Ctrl+f' -Function AcceptNextSuggestionWord } catch { }
+
+    # HISTORY HYGIENE, the PowerShell half of what zsh gets from
+    # HISTORY_IGNORE and hist_ignore_space. PSReadLine writes every
+    # accepted line to a plain text file that lives forever, so a token
+    # pasted into a command is on disk until somebody notices.
+    #
+    # INSTALLING THIS HANDLER REPLACES PSReadLine's OWN sensitive-line
+    # screen rather than adding to it, which is why the patterns are
+    # spelled out here instead of relying on the built-in: a handler that
+    # only checked for a leading space would have made history hygiene
+    # WORSE than the default it displaced.
+    #
+    # Returns a plain boolean rather than the AddToHistoryOption enum,
+    # because that enum needs PSReadLine 2.2 and the boolean has worked
+    # since 2.0 - this file must stay loadable under 5.1's 2.0.
+    Set-PSReadLineOption -AddToHistoryHandler {
+        param([string]$line)
+        # A leading space keeps a command out of history, exactly as
+        # hist_ignore_space does in zsh.
+        if ($line -match '^\s') { return $false }
+        if ($line -match '(?i)(password|passwd|token|secret|api[-_]?key|client[-_]?secret|connectionstring)') {
+            return $false
+        }
+        return $true
+    }
 }
 
 # --- aliases ---------------------------------------------------------------
@@ -100,6 +135,17 @@ function ... { Set-Location ../.. }
 if (Get-Command eza -ErrorAction SilentlyContinue) {
     function ll { eza -l --git --group-directories-first @args }
     function la { eza -la --git --group-directories-first @args }
+    # The zsh side has had this since the beginning; without it `tree`
+    # falls through to the legacy tree.com, whose output shares nothing
+    # with eza's. Remove-Item first because tree.com is an application,
+    # not an alias, and a function of the same name wins only if nothing
+    # shadows it.
+    function tree { eza --tree @args }
+} else {
+    # ll and la must exist on every machine, not only where provisioning
+    # finished - they are the two most typed commands in the file.
+    function ll { Get-ChildItem @args }
+    function la { Get-ChildItem -Force @args }
 }
 
 # --- tools -----------------------------------------------------------------

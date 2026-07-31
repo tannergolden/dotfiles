@@ -12,7 +12,16 @@
 set -euo pipefail
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFILE_NAME="Pro"
+# NOT "Pro", AND THE NAME IS LOAD-BEARING TWICE OVER. Terminal.app ships
+# a stock profile called Pro, so the old name collided with it: importing
+# a duplicate name makes Terminal register ours as "Pro 2" while
+# `defaults write "Default Window Settings" -string "Pro"` selects the
+# STOCK one, so the theme never became the default and nothing said so.
+# The second reason is detection: `defaults read` prints OpenStep plist,
+# where a purely alphanumeric string is UNQUOTED, so the quoted grep
+# below could never match "Pro" and every run re-imported. A multi-word
+# name is quoted in that output, which makes the check work.
+PROFILE_NAME="Catppuccin Mocha"
 PROFILE_FILE="${HOME}/.config/terminal/terminal-pro.terminal"
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }

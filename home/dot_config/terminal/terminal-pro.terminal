@@ -285,7 +285,7 @@
 	<key>deleteSendsBackspace</key>
 	<false/>
 	<key>name</key>
-	<string>Pro</string>
+	<string>Catppuccin Mocha</string>
 	<key>rowCount</key>
 	<integer>35</integer>
 	<key>shellExitAction</key>

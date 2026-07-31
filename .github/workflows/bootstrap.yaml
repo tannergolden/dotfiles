@@ -156,3 +156,84 @@ jobs:
       - name: '🧪 Smoke test'
         shell: bash
         run: ./scripts/smoke-test.sh
+
+      # THE SMOKE TEST NEVER RUNS THE ENTRY POINT. It drives chezmoi
+      # directly, so install.sh and bootstrap.sh - argument parsing, the
+      # pinned-release download and its checksum verification, stage
+      # order, the key generation, the trap that prints the way back -
+      # were the only untested code on the path a new machine actually
+      # takes. This runs the real thing against a scratch HOME.
+      - name: '🚀 The real entry point (POSIX)'
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          scratch="$(mktemp -d)"
+
+          # PATH without the workflow's chezmoi, so ensure_chezmoi has to
+          # fetch the pinned tarball and verify its checksum - the channel
+          # a new laptop uses, and the one the weekly schedule exists to
+          # watch. It was never exercised, because CI installs chezmoi
+          # from the endpoint bootstrap.sh deliberately refuses.
+          #
+          # COMPUTED ON ITS OWN LINE, BEFORE HOME IS REASSIGNED. Written
+          # as one command prefix (HOME=... PATH="$(... $HOME ...)"), bash
+          # applies the earlier assignment to the later expansion, so
+          # $HOME inside the substitution would already be the scratch
+          # directory and the strip would match nothing - leaving the
+          # runner's chezmoi on PATH and the download path untested,
+          # passing vacuously. Verified in a shell before writing this.
+          # -F -x so the entry is matched literally and whole.
+          stripped="$(printf '%s\n' "$PATH" | tr ':' '\n' | grep -vFx "$HOME/.local/bin" | paste -sd: -)"
+          test -n "${stripped}" || { echo '::error::stripped PATH is empty'; exit 1; }
+
+          HOME="${scratch}" PATH="${stripped}" ./install.sh
+          ls -d "${scratch}"/.dotfiles-backup-*/manifest.tsv >/dev/null \
+            || { echo '::error::bootstrap produced no snapshot manifest'; exit 1; }
+          test -f "${scratch}/.config/git/config" \
+            || { echo '::error::bootstrap applied no git config'; exit 1; }
+          echo 'ok  install.sh -> bootstrap.sh completed against a scratch HOME'
+
+      # ZERO LINES OF THE SHIPPED POWERSHELL HAVE EVER RUN IN CI. The
+      # Windows leg runs the POSIX suite under Git Bash, so bootstrap.ps1
+      # and restore-backup.ps1 - the entire path a real Windows user
+      # takes, including the targets.zip snapshot format - were only ever
+      # parse-checked. This is the PowerShell mirror of the round trip.
+      #
+      # Stated so a green tick is not overread: the execution-policy and
+      # profile-shim stages still touch the runner's real per-user state,
+      # because known-folder paths do not follow USERPROFILE. Acceptable
+      # on a throwaway runner, and the reason CI_STUB is set.
+      - name: '🚀 The real entry point (Windows)'
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $scratch = Join-Path $env:RUNNER_TEMP ([guid]::NewGuid())
+          New-Item -ItemType Directory -Path $scratch -Force | Out-Null
+          # Seed a victim file so the snapshot has something to archive
+          # and the restore has something to prove.
+          $victimDir = Join-Path $scratch '.config\git'
+          New-Item -ItemType Directory -Path $victimDir -Force | Out-Null
+          Set-Content -Path (Join-Path $victimDir 'config') -Value 'PRE-EXISTING USER CONTENT'
+
+          $env:USERPROFILE = $scratch
+          $env:HOME        = $scratch
+          & pwsh -NoProfile -File scripts/bootstrap.ps1 -SkipPackages
+          if ($LASTEXITCODE -ne 0) { throw "bootstrap.ps1 exited $LASTEXITCODE" }
+
+          $backup = Get-ChildItem -Path $scratch -Filter '.dotfiles-backup-*' -Directory |
+                    Select-Object -First 1
+          if (-not $backup) { throw 'bootstrap.ps1 produced no snapshot' }
+          if (-not (Test-Path (Join-Path $backup.FullName 'manifest.tsv'))) {
+              throw 'snapshot has no manifest.tsv'
+          }
+          Write-Host "ok  bootstrap.ps1 completed, snapshot at $($backup.FullName)"
+
+          & pwsh -NoProfile -File scripts/restore-backup.ps1 $backup.FullName
+          if ($LASTEXITCODE -ne 0) { throw "restore-backup.ps1 exited $LASTEXITCODE" }
+          $restored = Get-Content (Join-Path $victimDir 'config') -Raw
+          if ($restored -notmatch 'PRE-EXISTING USER CONTENT') {
+              throw 'restore did not put the original content back'
+          }
+          Write-Host 'ok  restore-backup.ps1 round trip verified'

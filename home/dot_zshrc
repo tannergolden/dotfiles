@@ -45,6 +45,26 @@ setopt interactive_comments    # allow # comments when typing interactively
 setopt no_flow_control         # reclaim ctrl-s and ctrl-q
 
 # --- completion ------------------------------------------------------------
+# BEFORE compinit, because fpath changes after it are ignored.
+#
+# Apple's /bin/zsh compiles /usr/local/share/zsh/site-functions into its
+# default fpath - the INTEL Homebrew prefix - but not
+# /opt/homebrew/share/zsh/site-functions, where Apple Silicon brew puts
+# the completions for gh, eza, fd, delta, ripgrep and most of this
+# repository's own manifest. This file also never evals `brew shellenv`
+# (env.sh does PATH itself), which is the other thing that would add it.
+# So on every modern Mac, tab completion for the installed tools simply
+# did not exist, and the 24-hour staleness reasoning below was bounding
+# the freshness of a dump that never contained them.
+#
+# A directory probe rather than `brew --prefix`: no subprocess, so this
+# costs nothing on the platforms it does not apply to. The (Ie) subscript
+# is an existence test, so a prefix already on fpath is not added twice.
+for _d in /opt/homebrew/share/zsh/site-functions /usr/local/share/zsh/site-functions; do
+  [[ -d "${_d}" && ${fpath[(Ie)${_d}]} -eq 0 ]] && fpath=("${_d}" ${fpath})
+done
+unset _d
+
 # Rebuild the dump at most once a day, otherwise load the cached one.
 #
 # The point is NOT speed: `compinit -C` saves single digit milliseconds.
@@ -63,6 +83,13 @@ setopt no_flow_control         # reclaim ctrl-s and ctrl-q
 autoload -Uz compinit
 if [[ ! -f ${HOME}/.zcompdump || -n ${HOME}/.zcompdump(#qN.mh+24) ]]; then
   compinit                     # full: security audit plus rescan
+  # THE touch IS WHAT MAKES THE 24 HOURS ABOVE MEAN ANYTHING. compinit
+  # rewrites the dump only when it decides the contents changed; when it
+  # merely re-sources a dump it considers current, the file keeps its old
+  # mtime. So after the first day the age test matched forever and every
+  # single shell paid for the full rebuild - the opposite of the intent.
+  # Only on success, so an interrupted audit retries next shell.
+  [[ -f ${HOME}/.zcompdump ]] && touch "${HOME}/.zcompdump"
 else
   compinit -C                  # cached: skip both
 fi
@@ -100,7 +127,34 @@ done
 for _seq in '^[[B' '^[OB' "${terminfo[kcud1]:-}"; do
   [[ -n "${_seq}" ]] && bindkey "${_seq}" down-line-or-beginning-search
 done
+
+# Home, End and Delete. Unbound by default in the emacs keymap, so they
+# insert a raw escape sequence into the line rather than moving the
+# cursor - the same application-versus-raw mode split the arrows have
+# above, hence the same three-way probe.
+for _seq in '^[[H' '^[OH' '^[[1~' "${terminfo[khome]:-}"; do
+  [[ -n "${_seq}" ]] && bindkey "${_seq}" beginning-of-line
+done
+for _seq in '^[[F' '^[OF' '^[[4~' "${terminfo[kend]:-}"; do
+  [[ -n "${_seq}" ]] && bindkey "${_seq}" end-of-line
+done
+for _seq in '^[[3~' "${terminfo[kdch1]:-}"; do
+  [[ -n "${_seq}" ]] && bindkey "${_seq}" delete-char
+done
 unset _seq
+
+# Ctrl-W should stop at a path separator. zsh's default WORDCHARS counts
+# `/` as part of a word, so one Ctrl-W on a long path deletes the entire
+# thing rather than the last component - the single most common reason
+# people think zsh's line editing is worse than bash's.
+WORDCHARS=${WORDCHARS//[\/.]/}
+
+# Ctrl-X Ctrl-E opens the current line in $EDITOR, which is how a long
+# command becomes editable without retyping it. bash has had this bound
+# by default for years; zsh ships the widget but binds nothing.
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
 
 # --- aliases ---------------------------------------------------------------
 # Debian and Ubuntu rename two of these binaries, so a config that says
@@ -109,12 +163,26 @@ unset _seq
 command -v fdfind  >/dev/null 2>&1 && alias fd='fdfind'
 command -v batcat  >/dev/null 2>&1 && alias bat='batcat'
 
-command -v eza >/dev/null 2>&1 && {
+# ll and la exist on EVERY machine, whichever binary provides them. They
+# used to live entirely inside the eza guard, so a machine where
+# provisioning had not finished - or a container without eza - lost the
+# two aliases typed most often, with `command not found` rather than a
+# plain listing.
+if command -v eza >/dev/null 2>&1; then
   alias ls='eza --group-directories-first'
   alias ll='eza -l --git --group-directories-first'
   alias la='eza -la --git --group-directories-first'
   alias tree='eza --tree'
-}
+else
+  # BSD ls (macOS) and GNU ls (Linux) spell colour differently, and each
+  # rejects the other's flag, so the two cases stay separate.
+  case "$(uname -s)" in
+    Darwin) alias ls='ls -G' ;;
+    *)      alias ls='ls --color=auto --group-directories-first' ;;
+  esac
+  alias ll='ls -lh'
+  alias la='ls -lah'
+fi
 
 alias g='git'
 alias gs='git status --short --branch'
@@ -135,15 +203,32 @@ command -v zoxide   >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 #
 # `fzf --zsh` needs fzf 0.48 or newer. Ubuntu 24.04 ships 0.44, which is
 # what a Codespace gets, so the older path is not hypothetical: there the
-# same keybindings load from the file Debian installs instead.
+# same keybindings load from the files Debian installs instead.
+#
+# THE SUBSTITUTION IS CAPTURED BEFORE IT IS EVALUATED, and that is the
+# whole correctness of this block. `if ! eval "$(fzf --zsh)"` tests the
+# status of EVAL, not of fzf: on 0.44 the flag is unknown, fzf writes to
+# stderr and exits 2, the substitution is empty, and `eval ""` returns 0
+# - so the branch never fired and a codespace got no Ctrl-R, Ctrl-T or
+# Alt-C at all, while the comment above promised the opposite. Assigning
+# first propagates fzf's own status, which is what was meant.
 if command -v fzf >/dev/null 2>&1; then
-  if ! eval "$(fzf --zsh 2>/dev/null)"; then
-    for _f in /usr/share/doc/fzf/examples/key-bindings.zsh \
-              /usr/share/fzf/key-bindings.zsh; do
-      [[ -r "${_f}" ]] && source "${_f}" && break
+  if _fzf_init="$(fzf --zsh 2>/dev/null)" && [[ -n "${_fzf_init}" ]]; then
+    eval "${_fzf_init}"
+  else
+    # Debian ships both halves; the completion file is what makes
+    # `**<Tab>` work, and sourcing only key-bindings.zsh left that
+    # macOS-only for no reason.
+    for _d in /usr/share/doc/fzf/examples /usr/share/fzf; do
+      if [[ -r "${_d}/key-bindings.zsh" ]]; then
+        source "${_d}/key-bindings.zsh"
+        [[ -r "${_d}/completion.zsh" ]] && source "${_d}/completion.zsh"
+        break
+      fi
     done
-    unset _f
+    unset _d
   fi
+  unset _fzf_init
 fi
 
 # --- codespaces ------------------------------------------------------------
@@ -159,6 +244,14 @@ fi
 # Gitignored, absent by default, and the right home for anything machine
 # specific or not fit to publish.
 [[ -r "${HOME}/.zshrc.local" ]] && source "${HOME}/.zshrc.local"
+
+# --- plugins ---------------------------------------------------------------
+# AFTER .zshrc.local so a machine-specific override can set the plugins'
+# own variables first, and LAST among everything that touches ZLE:
+# zsh-syntax-highlighting wraps the widgets that exist when it loads, so
+# the fzf bindings and autosuggestions must already be in place. Guarded,
+# so a machine without the packages still gets a working shell.
+[[ -r "${HOME}/.zsh_plugins.zsh" ]] && source "${HOME}/.zsh_plugins.zsh"
 
 # --- the dashboard opens itself --------------------------------------------
 # LAST, on purpose, twice over: after the prompt and tools above so the

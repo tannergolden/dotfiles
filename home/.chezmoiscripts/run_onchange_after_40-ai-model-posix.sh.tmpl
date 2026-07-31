@@ -14,6 +14,14 @@
 # mechanism.
 #
 # ai-model hash: {{ include "dot_local/bin/executable_ai-model" | sha256sum }}
+#
+# AND KEYED TO ollama ITSELF. The skip below is a legitimate exit 0, and
+# run_onchange_ records those and never revisits them - so a person who
+# installed ollama by hand afterwards (exactly what the README's codespace
+# one-liner tells them to do) got no model selection until the ladder
+# happened to be edited. This path changes the rendered content the moment
+# ollama appears, so the stage re-fires on the next apply.
+# ollama at render time: {{ lookPath "ollama" }}
 
 set -euo pipefail
 

@@ -34,15 +34,34 @@
        is where the key actually lands, which also keeps the smoke test
        honest when it applies into a sandbox. */ -}}
 {{- $signingKey := joinPath .chezmoi.destDir ".ssh/id_signing_ed25519.pub" -}}
-{{- $hasSigningKey := stat $signingKey -}}
+{{- /* THE TRAILING DASH ON THE NEXT LINE IS LOAD-BEARING BY ITS ABSENCE.
+       `-}}` trims the whitespace that FOLLOWS the action, newline
+       included. With one here, the three actions above collapsed the gap
+       entirely and rendered `allowedSignersFile = ...[commit]` on a
+       single line - which git parses as a path with "[commit]" glued to
+       it and, far worse, as no [commit] section at all. Verified with
+       `git config --get`: commit.gpgsign came back UNSET on every
+       platform, so nothing was ever signed, while `grep gpgsign` still
+       matched the file and every text-based check passed. The smoke
+       suite now asks git itself rather than grep, for exactly this. */ -}}
+{{- $hasSigningKey := stat $signingKey }}
+
 [commit]
 	# Gated on the key actually existing, checked at apply time. With this
 	# hardcoded true, every commit on a machine that has not yet generated
 	# its signing key fails with a gpg error that says nothing about WHY,
-	# which is a hostile first hour on a new machine. Generate the key per
-	# docs/Manual-Setup.md, run `chezmoi apply` again, and this flips to
-	# true by itself.
+	# which is a hostile first hour on a new machine. Bootstrap generates
+	# the key BEFORE its first apply, so this is already true by the end
+	# of an install; a machine whose key was removed degrades to unsigned
+	# commits rather than to that unreadable error.
 	gpgsign = {{ if $hasSigningKey }}true{{ else }}false{{ end }}
+
+	# Default false. Puts the staged diff below the scissors line in
+	# COMMIT_EDITMSG, so what is about to enter signed, public, permanent
+	# history gets reviewed in the same keystrokes as the message that
+	# describes it. Git strips everything below the scissors, so the diff
+	# never becomes part of the message.
+	verbose = true
 
 [tag]
 	# Default is false, so `git tag -m` produces an unsigned annotated tag.
@@ -57,18 +76,30 @@
 	# "The current branch has no upstream branch" before you can push it.
 	autoSetupRemote = true
 	followTags = true
+	# Closes the hole in --force-with-lease. That check compares against
+	# the remote-tracking ref, which any background fetch silently
+	# refreshes - after which the lease is held on work you have never
+	# seen and the force push succeeds anyway, overwriting it. With this
+	# set, a force-with-lease additionally requires that the commits you
+	# are replacing were actually integrated locally.
+	useForceIfIncludes = true
 
 [pull]
 	# Deliberately NOT pull.rebase = true. Git's own documentation says of
 	# that setting: "this is a possibly dangerous operation; do not use it
 	# unless you understand the implications." ff = only fails loudly on
-	# divergence instead of creating a surprise merge, and
-	# branch.autoSetupRebase below gets rebase per branch without the
-	# dangerous global.
+	# divergence instead of creating a surprise merge.
+	#
+	# THE ESCAPE HATCH IS THE COMMAND LINE, NOT CONFIG. Verified on git
+	# 2.43: under ff = only a diverged `git pull` aborts with "Not
+	# possible to fast-forward" whatever branch.<name>.rebase says - ff
+	# outranks config-level rebase - while an explicit `git pull --rebase`
+	# overrides ff = only and rebases. So branch.autoSetupRebase is not
+	# set here: it would write an inert key into every new branch and
+	# describe behaviour that never happens.
 	ff = only
 
 [branch]
-	autoSetupRebase = always
 	sort = -committerdate
 
 [fetch]
@@ -76,7 +107,16 @@
 	# remote-tracking ref forever, and each machine accumulates a
 	# different set of them.
 	prune = true
-	pruneTags = true
+	# DELIBERATELY NOT pruneTags. Tags fetch into refs/tags/* directly
+	# rather than a remote-tracking namespace, so pruning them deletes
+	# any LOCAL tag the remote does not have. Verified on git 2.43: with
+	# prune and pruneTags both set, a plain `git fetch` reports
+	# "- [deleted] (none) -> local-unpushed-tag" and the tag is gone.
+	# Tags have no reflog, this config signs them, and push.followTags
+	# below exists precisely because tags are made locally and pushed
+	# later - so the window between `git tag -m` and `git push` is real,
+	# and an editor's background fetch lands inside it.
+	# `git fetch --prune-tags` remains available as a deliberate cleanup.
 
 [rebase]
 	autoStash = true
@@ -125,6 +165,28 @@
 	# where provisioning did not finish still has a working git.
 	# delta invokes less itself and honours $LESS, set in .config/sh/env.sh.
 	pager = delta
+{{- if $isWindows }}
+	# THESE FOUR MUST STAY INSIDE [core]. They previously sat after the
+	# [delta] header, where git read them as delta.longpaths and friends
+	# and silently applied none of them: keys belong to the nearest
+	# PRECEDING section header, and a conditional does not open a section.
+	#
+	# Not an upstream Git setting. It exists only in the Git for Windows
+	# fork, defaults to false, and without it paths over 260 characters
+	# fail with "Filename too long".
+	longpaths = true
+	# .gitattributes governs line endings and beats this in both
+	# directions. Set false so the Git for Windows installer default of
+	# true cannot introduce invisible per machine behaviour.
+	autocrlf = false
+	fscache = true
+{{- end }}
+{{- if $isDarwin }}
+	# macOS decomposes filenames; every other platform composes them.
+	# Without this a filename with an accent appears permanently modified
+	# on the other machines. Inside [core] for the reason above.
+	precomposeUnicode = true
+{{- end }}
 
 [interactive]
 	diffFilter = delta --color-only
@@ -139,23 +201,6 @@
 	# Defined in catppuccin.gitconfig, included below. delta resolves the
 	# feature name at run time, so include order does not matter.
 	features = catppuccin-mocha
-{{- if $isWindows }}
-	# Not an upstream Git setting. It exists only in the Git for Windows
-	# fork, defaults to false, and without it paths over 260 characters
-	# fail with "Filename too long".
-	longpaths = true
-	# .gitattributes governs line endings and beats this in both
-	# directions. Set false so the Git for Windows installer default of
-	# true cannot introduce invisible per machine behaviour.
-	autocrlf = false
-	fscache = true
-{{- end }}
-{{- if $isDarwin }}
-	# macOS decomposes filenames; every other platform composes them.
-	# Without this a filename with an accent appears permanently modified
-	# on the other machines.
-	precomposeUnicode = true
-{{- end }}
 
 {{ if $isDarwin -}}
 [credential]

@@ -18,11 +18,21 @@
 --hidden
 
 # ...except these, which are never what you meant.
---glob=!.git/*
---glob=!node_modules/*
---glob=!.venv/*
---glob=!target/*
---glob=!dist/*
+#
+# TRAILING SLASH, NO SLASH IN THE MIDDLE. These are gitignore-style
+# globs, where a pattern containing a non-trailing slash is ANCHORED to
+# the search root. Written `!.git/*` they therefore excluded only the
+# .git directory of whatever directory rg was launched from, so
+# `rg foo ~/projects` searched every repository's .git underneath it -
+# reflogs, COMMIT_EDITMSG, packed-refs, hook samples - and every nested
+# node_modules. Verified on rg 14: with the anchored forms a nested
+# sub/node_modules/pkg/a.txt matched; with the trailing-slash forms it
+# does not, at any depth. Note --hidden does not imply skipping .git.
+--glob=!.git/
+--glob=!node_modules/
+--glob=!.venv/
+--glob=!target/
+--glob=!dist/
 
 # Case-insensitive unless the pattern contains an uppercase character.
 --smart-case

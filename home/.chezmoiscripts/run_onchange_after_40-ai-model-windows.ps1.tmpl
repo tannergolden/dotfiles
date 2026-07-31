@@ -7,6 +7,13 @@
 # next apply.
 #
 # ai-model hash: {{ include "dot_local/bin/ai-model.ps1" | sha256sum }}
+#
+# AND KEYED TO ollama ITSELF, for the reason the POSIX twin states: a
+# legitimate exit-0 skip is recorded by run_onchange_ and never revisited,
+# so ollama arriving later never triggered model selection. One apply of
+# lag is expected, since lookPath runs before the packages script in the
+# same run installs it.
+# ollama at render time: {{ lookPath "ollama" }}
 
 $ErrorActionPreference = 'Continue'
 

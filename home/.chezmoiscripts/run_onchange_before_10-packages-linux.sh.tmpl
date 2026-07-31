@@ -6,6 +6,19 @@
 # archive at all, and several of the others lag upstream far enough to
 # matter. So apt supplies what it has and pinned upstream releases supply
 # the rest.
+#
+# THE LINES BELOW ARE LOAD-BEARING, NOT NOTES. run_onchange_ records the
+# hash of a script that exits 0 and does not run it again until its
+# content changes - and the no-sudo branch exits 0. Interpolating these
+# paths at render time makes the script's content change when the missing
+# piece appears, so the apt stage re-fires by itself instead of being
+# recorded as done-and-skipped forever.
+#
+# Residual limit, stated rather than papered over: a transient download
+# failure inside a run still records success. Degrading rather than
+# aborting is the house choice; this only heals the tool-absent case.
+# sudo at render time: {{ lookPath "sudo" }}
+# apt-get at render time: {{ lookPath "apt-get" }}
 
 set -euo pipefail
 

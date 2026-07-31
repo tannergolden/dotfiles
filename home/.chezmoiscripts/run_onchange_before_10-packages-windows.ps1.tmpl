@@ -8,6 +8,15 @@
 # user profile, so nothing here raises a UAC prompt except Git, which
 # declares ElevationRequirement: elevatesSelf and would raise one however
 # it was invoked.
+#
+# THE LINES BELOW ARE LOAD-BEARING, NOT NOTES. run_onchange_ records the
+# hash of a script that exits 0 and does not run it again until its
+# content changes. This script now installs scoop itself, so these cover
+# the case where THAT failed and scoop or winget arrived out of band
+# later: their paths change the rendered content, so the package stage
+# re-fires by itself rather than staying recorded as done.
+# scoop at render time: {{ lookPath "scoop" }}
+# winget at render time: {{ lookPath "winget" }}
 
 $ErrorActionPreference = 'Continue'
 

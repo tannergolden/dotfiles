@@ -162,16 +162,34 @@ check "status reports the drift" '[ -n "$(cm status)" ]'
 check "apply repairs the drift" 'cm apply --force && cm verify'
 
 # --- 8. restore round trip -------------------------------------------------
+#
+# THE CANARY IS THE POINT OF THIS SECTION. Directories the manifest
+# recorded as `absent` (~/.config, ~/.local, ~/.ssh on a fresh machine)
+# were once removed with `rm -rf`, so anything written into them after
+# bootstrap - another app's settings, an ssh key, chezmoi's own state -
+# was destroyed by the documented undo. A file placed in one of those
+# directories now must survive, and its parent with it.
+CANARY_DIR="${HOME}/.config/bat"
+CANARY="${CANARY_DIR}/unrelated-user-file"
+printf 'written by something else after bootstrap\n' > "${CANARY}"
+
 check "restore-backup.sh succeeds" \
   '"${REPO_DIR}/scripts/restore-backup.sh" "${BACKUP}"'
+check "restore KEPT an unrelated file written after bootstrap" \
+  '[ -f "${CANARY}" ]'
+check "restore kept the directory that file lives in" '[ -d "${CANARY_DIR}" ]'
 check "restore put the ORIGINAL content back" \
   'grep -q "PRE-EXISTING USER CONTENT" "${HOME}/${VICTIM}"'
 if [ "${WINDOWS_HOST}" = "false" ]; then
   check "restore put the original mode back" \
     '[ "$(stat -c %a "${HOME}/${VICTIM}" 2>/dev/null || stat -f %Lp "${HOME}/${VICTIM}")" = "640" ]'
 fi
+# Still deleted, canary or not: CREATED is a FILE inside that same kept
+# directory, so this proves the fix discriminates by type rather than
+# simply having stopped deleting things.
 check "restore DELETED a file that apply had created" \
   '[ ! -e "${HOME}/${CREATED}" ]'
+rm -f "${CANARY}"
 
 # --- 9. provisioning fires once, not twice ---------------------------------
 cm apply --force >/dev/null 2>&1
@@ -184,12 +202,34 @@ check "provisioning does not re-run on an unchanged apply" '[ "${before}" = "0" 
 # the machine's own key to the trust list AFTER apply. Exercised here
 # against the sandbox HOME, exactly as bootstrap drives it.
 GK="${REPO_DIR}/scripts/generate-keys.sh"
+
+# ASK GIT, NEVER grep. A template chomp once glued the [commit] header
+# onto the previous line, so git saw no [commit] section at all and
+# commit.gpgsign was UNSET on every platform - nothing was ever signed -
+# while `grep gpgsign` matched happily and every text-based check passed.
+# A config assertion that does not go through the parser proves nothing.
+gitcfg() { git config -f "${HOME}/.config/git/config" --get "$1" 2>/dev/null; }
+
+if command -v git >/dev/null 2>&1; then
+  check "git can parse the rendered config at all" \
+    'git config -f "${HOME}/.config/git/config" --list >/dev/null'
+  check "allowedSignersFile is a clean path, not a glued section header" \
+    '[ "$(gitcfg gpg.ssh.allowedSignersFile)" = "~/.config/git/allowed_signers" ]'
+  check "commit.verbose reaches the [commit] section" \
+    '[ "$(gitcfg commit.verbose)" = "true" ]'
+  # Keys git must NOT see, each one a bug this suite has already paid for.
+  check "core settings did not land in [delta]" \
+    '[ -z "$(gitcfg delta.longpaths)" ] && [ -z "$(gitcfg delta.precomposeUnicode)" ]'
+  check "fetch.pruneTags is unset, so unpushed local tags survive a fetch" \
+    '[ -z "$(gitcfg fetch.pruneTags)" ]'
+fi
+
 if command -v ssh-keygen >/dev/null 2>&1; then
   # Before any key exists, the rendered config must keep signing OFF - a
   # hardcoded true fails every commit on a machine with no key, with a
   # gpg error that says nothing about why.
   check "gpgsign is off while no signing key exists" \
-    'grep -q "gpgsign = false" "${HOME}/.config/git/config"'
+    '[ "$(gitcfg commit.gpgsign)" = "false" ]'
 
   check "generate-keys.sh keys exits 0" '"${GK}" keys'
   check "auth keypair generated" \
@@ -205,9 +245,11 @@ if command -v ssh-keygen >/dev/null 2>&1; then
     '[ "$(cat "${HOME}/.ssh/id_signing_ed25519.pub")" = "${KEY_BEFORE}" ]'
 
   # The gate itself: the key now exists, so a re-apply flips signing on.
+  # Asserted through git, so a config git cannot see counts as a failure.
   check "re-apply exits 0 with keys present" 'cm apply --force'
-  check "gpgsign flipped on by the key existing" \
-    'grep -q "gpgsign = true" "${HOME}/.config/git/config"'
+  check "commit.gpgsign flipped on by the key existing" \
+    '[ "$(gitcfg commit.gpgsign)" = "true" ]'
+  check "tag.gpgSign flipped on too" '[ "$(gitcfg tag.gpgSign)" = "true" ]'
 
   # The trust list: appended once, never twice.
   check "trust append exits 0" '"${GK}" trust "smoke@example.invalid"'

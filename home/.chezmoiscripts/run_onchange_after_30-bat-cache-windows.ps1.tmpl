@@ -5,15 +5,41 @@
 # script to the theme file so run_onchange_ fires when the theme changes.
 #
 # theme hash: {{ include "dot_config/bat/themes/Catppuccin Mocha.tmTheme" | sha256sum }}
+#
+# AND KEYED TO bat ITSELF, which is what makes the message at the bottom
+# true. A run_onchange_ script that exits 0 is recorded and never re-run
+# until its content changes, so "will build on a later apply" was false
+# on a machine bootstrapped before scoop delivered bat. This path changes
+# the content the moment bat lands. One apply of lag is expected:
+# lookPath runs when chezmoi reads the source state, before the packages
+# script in the same run installs bat.
+# bat at render time: {{ lookPath "bat" }}
 
 if ($env:CI_STUB -eq '1') {
     Write-Host 'CI_STUB=1: would rebuild the bat theme cache'
     exit 0
 }
 
+# scoop has only just written its shims on a first bootstrap, and the
+# environment chezmoi inherited may predate them - the same first-apply
+# trap the ai-model twin guards against.
+$shims = Join-Path $HOME 'scoop\shims'
+if ((Test-Path $shims) -and ($env:PATH -notlike "*$shims*")) {
+    $env:PATH = "$shims;$env:PATH"
+}
+
 if (Get-Command bat -ErrorAction SilentlyContinue) {
-    bat cache --build | Out-Null
-    Write-Host '==> bat theme cache rebuilt'
+    # SUCCESS IS CHECKED, NOT ASSUMED. This printed "rebuilt" whatever
+    # happened, so a failing build reported success and the theme
+    # silently stayed default - the POSIX twin has always reported the
+    # failure. Native commands do not set $? usefully, hence
+    # $LASTEXITCODE.
+    bat cache --build 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host '==> bat theme cache rebuilt'
+    } else {
+        Write-Warning 'bat cache --build failed; bat falls back to its default theme'
+    }
 } else {
     Write-Warning 'bat not installed yet; theme cache will build on a later apply'
 }
