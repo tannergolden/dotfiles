@@ -33,11 +33,11 @@ It is managed by [chezmoi](https://www.chezmoi.io), which **renders real files i
 
 ## 🖥️ Supported Platforms
 
-| Platform                   | Shell         | Packages       | Terminal                    |
-| :------------------------- | :------------ | :------------- | :-------------------------- |
-| **macOS**                  | zsh           | Homebrew       | Terminal.app, `Pro` profile |
-| **Windows**                | PowerShell 7+ | winget · scoop | Windows Terminal            |
-| **Codespaces and Linux**   | zsh           | apt            | provided by the platform    |
+| Platform               | Shell         | Packages       | Terminal                    |
+| :--------------------- | :------------ | :------------- | :-------------------------- |
+| **macOS**              | zsh           | Homebrew       | Terminal.app, `Pro` profile |
+| **Windows**            | PowerShell 7+ | winget · scoop | Windows Terminal            |
+| **Linux & Codespaces** | zsh           | apt            | provided by the platform    |
 
 Native Windows, not WSL. Linux is supported because a codespace is a Linux container, and this repository is wired into that flow directly.
 
@@ -105,13 +105,13 @@ Templating is used sparingly and deliberately. Across a survey of real cross-pla
 
 This repository is public. Nothing sensitive belongs in it, and the protection is mechanical rather than a matter of discipline.
 
-| Never committed                    | Why                                              |
-| :--------------------------------- | :----------------------------------------------- |
-| Private keys of any kind           | A leak is permanent; history is not redactable   |
-| `known_hosts`                      | An inventory of every host you connect to        |
-| Cloud, registry or CLI credentials | Scanners find committed tokens within minutes    |
-| Shell history                      | Routinely captures secrets typed inline          |
-| Editor user settings               | They accrete hostnames and account state         |
+| Never committed                    | Why                                            |
+| :--------------------------------- | :--------------------------------------------- |
+| Private keys of any kind           | A leak is permanent; history is not redactable |
+| `known_hosts`                      | An inventory of every host you connect to      |
+| Cloud, registry or CLI credentials | Scanners find committed tokens within minutes  |
+| Shell history                      | Routinely captures secrets typed inline        |
+| Editor user settings               | They accrete hostnames and account state       |
 
 > [!CAUTION]
 > Do not treat chezmoi's `private_` attribute as a security control. It applies no permissions at all on Windows, it is silently ignored when prefixes are written in the wrong order, and `encrypted_` does not imply it. Exclusion is the control, and `.gitignore` is where it lives.
