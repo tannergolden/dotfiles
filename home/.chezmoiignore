@@ -53,6 +53,8 @@ Library/**
 {{/* ---------- everything POSIX, off on Windows -------------------------
   zsh does not exist on native Windows. PowerShell is the shell there and
   shares nothing with these files beyond the tool choices they configure.
+  The ssh multiplexing directory goes too: Win32-OpenSSH has no Unix
+  domain socket multiplexing, so ~/.ssh/cm would be a dead directory.
 */}}
 .zshenv
 .zprofile
@@ -60,6 +62,7 @@ Library/**
 .zsh_plugins.zsh
 .config/zsh/**
 .config/sh/**
+.ssh/cm/**
 {{ end }}
 
 {{ if not $isWindows }}

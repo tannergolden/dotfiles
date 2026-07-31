@@ -30,12 +30,23 @@
 	# silently degrades to nothing and you cannot tell signed from unsigned.
 	allowedSignersFile = ~/.config/git/allowed_signers
 
+{{- /* destDir, not homeDir: they coincide on a real machine, but destDir
+       is where the key actually lands, which also keeps the smoke test
+       honest when it applies into a sandbox. */ -}}
+{{- $signingKey := joinPath .chezmoi.destDir ".ssh/id_signing_ed25519.pub" -}}
+{{- $hasSigningKey := stat $signingKey -}}
 [commit]
-	gpgsign = true
+	# Gated on the key actually existing, checked at apply time. With this
+	# hardcoded true, every commit on a machine that has not yet generated
+	# its signing key fails with a gpg error that says nothing about WHY,
+	# which is a hostile first hour on a new machine. Generate the key per
+	# docs/Manual-Setup.md, run `chezmoi apply` again, and this flips to
+	# true by itself.
+	gpgsign = {{ if $hasSigningKey }}true{{ else }}false{{ end }}
 
 [tag]
 	# Default is false, so `git tag -m` produces an unsigned annotated tag.
-	gpgSign = true
+	gpgSign = {{ if $hasSigningKey }}true{{ else }}false{{ end }}
 
 [init]
 	defaultBranch = Development

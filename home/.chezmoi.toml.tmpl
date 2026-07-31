@@ -22,6 +22,17 @@
 
 encryption = ""
 
+{{/*
+  THE MOST IMPORTANT LINE IN THIS FILE. Bootstrap runs chezmoi with an
+  explicit --source, but chezmoi does not remember that flag anywhere, so
+  without persisting it here every later bare invocation, exactly the
+  chezmoi diff, apply and verify the README teaches, resolves the DEFAULT
+  source directory, which is empty. Verified: managed count 0, and verify
+  exits 0 because an empty source matches anything, so drift detection
+  silently reports clean forever.
+*/}}
+sourceDir = {{ .chezmoi.sourceDir | quote }}
+
 [data]
   name         = {{ $name | quote }}
   email        = {{ $email | quote }}

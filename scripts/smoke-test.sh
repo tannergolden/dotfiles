@@ -102,6 +102,11 @@ check "init --promptDefaults exits 0" \
   'cm init --promptDefaults --no-tty </dev/null'
 check "a config file was generated" \
   '[ -f "${SANDBOX}/cfg/chezmoi.toml" ]'
+# Guards the worst everyday-use bug found in review: without a persisted
+# sourceDir, every bare chezmoi command after bootstrap resolves an EMPTY
+# default source, and verify reports clean forever.
+check "generated config persists sourceDir" \
+  'grep -q "^sourceDir = " "${SANDBOX}/cfg/chezmoi.toml"'
 
 # --- 2. the backup, before any apply ---------------------------------------
 BACKUP="${SANDBOX}/backup"
@@ -133,6 +138,10 @@ if [ "${WINDOWS_HOST}" = "false" ]; then
     '[ "$(stat -c %a "${HOME}/.ssh" 2>/dev/null || stat -f %Lp "${HOME}/.ssh")" = "700" ]'
   check ".ssh/config is 0600" \
     '[ "$(stat -c %a "${HOME}/.ssh/config" 2>/dev/null || stat -f %Lp "${HOME}/.ssh/config")" = "600" ]'
+  # ssh refuses to create the ControlPath directory itself, so a missing
+  # ~/.ssh/cm makes every multiplexed connection fail with "cannot bind".
+  check "ssh multiplexing directory exists" \
+    '[ -d "${HOME}/.ssh/cm" ]'
 fi
 
 # --- 5. the ssh config's load-bearing ordering -----------------------------
