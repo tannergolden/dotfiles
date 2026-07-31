@@ -37,24 +37,54 @@ cm() {
     --config="${SCRATCH}/cfg/chezmoi.toml" --cache="${SCRATCH}/cache" "$@"
 }
 
-cm init --promptDefaults --no-tty </dev/null >/dev/null 2>&1
+if ! init_err="$(cm init --promptDefaults --no-tty </dev/null 2>&1)"; then
+  echo "FAIL could not initialise a scratch chezmoi to run the check against" >&2
+  printf '%s\n' "${init_err}" | sed 's/^/       /' >&2
+  exit 1
+fi
 
 # Any of these appearing in a TARGET path means the prefix was not
 # consumed as an attribute, which means it did not take effect.
 PREFIXES='private_|readonly_|executable_|empty_|exact_|encrypted_|create_|modify_|symlink_|remove_|external_|literal_|run_|dot_'
 
+# THE LIST IS MATERIALISED BEFORE IT IS READ, and that is the point.
+#
+# This used to be `done < <(cm managed ... 2>/dev/null || true)`, which
+# meant a chezmoi that failed for any reason fed the loop nothing, `leaked`
+# stayed 0, and the script printed "ok no attribute prefix leaked" having
+# examined not one path. A check that cannot fail is worse than no check,
+# because it is believed. Now the enumeration is a separate, fatal step and
+# an empty result is itself an error.
+TARGETS="${SCRATCH}/targets"
+if ! cm managed --path-style=relative > "${TARGETS}" 2>"${SCRATCH}/managed-err"; then
+  echo "FAIL could not enumerate managed targets" >&2
+  sed 's/^/       /' "${SCRATCH}/managed-err" >&2 || :
+  exit 1
+fi
+if [ ! -s "${TARGETS}" ]; then
+  echo "FAIL chezmoi reports no managed targets; this check examined nothing" >&2
+  exit 1
+fi
+
 leaked=0
+examined=0
 while IFS= read -r target; do
   [ -n "${target}" ] || continue
+  examined=$((examined + 1))
   base="$(basename "${target}")"
   if printf '%s' "${base}" | grep -qE "^\.?(${PREFIXES})"; then
     echo "FAIL leaked attribute prefix in target path: ${target}"
     leaked=$((leaked + 1))
   fi
-done < <(cm managed --path-style=relative 2>/dev/null || true)
+done < "${TARGETS}"
+
+if [ "${examined}" -eq 0 ]; then
+  echo "FAIL read the target list but examined nothing" >&2
+  exit 1
+fi
 
 if [ "${leaked}" -eq 0 ]; then
-  echo "ok   no attribute prefix leaked into a target path"
+  echo "ok   no attribute prefix leaked into a target path (${examined} examined)"
 else
   cat >&2 <<'EOF'
 

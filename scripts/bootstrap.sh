@@ -53,7 +53,22 @@ log "platform=${PLATFORM} codespaces=${IN_CODESPACES} interactive=${INTERACTIVE}
 # ~4 weeks after its fix merged, a Defender false-positive on the winget
 # package). A pinned artifact fails loudly instead of silently changing.
 BIN_DIR="${HOME}/.local/bin"
-mkdir -p "${BIN_DIR}"
+
+# Checked before anything is downloaded or written, so an unusable
+# environment fails in the first second rather than after a snapshot has
+# been taken and half an install has happened.
+[ -n "${HOME:-}" ] || die "HOME is unset; refusing to guess where to write"
+[ -d "${HOME}" ] || die "HOME (${HOME}) is not a directory"
+[ -w "${HOME}" ] || die "HOME (${HOME}) is not writable"
+[ -d "${REPO_DIR}/home" ] || die "no source state at ${REPO_DIR}/home; is ${REPO_DIR} the repository root?"
+[ -x "${REPO_DIR}/scripts/backup-targets.sh" ] || die "scripts/backup-targets.sh is missing or not executable"
+[ -x "${REPO_DIR}/scripts/restore-backup.sh" ] || die "scripts/restore-backup.sh is missing; there would be no way to undo this"
+
+for _tool in curl tar; do
+  command -v "${_tool}" >/dev/null 2>&1 || die "${_tool} is required and not on PATH"
+done
+
+mkdir -p "${BIN_DIR}" || die "cannot create ${BIN_DIR}"
 
 ensure_chezmoi() {
   if command -v chezmoi >/dev/null 2>&1; then
@@ -119,11 +134,34 @@ log "snapshotting existing targets to ${BACKUP_DIR}"
 # --- stage 2: apply --------------------------------------------------------
 # --promptDefaults takes every declared default and asks nothing, which is
 # what makes an unattended run possible. An interactive run gets the prompts.
+#
+# APPLY IS NOT ATOMIC. It writes target by target, so a failure part way
+# through leaves a home directory that is part old and part new. `set -e`
+# would end the script here with chezmoi's own error and nothing else,
+# which is the exact moment somebody needs to be told that a snapshot
+# exists and how to use it, rather than having to know to go and read a
+# document. Hence the explicit trap rather than letting set -e do it.
 log "applying dotfiles"
+apply_failed() {
+  local code="$1"
+  cat >&2 <<EOF
+
+  APPLY FAILED with exit code ${code}.
+
+  chezmoi applies file by file, so this machine is part old and part new.
+  Everything that existed beforehand was captured first. To put it back:
+
+    ${REPO_DIR}/scripts/restore-backup.sh ${BACKUP_DIR}
+
+EOF
+  exit "${code}"
+}
+
 if [ "${INTERACTIVE}" = "true" ]; then
-  "${CHEZMOI}" init --apply --source="${REPO_DIR}"
+  "${CHEZMOI}" init --apply --source="${REPO_DIR}" || apply_failed "$?"
 else
-  "${CHEZMOI}" init --apply --source="${REPO_DIR}" --promptDefaults --no-tty </dev/null
+  "${CHEZMOI}" init --apply --source="${REPO_DIR}" --promptDefaults --no-tty </dev/null \
+    || apply_failed "$?"
 fi
 
 # --- stage 3: report -------------------------------------------------------

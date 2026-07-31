@@ -178,6 +178,97 @@ cm apply --force >/dev/null 2>&1
 before="$(cm apply --force 2>&1 | grep -c 'would install' || true)"
 check "provisioning does not re-run on an unchanged apply" '[ "${before}" = "0" ]'
 
+# --- 10. the guards themselves must be able to fire ------------------------
+#
+# EVERY ASSERTION BELOW IS ABOUT A FAILURE PATH, which is the part of a
+# backup tool nobody exercises until the day it matters. A guard that has
+# never been shown to fire is a guard nobody should trust, so each one is
+# driven into its error case here and required to exit non-zero.
+#
+# These run against throwaway copies, never the snapshot the earlier
+# sections depend on.
+
+BK="${REPO_DIR}/scripts/backup-targets.sh"
+RS="${REPO_DIR}/scripts/restore-backup.sh"
+
+# --- 10a. backup refuses to destroy an existing snapshot -------------------
+check "backup refuses to overwrite an existing snapshot" \
+  '! "${BK}" "${CHEZMOI}" "${REPO_DIR}" "${BACKUP}"'
+
+# --- 10b. backup fails loudly when it cannot enumerate ---------------------
+# The Windows bug in another shape: a source it cannot read must not
+# produce an empty manifest and exit 0.
+check "backup fails when the source state cannot be read" \
+  '! "${BK}" "${CHEZMOI}" "${SANDBOX}/no-such-repo" "${SANDBOX}/bk-bad"'
+
+# --- 10c. restore rejects a corrupt archive WITHOUT deleting anything ------
+#
+# The single most important assertion in this file. The old order was
+# delete-then-extract, so a corrupt archive was discovered only once the
+# files it was meant to replace were already gone.
+CORRUPT="${SANDBOX}/bk-corrupt"
+mkdir -p "${CORRUPT}"
+printf 'file\t.config/git/config\t644\n' > "${CORRUPT}/manifest.tsv"
+printf 'absent\t.canary-must-survive\t-\n' >> "${CORRUPT}/manifest.tsv"
+printf 'not a gzip stream at all\n' > "${CORRUPT}/targets.tar.gz"
+printf 'canary\n' > "${HOME}/.canary-must-survive"
+check "restore refuses a corrupt archive" '! "${RS}" "${CORRUPT}"'
+check "restore deleted NOTHING when it refused" \
+  '[ -f "${HOME}/.canary-must-survive" ]'
+
+# --- 10d. restore rejects a malformed manifest ----------------------------
+MALFORMED="${SANDBOX}/bk-malformed"
+mkdir -p "${MALFORMED}"
+printf 'absent\t.canary-must-survive\n' > "${MALFORMED}/manifest.tsv"
+check "restore refuses a manifest with malformed rows" '! "${RS}" "${MALFORMED}"'
+check "restore deleted nothing on a malformed manifest" \
+  '[ -f "${HOME}/.canary-must-survive" ]'
+
+# --- 10e. restore rejects a path that escapes HOME ------------------------
+ESCAPE="${SANDBOX}/bk-escape"
+mkdir -p "${ESCAPE}"
+printf 'absent\t../escaped\t-\n' > "${ESCAPE}/manifest.tsv"
+printf 'canary\n' > "${SANDBOX}/escaped"
+check "restore refuses a manifest path containing '..'" '! "${RS}" "${ESCAPE}"'
+check "the path outside HOME still exists" '[ -f "${SANDBOX}/escaped" ]'
+
+# --- 10f. a Windows snapshot is named, not silently skipped ---------------
+#
+# bootstrap.ps1 writes targets.zip. This script reads targets.tar.gz. That
+# combination used to report "nothing existed at backup time", delete what
+# apply had created, and restore nothing.
+WINZIP="${SANDBOX}/bk-winzip"
+mkdir -p "${WINZIP}"
+printf 'file\t.config/git/config\t644\n' > "${WINZIP}/manifest.tsv"
+printf 'absent\t.canary-must-survive\t-\n' >> "${WINZIP}/manifest.tsv"
+printf 'PK\n' > "${WINZIP}/targets.zip"
+check "restore refuses a Windows snapshot instead of restoring nothing" \
+  '! "${RS}" "${WINZIP}"'
+# Redirected to a file rather than piped into grep: this script runs under
+# `pipefail`, so a pipeline whose FIRST command exits non-zero fails as a
+# whole even when grep matches, and restore exiting non-zero is the very
+# thing being tested.
+check "restore names restore-backup.ps1 when it finds targets.zip" \
+  '"${RS}" "${WINZIP}" >"${SANDBOX}/winzip.out" 2>&1; grep -q "restore-backup.ps1" "${SANDBOX}/winzip.out"'
+check "restore deleted nothing when it refused the Windows snapshot" \
+  '[ -f "${HOME}/.canary-must-survive" ]'
+
+# --- 10g. the Windows undo actually ships ---------------------------------
+# The gap above is only closed if the file a POSIX restore points at is
+# really in the repository.
+check "scripts/restore-backup.ps1 exists" \
+  '[ -f "${REPO_DIR}/scripts/restore-backup.ps1" ]'
+
+# --- 10h. a real backup still round-trips after all of that ---------------
+# The guards must reject bad input without having made good input harder.
+FRESH="${SANDBOX}/bk-fresh"
+check "a fresh backup still succeeds" \
+  '"${BK}" "${CHEZMOI}" "${REPO_DIR}" "${FRESH}"'
+check "the fresh archive is readable" \
+  'tar -tzf "${FRESH}/targets.tar.gz" >/dev/null'
+
+rm -f "${HOME}/.canary-must-survive"
+
 printf '\n=== %s passed, %s failed ===\n' "${pass}" "${fail}"
 [ "${fail}" -eq 0 ] || exit 1
 exit 0

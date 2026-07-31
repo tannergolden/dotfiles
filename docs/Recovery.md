@@ -40,7 +40,16 @@ Every bootstrap first snapshots everything it is about to touch into `~/.dotfile
 scripts/restore-backup.sh ~/.dotfiles-backup-<timestamp>
 ```
 
+```powershell
+& scripts\restore-backup.ps1 $HOME\.dotfiles-backup-<timestamp>
+```
+
+**Use the one that matches the bootstrap that made the snapshot.** The two write different archive formats, `targets.tar.gz` and `targets.zip`, because each platform's bootstrap uses the archiver it can rely on being present. Each restore now refuses a snapshot written by the other and names the script you want, rather than treating an archive it cannot read as an empty one.
+
 The restore deletes the files bootstrap **created**, extracts the originals, and re-asserts their modes. The manifest is what makes the deletions possible; an archive alone cannot know which files were absent beforehand.
+
+> [!IMPORTANT]
+> Both scripts verify the archive **before** deleting anything. A corrupt or missing archive stops the restore with nothing yet removed, so the failure costs you a message rather than the files it was meant to bring back.
 
 ---
 

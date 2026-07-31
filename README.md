@@ -200,7 +200,11 @@ Every bootstrap writes a timestamped snapshot to `~/.dotfiles-backup-<timestamp>
 scripts/restore-backup.sh ~/.dotfiles-backup-20260731T060000Z
 ```
 
-The manifest matters as much as the archive. Restoring has to **delete** the files bootstrap created, and an archive alone cannot know which those were.
+```powershell
+& scripts\restore-backup.ps1 $HOME\.dotfiles-backup-20260731T060000Z
+```
+
+The manifest matters as much as the archive. Restoring has to **delete** the files bootstrap created, and an archive alone cannot know which those were. Both scripts read the archive before removing anything, so a snapshot they cannot open costs you a message rather than the files.
 
 Every other way back, from a reverting file to removing the setup entirely, is written down in [↩️ Recovery](docs/Recovery.md) for a reader who has forgotten how any of this works.
 

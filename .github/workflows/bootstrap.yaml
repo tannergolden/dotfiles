@@ -82,6 +82,14 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           make lint-shell
 
+      # Nothing checked the PowerShell until this step existed. It parses
+      # the two bootstrap scripts, the profile, and the three Windows
+      # provisioning templates AFTER rendering them, which is the only way
+      # a syntax error in those is caught anywhere other than on a real
+      # Windows machine. pwsh is preinstalled on the Ubuntu runner.
+      - name: '🧹 PowerShell parses'
+        run: make lint-powershell
+
       - name: '🌐 Every template renders for every platform'
         run: make render
 

@@ -26,8 +26,8 @@
 CHEZMOI_VERSION ?= v2.71.1
 SHELLCHECK_VERSION ?= 0.9.0
 
-.PHONY: help setup lint lint-shell lint-format test build dev deploy \
-        render prefixes apply diff verify
+.PHONY: help setup lint lint-shell lint-powershell lint-format test build dev \
+        deploy render prefixes apply diff verify
 
 help: ## Show the available targets
 	@grep -hE '^[a-z][a-z-]*:.*?## ' $(MAKEFILE_LIST) \
@@ -37,13 +37,16 @@ help: ## Show the available targets
 setup: ## Install the pinned tools these targets need
 	@scripts/bootstrap.sh
 
-lint: lint-shell render prefixes ## Run every static check CI runs
+lint: lint-shell lint-powershell render prefixes ## Run every static check CI runs
 
 lint-shell: ## ShellCheck over the shell this repository ships
 	@command -v shellcheck >/dev/null 2>&1 \
 		|| { echo "shellcheck not installed; skipping (CI installs it)"; exit 0; }
 	@shellcheck --severity=style install.sh scripts/*.sh \
 		&& echo "ok   shellcheck clean"
+
+lint-powershell: ## Parse every .ps1, which nothing checked before
+	@REPO_DIR="$(CURDIR)" scripts/check-powershell.sh
 
 render: ## Render every template for every platform, from this platform
 	@scripts/render-all-os.sh

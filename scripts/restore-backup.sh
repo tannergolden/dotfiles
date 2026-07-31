@@ -19,9 +19,58 @@ MANIFEST="${BACKUP_DIR}/manifest.tsv"
 BUNDLE="${BACKUP_DIR}/targets.tar.gz"
 DEST="${HOME}"
 
-[ -f "${MANIFEST}" ] || { echo "no manifest at ${MANIFEST}" >&2; exit 1; }
-
 log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
+die() { printf 'restore: %s\n' "$*" >&2; exit 1; }
+
+# --- 0. everything that must be true BEFORE a single file is touched ------
+#
+# THIS SECTION EXISTS BECAUSE STEP 1 DELETES. Every check that can be made
+# up front is made up front: once the deletions start, a failure leaves a
+# home directory with the new files gone and the old ones not yet back,
+# which is the worst state this script can produce.
+
+[ -n "${DEST}" ] || die "HOME is unset; refusing to guess where to restore"
+[ -d "${DEST}" ] || die "HOME (${DEST}) is not a directory"
+[ -d "${BACKUP_DIR}" ] || die "no such backup directory: ${BACKUP_DIR}"
+[ -f "${MANIFEST}" ] || die "no manifest at ${MANIFEST}"
+[ -s "${MANIFEST}" ] || die "manifest at ${MANIFEST} is empty"
+
+# A manifest row is three tab-separated fields. Anything else means the
+# file was truncated or edited, and acting on half a manifest deletes a
+# real file on the strength of a corrupt line.
+if awk -F'\t' 'NF != 3 { bad = 1 } END { exit !bad }' "${MANIFEST}"; then
+  die "manifest at ${MANIFEST} has malformed rows; refusing to act on it"
+fi
+
+# THE ARCHIVE IS VERIFIED BEFORE THE DELETIONS, not after. Previously the
+# order was: delete what apply created, then extract. A corrupt or missing
+# archive was therefore discovered only after the deletions had already
+# happened, leaving nothing to put back. Reading the table of contents
+# first costs a fraction of a second and makes that state unreachable.
+if [ -f "${BUNDLE}" ]; then
+  tar -tzf "${BUNDLE}" >/dev/null 2>&1 \
+    || die "${BUNDLE} is unreadable; refusing to delete anything"
+elif awk -F'\t' '$1 == "file" || $1 == "dir" || $1 == "symlink" { found = 1 }
+                 END { exit !found }' "${MANIFEST}"; then
+  # The manifest says files existed, so an archive should exist too. This
+  # is the exact state a Windows bootstrap used to leave behind, where the
+  # snapshot was written as targets.zip and this script looked only for
+  # targets.tar.gz, then reported "nothing existed" and restored nothing.
+  [ -f "${BACKUP_DIR}/targets.zip" ] \
+    && die "this snapshot holds targets.zip, written by bootstrap.ps1; undo it with scripts/restore-backup.ps1"
+  die "manifest records files that existed, but ${BUNDLE} is missing"
+fi
+
+# Reject any path that would escape $HOME before it reaches rm -rf. The
+# manifest is generated locally, so this is a guard against corruption
+# rather than an attacker, but the operation it guards is irreversible.
+safe_rel() {
+  case "$1" in
+    ''|/*|[A-Za-z]:[/\\]*) return 1 ;;
+    ..|../*|*/../*|*/..) return 1 ;;
+  esac
+  return 0
+}
 
 # --- 1. remove what apply created ------------------------------------------
 #
@@ -38,9 +87,12 @@ awk -F'\t' '$1 == "absent" { print $2 }' "${MANIFEST}" | sort -r > "${ABSENT_LIS
 removed=0
 while IFS= read -r rel; do
   [ -n "${rel}" ] || continue
+  if ! safe_rel "${rel}"; then
+    die "manifest names a path outside HOME: ${rel}"
+  fi
   target="${DEST}/${rel}"
   if [ -L "${target}" ] || [ -e "${target}" ]; then
-    rm -rf -- "${target}"
+    rm -rf -- "${target}" || die "could not remove ${target}"
     printf '  removed %s\n' "${rel}"
     removed=$((removed + 1))
   fi
@@ -50,24 +102,52 @@ log "removed ${removed} path(s) that bootstrap had created"
 # --- 2. put back what was there --------------------------------------------
 if [ -f "${BUNDLE}" ]; then
   log "restoring archived targets"
-  tar -xpzf "${BUNDLE}" -C "${DEST}"
+  # Verified readable in section 0, so a failure here is an extraction
+  # problem (a full disk, a permission) rather than a corrupt archive, and
+  # it must stop the run: continuing to section 3 would chmod files that
+  # were never put back.
+  tar -xpzf "${BUNDLE}" -C "${DEST}" \
+    || die "extraction failed; ${DEST} is partially restored, archive intact at ${BUNDLE}"
 else
   log "no archive present (nothing existed at backup time)"
 fi
 
 # --- 3. re-assert modes ----------------------------------------------------
+#
+# A mode recorded as `-` means the backup could not read it, which the
+# backup reported at the time. Those are skipped rather than guessed at,
+# and counted, so "3 modes not restored" is visible instead of implied.
 log "re-asserting recorded permissions"
+restored_modes=0
+skipped_modes=0
+failed_modes=0
 while IFS="$(printf '\t')" read -r kind rel extra; do
   case "${kind}" in
     file|dir)
+      safe_rel "${rel}" || die "manifest names a path outside HOME: ${rel}"
       target="${DEST}/${rel}"
       [ -e "${target}" ] || continue
       case "${extra}" in
-        [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7]) chmod "${extra}" "${target}" ;;
+        [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7])
+          if chmod "${extra}" "${target}" 2>/dev/null; then
+            restored_modes=$((restored_modes + 1))
+          else
+            # NTFS has no POSIX mode bits, so this is expected under Git
+            # Bash and must not fail the restore. Counted and reported
+            # once at the end rather than printed per file.
+            failed_modes=$((failed_modes + 1))
+          fi
+          ;;
+        *) skipped_modes=$((skipped_modes + 1)) ;;
       esac
       ;;
     *) ;;
   esac
 done < "${MANIFEST}"
+
+printf '  %s mode(s) restored' "${restored_modes}"
+[ "${skipped_modes}" -eq 0 ] || printf ', %s unrecorded at backup time' "${skipped_modes}"
+[ "${failed_modes}" -eq 0 ] || printf ', %s not settable on this filesystem' "${failed_modes}"
+printf '\n'
 
 log "restore complete from ${BACKUP_DIR}"
