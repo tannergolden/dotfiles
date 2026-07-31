@@ -39,6 +39,8 @@ ssh-keygen -t ed25519 -C "signing" -f ~/.ssh/id_signing_ed25519
 
 Then add the public key to `~/.config/git/allowed_signers`, which chezmoi creates once and never overwrites. Without an entry there, `git log --show-signature` reports `No signature` on correctly signed commits rather than failing, so local verification silently degrades to nothing.
 
+Finally run `chezmoi apply` once more. Commit signing is gated on the key actually existing, so commits on a fresh machine work before this step instead of failing with an unexplained gpg error; the apply after key generation is what switches `commit.gpgsign` on.
+
 ---
 
 ## 2️⃣ Security Settings, On Purpose Not Scripted

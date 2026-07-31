@@ -80,11 +80,11 @@ Nothing to run. Enable **Automatically install dotfiles** in your [Codespaces se
 .
 ├── home/                  # 🏠 chezmoi source state, and nothing else
 │   ├── .chezmoiignore     # 🔀 the one file deciding what applies where
-│   ├── dot_config/        # ⚙️ shared configuration
-│   └── .chezmoiscripts/   # 📦 package provisioning
-├── packages/              # 📋 one manifest per platform
+│   ├── .chezmoidata/      # 📋 the package manifest, one list per platform
+│   ├── .chezmoiscripts/   # 📦 provisioning, keyed to the manifest
+│   └── dot_config/        # ⚙️ tool configuration
 ├── scripts/               # 🔧 bootstrap, backup, restore, guards
-├── docs/                  # 📚 recovery and design notes
+├── docs/                  # 📚 manual steps and recovery
 ├── install.sh             # ☁️ Codespaces entrypoint
 └── .chezmoiroot           # 📍 scopes chezmoi to home/
 ```
@@ -201,6 +201,8 @@ scripts/restore-backup.sh ~/.dotfiles-backup-20260731T060000Z
 ```
 
 The manifest matters as much as the archive. Restoring has to **delete** the files bootstrap created, and an archive alone cannot know which those were.
+
+Every other way back, from a reverting file to removing the setup entirely, is written down in [↩️ Recovery](docs/Recovery.md) for a reader who has forgotten how any of this works.
 
 ---
 
