@@ -58,7 +58,10 @@ echo "==> brew bundle ({{ len .packages.darwin.brew }} formulae, {{ len .package
 # Never `brew bundle cleanup --force` from a script. That bypasses the
 # still-has-dependents safety check and deletes anything not in the list,
 # including things you installed deliberately and forgot to record.
-brew bundle --file="${BREWFILE}" --no-lock || {
+#
+# No --no-lock flag: bundle stopped producing lockfiles entirely and the
+# flag was removed with the behaviour, so passing it fails on current brew.
+brew bundle --file="${BREWFILE}" || {
   echo "brew bundle reported errors; continuing" >&2
 }
 {{- end }}

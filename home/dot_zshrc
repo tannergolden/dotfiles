@@ -56,8 +56,12 @@ setopt no_flow_control         # reclaim ctrl-s and ctrl-q
 #
 # If you just installed something and want its completions now:
 #   rm -f ~/.zcompdump && exec zsh
+#
+# The first-run case matters: with no dump at all, `-C` would build one
+# WITHOUT ever running the security audit, so a missing dump must take the
+# full path, not the cached one.
 autoload -Uz compinit
-if [[ -n ${HOME}/.zcompdump(#qN.mh+24) ]]; then
+if [[ ! -f ${HOME}/.zcompdump || -n ${HOME}/.zcompdump(#qN.mh+24) ]]; then
   compinit                     # full: security audit plus rescan
 else
   compinit -C                  # cached: skip both
@@ -68,6 +72,9 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache"
+# zsh does not create the cache directory, and a missing one makes the
+# completion cache silently do nothing rather than error.
+[[ -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh" ]] || mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 
 # --- keybindings -----------------------------------------------------------
 # STATE THIS EXPLICITLY. zsh picks the keymap by substring-matching "vi"
@@ -78,11 +85,22 @@ bindkey -e
 
 # Prefix-aware history search on the arrow keys. On macOS this overrides
 # Apple's /etc/zshrc binding of the same keys, which is intentional.
+#
+# BOTH escape sequences are bound on purpose. A terminal in application
+# keypad mode, which Terminal.app enters, sends ^[OA and ^[OB for the
+# arrows, while raw mode sends ^[[A and ^[[B. Binding only the raw form
+# is the classic way arrow search works on Linux and silently does not
+# fire on the Mac. terminfo is consulted too, when it names something else.
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
-bindkey '^[[A' up-line-or-beginning-search
-bindkey '^[[B' down-line-or-beginning-search
+for _seq in '^[[A' '^[OA' "${terminfo[kcuu1]:-}"; do
+  [[ -n "${_seq}" ]] && bindkey "${_seq}" up-line-or-beginning-search
+done
+for _seq in '^[[B' '^[OB' "${terminfo[kcud1]:-}"; do
+  [[ -n "${_seq}" ]] && bindkey "${_seq}" down-line-or-beginning-search
+done
+unset _seq
 
 # --- aliases ---------------------------------------------------------------
 # Debian and Ubuntu rename two of these binaries, so a config that says
@@ -114,8 +132,18 @@ command -v zoxide   >/dev/null 2>&1 && eval "$(zoxide init zsh)"
 
 # fzf ships shell integration for zsh but NONE for PowerShell, so this is
 # one of the few genuinely POSIX-only pieces of the setup.
+#
+# `fzf --zsh` needs fzf 0.48 or newer. Ubuntu 24.04 ships 0.44, which is
+# what a Codespace gets, so the older path is not hypothetical: there the
+# same keybindings load from the file Debian installs instead.
 if command -v fzf >/dev/null 2>&1; then
-  eval "$(fzf --zsh)" 2>/dev/null || true
+  if ! eval "$(fzf --zsh 2>/dev/null)"; then
+    for _f in /usr/share/doc/fzf/examples/key-bindings.zsh \
+              /usr/share/fzf/key-bindings.zsh; do
+      [[ -r "${_f}" ]] && source "${_f}" && break
+    done
+    unset _f
+  fi
 fi
 
 # --- codespaces ------------------------------------------------------------

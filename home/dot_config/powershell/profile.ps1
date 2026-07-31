@@ -27,6 +27,8 @@ if ((Test-Path $local:userBin) -and ($env:PATH -notlike "*$local:userBin*")) {
 # --- environment -----------------------------------------------------------
 $env:XDG_CONFIG_HOME = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $HOME '.config' }
 $env:XDG_CACHE_HOME  = if ($env:XDG_CACHE_HOME)  { $env:XDG_CACHE_HOME }  else { Join-Path $HOME '.cache' }
+$env:XDG_DATA_HOME   = if ($env:XDG_DATA_HOME)   { $env:XDG_DATA_HOME }   else { Join-Path $HOME '.local\share' }
+$env:XDG_STATE_HOME  = if ($env:XDG_STATE_HOME)  { $env:XDG_STATE_HOME }  else { Join-Path $HOME '.local\state' }
 
 # Both read a path from the environment, which is why these two tools are
 # configured identically on Windows and macOS from one file each.
@@ -93,7 +95,7 @@ function gs { git status --short --branch @args }
 function gd { git diff @args }
 function gl { git log --oneline --graph --decorate -20 @args }
 function .. { Set-Location .. }
-function ...{ Set-Location ../.. }
+function ... { Set-Location ../.. }
 
 if (Get-Command eza -ErrorAction SilentlyContinue) {
     function ll { eza -l --git --group-directories-first @args }

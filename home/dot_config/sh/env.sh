@@ -95,4 +95,8 @@ export FZF_DEFAULT_OPTS="\
 --color=selected-bg:#45475A \
 --color=border:#6C7086,label:#CDD6F4"
 
+# Opt out of Homebrew's analytics before any brew command runs. Documented
+# by Homebrew itself as the supported opt-out.
+export HOMEBREW_NO_ANALYTICS=1
+
 export LANG="${LANG:-en_US.UTF-8}"
