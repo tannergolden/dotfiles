@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# --- Guard against silently mis-ordered chezmoi attribute prefixes ---
+# --- Guard against chezmoi attribute prefixes written in the wrong order ---
 #
 # THE BUG THIS CATCHES, which is a silent secret exposure.
 #
