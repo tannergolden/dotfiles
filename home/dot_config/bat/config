@@ -1,0 +1,26 @@
+# --- bat ---
+#
+# Found via $BAT_CONFIG_PATH, exported identically from .config/sh/env.sh
+# and from the PowerShell profile, which is what keeps this file the same
+# on all three platforms.
+#
+# Format is a list of command line arguments, one per line, quoted where a
+# value contains spaces.
+
+# A theme that ships with bat, so it needs no extra install and looks the
+# same everywhere. `bat --list-themes` shows the rest.
+--theme="Monokai Extended"
+
+# Show line numbers and a changed-line gutter, but not the heavy box
+# drawing around each file. `full` is the default and is a lot of frame
+# for not much signal.
+--style="numbers,changes,header"
+
+# Wrap long lines rather than truncating them, which is the default and
+# quietly hides the end of the line you were reading.
+--wrap=auto
+
+# Treat these as their real syntax rather than plain text.
+--map-syntax="*.tmpl:Bourne Again Shell (bash)"
+--map-syntax=".chezmoiignore:Git Ignore"
+--map-syntax="*.terminal:XML"

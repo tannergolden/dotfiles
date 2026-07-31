@@ -93,11 +93,67 @@ Nothing to run. Enable **Automatically install dotfiles** in your [Codespaces se
 
 ---
 
-## 🧭 Divergence Between Machines
+## 🧭 Platform Parity
 
-Configuration is split by **whole files**, not by conditionals scattered through them. A single `.chezmoiignore` names which files belong to which platform; everything else is a plain file that its own editor can highlight and a human can grep.
+**Every machine gives you the same commands, doing the same things, configured by the same files.** What differs is the machinery underneath, and only where an operating system leaves no choice.
 
-Templating is used sparingly and deliberately. Across a survey of real cross-platform dotfiles repositories, the genuinely shared, OS-conditional surface came to well under one percent of configuration by line. The honest shape is two mostly independent sets of files sharing a small core: Git, SSH, and the choice of which tools to install.
+The useful way to think about it: parity is at the level of _what you type and what happens_, not at the level of _which file the operating system reads_. A prompt is a prompt on all three; the line that starts it is spelled differently in zsh and PowerShell.
+
+### ✅ Identical everywhere
+
+One file, byte for byte, read the same way on macOS, Windows and Linux.
+
+| Surface         | How it stays identical                                                  |
+| :-------------- | :---------------------------------------------------------------------- |
+| **Tool set**    | The same 13 tools, whichever package manager delivers them              |
+| **Prompt**      | One `starship.toml`; only the per-shell `init` line differs             |
+| **ripgrep**     | One `ripgreprc`, found via `RIPGREP_CONFIG_PATH`                        |
+| **bat**         | One `config`, found via `BAT_CONFIG_PATH`                               |
+| **Diffs**       | delta, configured inside the Git config, so it inherits its portability |
+| **Git**         | One config; the platform-specific part is four lines                    |
+| **SSH**         | One config; the platform-specific part is two blocks                    |
+| **Aliases**     | `g`, `gs`, `gd`, `gl`, `ll`, `la`, `..`, `...` behave the same          |
+| **Keybindings** | Up and Down do prefix-aware history search in both shells               |
+| **Editor**      | `code --wait`, with the same fallback chain                             |
+
+Those tool configs are genuinely portable for a specific reason: ripgrep and bat both locate their config through an environment variable rather than a fixed path, so one file serves all three platforms with no templating at all.
+
+### ⚖️ The differences, and why each one exists
+
+None of these are choices; each is something a platform forces.
+
+| Difference               | macOS / Linux                    | Windows          | Why                                                                                      |
+| :----------------------- | :------------------------------- | :--------------- | :--------------------------------------------------------------------------------------- |
+| **Shell language**       | zsh                              | PowerShell       | Unrelated languages. Aliases are written twice because `Set-Alias` cannot take arguments |
+| **Package manager**      | Homebrew · apt                   | scoop · winget   | Same tools, three delivery routes                                                        |
+| **Terminal**             | Terminal.app `Pro`               | Windows Terminal | The one real gap. See below                                                              |
+| **fzf key bindings**     | <kbd>Ctrl</kbd>+<kbd>R</kbd> etc | not available    | fzf ships no PowerShell integration upstream                                             |
+| **SSH multiplexing**     | `ControlMaster` on               | unsupported      | Win32-OpenSSH has no Unix-domain-socket multiplexing                                     |
+| **Keychain integration** | `UseKeychain` (macOS only)       | agent service    | An Apple-only directive; unguarded it _terminates_ ssh elsewhere                         |
+| **File permissions**     | `0600` honoured                  | not applied      | NTFS uses ACLs, and chezmoi's `Chmod` is a no-op there                                   |
+| **Credential helper**    | `osxkeychain`                    | `manager`        | Each platform's own secure store                                                         |
+
+Two smaller ones worth knowing because they look like bugs:
+
+- **Debian renames two binaries.** `fd-find` installs as `fdfind` and `bat` as `batcat`. The shell config detects this and aliases them back, so you type `fd` and `bat` everywhere.
+- **The PowerShell profile is loaded through a shim.** OneDrive can relocate `Documents` by policy, so the real profile lives at a fixed path and a generated one-liner points at it.
+
+### 🖥️ The terminal is the honest exception
+
+Only macOS has a managed terminal, and full parity is not reachable there. The `Pro` profile specifies **Monaco 12**, which is an Apple-bundled font with no Homebrew cask and no scoop package, so it cannot legitimately be installed on Windows or in a container. Transparency does not map either: Terminal.app uses an alpha value plus a blur radius, Windows Terminal uses opacity plus acrylic, and they are different rendering models rather than different spellings.
+
+In a codespace the question does not arise, because the terminal is VS Code's integrated one and its appearance comes from Settings Sync rather than from this repository.
+
+### 🧩 How the split is implemented
+
+Configuration is partitioned by **whole files**, not by conditionals threaded through them. A single `.chezmoiignore` decides which files belong to which platform; everything else is a plain file its own editor can highlight and a human can grep.
+
+Templating is used sparingly on purpose. Across a survey of real cross-platform dotfiles repositories, the genuinely shared, OS-conditional surface came to well under one percent of configuration by line, so branching inside every file would buy almost nothing and cost a great deal of readability.
+
+```bash
+# See exactly what any platform would do, from any platform
+chezmoi ignored --override-data '{"chezmoi":{"os":"windows"}}'
+```
 
 ---
 

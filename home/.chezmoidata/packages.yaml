@@ -73,6 +73,11 @@ packages:
       # a current gh.
       - gh
       - git
+      # Packaged as git-delta on Debian; the binary is still `delta`. Wired
+      # into the Git config as core.pager, so leaving it out here would
+      # silently drop Linux back to plain diffs while macOS and Windows got
+      # syntax highlighting.
+      - git-delta
       - jq
       - ripgrep
       - zsh

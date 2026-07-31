@@ -1,0 +1,42 @@
+# --- ripgrep ---
+#
+# Found via $RIPGREP_CONFIG_PATH, which is exported identically from
+# .config/sh/env.sh on macOS and Linux and from the PowerShell profile on
+# Windows. ripgrep has no default config location at all, so the
+# environment variable is the ONLY way to configure it, and that is what
+# makes this file byte-identical on all three platforms.
+#
+# Format is one command line argument per line. Not a shell: no quoting,
+# no comments on the same line as an argument.
+
+# Follow symbolic links. Off by default, and the default surprises people
+# who keep a symlinked directory of notes or config.
+--follow
+
+# Search hidden files. Still respects .gitignore, so this is far less
+# noisy than it sounds, and it is usually what you meant.
+--hidden
+
+# ...except these, which are never what you meant.
+--glob=!.git/*
+--glob=!node_modules/*
+--glob=!.venv/*
+--glob=!target/*
+--glob=!dist/*
+
+# Case-insensitive unless the pattern contains an uppercase character.
+--smart-case
+
+# Group matches under a filename heading rather than repeating the path on
+# every line.
+--heading
+
+# Show a column number, so an editor jump target is unambiguous.
+--column
+
+# Trim leading whitespace, which keeps deeply indented matches readable.
+--trim
+
+# Large files are usually generated. Search them explicitly when you mean
+# to, rather than by accident.
+--max-filesize=1M

@@ -108,7 +108,23 @@
 	ui = auto
 
 [core]
-	pager = less -FiRX
+	# delta renders diffs with syntax highlighting and word-level detail.
+	# Verified safe to set unconditionally: when the binary is absent git
+	# degrades to plain output at exit 0 rather than failing, so a machine
+	# where provisioning did not finish still has a working git.
+	# delta invokes less itself and honours $LESS, set in .config/sh/env.sh.
+	pager = delta
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	line-numbers = true
+	hyperlinks = true
+	# delta needs a conflict style that shows the base, which is why
+	# merge.conflictStyle below is zdiff3 rather than the default.
+	true-color = always
 {{- if $isWindows }}
 	# Not an upstream Git setting. It exists only in the Git for Windows
 	# fork, defaults to false, and without it paths over 260 characters
