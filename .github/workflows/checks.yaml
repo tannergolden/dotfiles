@@ -24,17 +24,29 @@ on:
     - cron: '0 3 * * 0' # weekly link integrity sweep
   workflow_dispatch:
 
-permissions: {}
+# A CALLER'S GRANT IS A CEILING, NOT A REQUEST. `permissions: {}` here
+# sets every scope to `none`, and a called workflow may never hold more
+# than its caller was granted. The three below declare their own job-level
+# permissions, so an empty ceiling makes the run INVALID before any job
+# starts: GitHub reports startup_failure with no logs and no failing job
+# to click into. This block is therefore the union of what those jobs ask
+# for, and nothing beyond it. Each job still narrows to its own set.
+permissions:
+  contents: read # every ci.yml job, and the full-history secret scan
+  issues: write # gitleaks opens one issue when scanning is silently off
+  pull-requests: read # semantic-pr reads the title, commits and sign-offs
+  statuses: write # semantic-pr publishes the title status check
 
 jobs:
   ci:
     uses: tannergolden/standards/.github/workflows/ci.yml@v1
-    secrets: inherit
 
+  # The only one of the three that declares a secret. `inherit` hands over
+  # the whole set, so it goes where a secret is actually declared and
+  # nowhere else.
   secrets:
     uses: tannergolden/standards/.github/workflows/gitleaks.yml@v1
     secrets: inherit
 
   pr:
     uses: tannergolden/standards/.github/workflows/semantic-pr.yml@v1
-    secrets: inherit
