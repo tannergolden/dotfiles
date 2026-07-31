@@ -103,6 +103,14 @@ jobs:
       - name: '🛡️ No attribute prefix leaked into a target path'
         run: make prefixes
 
+      # These steps mirror the `lint` target's prerequisites one for one,
+      # so that a failure names the check that failed. This last step is
+      # what keeps the two lists equal: it fails when a prerequisite of
+      # `make lint` has no step here, which is otherwise silent and only
+      # ever loses coverage.
+      - name: '🪞 CI runs everything make lint runs'
+        run: make ci-parity
+
   bootstrap:
     name: '🚀 Bootstrap (${{ matrix.os }})'
     needs: lint

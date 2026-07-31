@@ -33,7 +33,8 @@
 # because it is quoted as though it were true.
 
 .PHONY: help setup lint lint-shell lint-shell-templates lint-powershell \
-        lint-format test build dev deploy render prefixes apply diff verify
+        lint-format test build dev deploy render prefixes ci-parity apply \
+        diff verify
 
 help: ## Show the available targets
 	@grep -hE '^[a-z][a-z-]*:.*?## ' $(MAKEFILE_LIST) \
@@ -43,7 +44,11 @@ help: ## Show the available targets
 setup: ## Install the pinned tools these targets need
 	@scripts/bootstrap.sh
 
-lint: lint-shell lint-shell-templates lint-powershell render prefixes ## Run every static check CI runs
+# ci-parity is last and checks the others: it fails if a prerequisite on
+# this line is not also run by the workflow, because the pipeline lists
+# these as separate steps for granularity and the two lists were
+# previously kept equal by memory alone.
+lint: lint-shell lint-shell-templates lint-powershell render prefixes ci-parity ## Run every static check CI runs
 
 lint-shell: ## ShellCheck over the shell this repository ships
 	@command -v shellcheck >/dev/null 2>&1 \
@@ -63,6 +68,9 @@ render: ## Render every template for every platform, from this platform
 
 prefixes: ## Fail if a chezmoi attribute prefix leaked into a target path
 	@scripts/check-prefixes.sh
+
+ci-parity: ## Fail if CI stopped running everything 'make lint' runs
+	@scripts/check-ci-parity.sh
 
 test: ## Apply, backup, restore and idempotency proof against a throwaway HOME
 	@scripts/smoke-test.sh
