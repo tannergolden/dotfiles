@@ -16,8 +16,10 @@
 # eventually-vulnerable revision forever, and the account decided that
 # maintenance is shared rather than rewritten per repository.
 #
-# Called, never copied, and pinned to a commit rather than to `@v1`: the
-# moving tag would change what runs here without anyone reading the change.
+# Called, never copied, at `@v1` like every other repository on the account.
+# That tag is repointed at each release in the v1 line, which is what lets a
+# fix upstream reach here without a pull request in every repository that
+# calls it. A major is the one thing it never crosses.
 #
 # `.yml`, not the `.yaml` that `bootstrap.yaml` carries. The contributing
 # guide published for the account asks for `kebab-case.yml`, and matching a
@@ -45,5 +47,5 @@ jobs:
     permissions:
       contents: write # allow the squash merge once required checks pass
       pull-requests: write # approve the pull request
-    uses: tannergolden/standards/.github/workflows/dependabot-automerge.yml@a6ee0c23a1614b75a69353190dd7dd67faf59101 # v1.6.0
+    uses: tannergolden/standards/.github/workflows/dependabot-automerge.yml@v1
     secrets: inherit # zizmor: ignore[secrets-inherit] - first-party callee at the ref pinned above.
