@@ -88,11 +88,24 @@ There is a fourth option that looks right and is not: adding the file to `.chezm
 ## 4️⃣ Remove the Whole Setup
 
 ```bash
-chezmoi purge         # removes chezmoi's own config and state, asks first
-rm -rf ~/.dotfiles    # the clone
+chezmoi purge         # config, state AND the clone; asks first
 ```
 
-The rendered files in `$HOME` stay, which is usually what you want: the machine keeps working, it just stops being managed. Restore a bootstrap backup first if you want the pre-dotfiles state back.
+One command, not two. This previously read `chezmoi purge` followed by `rm -rf ~/.dotfiles`, which was wrong in a way worth spelling out.
+
+> [!CAUTION]
+> **Purge deletes the entire clone, git history included.** Not just the source directory inside it. Verified: with `.chezmoiroot` pointing at `home/`, `sourceDir` resolves to `~/.dotfiles/home`, and purge still removes `~/.dotfiles` outright, taking `.git`, the scripts, and anything uncommitted or unpushed with it. Push your work first. Add `--binary` to remove the chezmoi executable too.
+
+The rendered files in `$HOME` **stay**, which is usually what you want: the machine keeps working, it just stops being managed.
+
+**If you want the pre-dotfiles state back, restore first and purge second** — the restore scripts live inside the clone that purge is about to delete.
+
+```bash
+~/.dotfiles/scripts/restore-backup.sh ~/.dotfiles-backup-<timestamp>
+chezmoi purge
+```
+
+Installed packages are untouched by all of this, on purpose. [🗑️ Uninstalling](../README.md#-uninstalling) covers removing those.
 
 ---
 

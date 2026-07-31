@@ -225,7 +225,61 @@ scripts/restore-backup.sh ~/.dotfiles-backup-20260731T060000Z
 
 The manifest matters as much as the archive. Restoring has to **delete** the files bootstrap created, and an archive alone cannot know which those were. Both scripts read the archive before removing anything, so a snapshot they cannot open costs you a message rather than the files.
 
-Every other way back, from a reverting file to removing the setup entirely, is written down in [↩️ Recovery](docs/Recovery.md) for a reader who has forgotten how any of this works.
+---
+
+## 🗑️ Uninstalling
+
+There are three different things people mean by this, and only you know which one you want. They are listed cheapest first, and each is independent of the others.
+
+### 1. Stop managing this machine, keep the configuration
+
+```bash
+chezmoi purge          # asks first; --force skips the prompt
+```
+
+The rendered files in `$HOME` **stay**, which is usually what you want: the machine keeps working exactly as it does now, it just stops being managed. Nothing will overwrite your edits again.
+
+> [!CAUTION]
+> `chezmoi purge` **deletes the whole clone, `.git` and all**, not just the source directory inside it. Verified: with `sourceDir` resolved to `~/.dotfiles/home`, purge removes `~/.dotfiles` entirely, taking the git history and any uncommitted or unpushed work with it. Push anything you care about first. `chezmoi purge --binary` also removes the chezmoi binary.
+
+### 2. Put the machine back the way it was
+
+Restore the snapshot from the bootstrap you want to undo, **then** purge. In that order: purge deletes the clone, and the restore scripts live in it.
+
+```bash
+~/.dotfiles/scripts/restore-backup.sh ~/.dotfiles-backup-<timestamp>
+chezmoi purge
+```
+
+That returns every file bootstrap overwrote, deletes every file it created, and puts back anything `--reset` cleared.
+
+### 3. Remove the tools as well
+
+No step above touches the 13 installed packages, deliberately: a tool you also use outside this setup should not vanish because you stopped managing your dotfiles. Remove them by hand if you want them gone.
+
+```bash
+brew uninstall bat eza fd fzf gh git-delta jq ripgrep starship zoxide
+brew uninstall --cask claude-code antigravity-cli
+```
+
+```powershell
+scoop uninstall bat delta eza fd fzf gh jq ripgrep starship zoxide claude-code antigravity-cli
+```
+
+**`git` is missing from both lines on purpose.** It is in the manifest, and removing it would take your version control with it. Uninstall it deliberately or not at all.
+
+> [!WARNING]
+> Never `brew bundle cleanup --force` to do this. It removes everything **not** in the Brewfile, which is every unrelated package on the machine, and it is not what "cleanup" sounds like.
+
+### Keeping the files without the tool
+
+If chezmoi itself is the only thing you want gone, take the rendered state with you first:
+
+```bash
+chezmoi archive --output=dotfiles.tar   # real files, correct modes, no chezmoi anywhere
+```
+
+Every other way back, from reverting a single file to diagnosing why a change keeps disappearing, is in [↩️ Recovery](docs/Recovery.md).
 
 ---
 
