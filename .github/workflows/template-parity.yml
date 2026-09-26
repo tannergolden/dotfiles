@@ -1,0 +1,130 @@
+# --- This Repository's Own Contract ---
+#
+# 📐 Template Parity
+#
+# Purpose: enforce the five-differences contract in README.md against the
+# public template, so drift fails a check instead of waiting to be noticed.
+#
+# ⚠️ THIS CONTRACT WAS PROSE-ONLY, AND IT DRIFTED. The README states that any
+# difference outside the permitted five "is drift, and drift is a defect".
+# Every other rule in this system has a gate beside it - the standards are
+# explicit that a rule without a gate is a rule nobody enforces. This one was
+# the exception, and eight seeded documents had quietly diverged by the time
+# anybody diffed the trees.
+#
+# ⚠️ THE GUARD IS INVERTED HERE, AND THAT IS DELIBERATE. Every other optional
+# workflow in this repository carries `!is_template`, so it is silent in the
+# template and comes alive in repositories generated from it. This one is the
+# reverse: `is_template` is true ONLY in this repository, so the check runs
+# here and never in anything generated from it. A generated repository is
+# meant to diverge - that is what it is for - and a parity check there would
+# fail on its owner's first commit. It stays inert scaffolding they can
+# delete, like any other workflow that does not fit.
+#
+# WHY THIS IS LOCAL RATHER THAN CALLED FROM THE STANDARDS. Logic is normally
+# published there so a fix reaches every repository pinned to it. This check
+# runs in exactly one repository and has no fleet to reach, so calling it
+# would buy nothing and cost a release cycle: a new reusable workflow does
+# not exist at `@v1` until a release moves the tag, and the stub would fail
+# `verify-stubs.yml` until it did. `release.yml` in the standards repository
+# is local for the same reason - it is about that repository alone.
+#
+# ---
+
+name: '📐 Template Parity'
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 6 * * *' # daily: the baseline is a separate repository and moves independently
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  parity:
+    name: '📐 Five Differences'
+    # Runs ONLY in the template itself. See the inverted-guard note above.
+    #
+    # A pull request always runs. A direct push runs only on the default
+    # branch, WHATEVER IT IS CALLED - the same guard every job in checks.yml
+    # carries, and for the same reason: without it a branch with an open pull
+    # request runs this twice on one commit, and this job clones two whole
+    # repositories each time.
+    if: ${{ github.event.repository.is_template && (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # read this repository, and the public baseline
+    steps:
+      - name: '🛡️ Harden Runner'
+        uses: tannergolden/standards/actions/harden@v1
+        with:
+          egress-policy: audit
+          notice: '📐 Comparing this template against the public one, under the five-differences contract.'
+
+      - name: '📂 Checkout'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: this
+          persist-credentials: false
+
+      # ⚠️ THE CONTRACT NAMES THE BASELINE, AND NOW THE CHECKOUT OBEYS IT.
+      # `baseline:` used to be read only to print in the verdict line, while
+      # the repository actually compared was written into the step below. The
+      # two could disagree silently: change the key and the check went on
+      # comparing the old repository while confidently reporting the new name.
+      # A contract term the gate ignores is the drift this workflow exists to
+      # catch, in the workflow itself.
+      - name: '📖 Read the baseline the contract names'
+        id: contract
+        run: |
+          set -euo pipefail
+          pip install --quiet 'PyYAML==6.0.2'
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import pathlib, sys, yaml
+
+          contract = yaml.safe_load(
+              pathlib.Path('this/.github/template-parity.yml').read_text(encoding='utf-8')
+          )
+          baseline = (contract or {}).get('baseline')
+          if not baseline:
+              sys.exit('::error::The contract names no `baseline:` repository to compare against.')
+          print(f'baseline={baseline}')
+          PY
+
+      # The baseline is public, so this needs no token even though the
+      # repository doing the checking is private.
+      - name: '📥 Checkout the public baseline'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ steps.contract.outputs.baseline }}
+          path: baseline
+          persist-credentials: false
+
+      - name: '🧪 Test the scripts this repository ships'
+        # A check nobody has tested is a check nobody should believe. This runs
+        # before the comparison: a broken enforcer must fail here, loudly,
+        # rather than a few seconds later as a confident "0 problem(s)".
+        #
+        # The repository validator is tested here too, for want of a better
+        # home: it runs as the `ci` job's lint-command, and that job is a stub
+        # calling a reusable workflow whose input is a single command string.
+        # Chaining a second command into it would be a guess about the callee's
+        # contract, so its tests hang off the one workflow this repository owns
+        # outright. The public template has no equivalent and runs neither.
+        run: |
+          set -euo pipefail
+          python3 this/.github/scripts/test_template_parity.py
+          python3 this/.github/scripts/test_validate_repository.py
+          python3 this/.github/scripts/test_gitignore.py
+
+      - name: '📐 Compare against the contract'
+        run: |
+          set -euo pipefail
+          python3 this/.github/scripts/template-parity.py this baseline

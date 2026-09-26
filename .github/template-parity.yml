@@ -1,0 +1,109 @@
+# --- The Five Differences, As Data ---
+#
+# This file IS the contract that README.md describes in prose. The parity
+# check reads it, and anything not permitted here is drift.
+#
+# ⚠️ THE README USED TO BE THE ONLY COPY OF THIS CONTRACT, AND IT DRIFTED.
+# Every other rule in this system has a gate beside it - the standards are
+# explicit that editing a rule without updating the gate that enforces it
+# produces a rule nobody enforces. This contract was the exception, held by
+# prose alone, and prose does not fail a check.
+#
+# Adding a permitted difference here is a deliberate act: it widens what the
+# private template may differ by, forever. Prefer fixing the drift.
+#
+# ---
+
+# The public template this one is defined against.
+baseline: tannergolden/path
+
+# --- Difference 1: no imposed structure ---
+# Present in the baseline, and deliberately absent here. The public template
+# ships these as empty homes so somebody arriving cold has an obvious place
+# for a first file; here the tree is left alone so the shape can follow the
+# project.
+absent-here:
+  - src
+  - tests
+  - packages
+  - benchmarks
+  - assets
+
+# --- Difference 2: the seeds moved ---
+# The same documents, at a different depth. Their CONTENT is compared after
+# the move, under `seeds` below - moving them is permitted, changing them is
+# not.
+relocated:
+  docs: .github/docs
+
+# --- Difference 3: no community health files ---
+# Served account-wide by tannergolden/.github instead. Present in the public
+# template, which is copied in so any owner gets a complete repository.
+inherited-from-account:
+  - .github/CODE_OF_CONDUCT.md
+  - .github/CONTRIBUTING.md
+  - .github/GOVERNANCE.md
+  - .github/SECURITY.md
+  - .github/SUPPORT.md
+  - .github/FUNDING.yml
+  - .github/pull_request_template.md
+  - .github/ISSUE_TEMPLATE
+  - .github/DISCUSSION_TEMPLATE
+
+# --- Differences 4 and 5, and what mechanically follows from 2 ---
+# Every entry needs the reason it is here. A file whose reason is only "it
+# differs" is drift wearing an allow-list entry.
+content-may-differ:
+  LICENSE: 'Difference 4. Proprietary rather than MIT.'
+  .github/CODEOWNERS: 'Difference 5. One live rule naming the owner, rather than commented placeholders.'
+  .gitattributes: 'Follows from difference 2: classifies .github/docs/** as well as docs/**.'
+  README.md: 'This repository is not the public one, and says so.'
+  .github/TEMPLATE_INIT: 'Follows from differences 1, 2 and 3: the public copy
+    names `assets/README.md` and a `git grep` recipe over paths this tree does not
+    have, and the funding target and issue chooser its initialisation rewrites are
+    inherited here rather than local.'
+
+# --- The contract's own enforcement ---
+#
+# NOT a sixth difference. These exist because this repository is DEFINED as a
+# delta against the baseline, and the baseline is the thing being compared
+# against - it cannot hold a parity check against itself. The same way
+# `.gitattributes` differs because difference two moved the seeds, these
+# follow from the contract rather than being an independent decision.
+#
+# ⚠️ THE WORKFLOW INVERTS THE USUAL GUARD, DELIBERATELY. Every other optional
+# workflow here is inert in the template and comes alive in repositories
+# generated from it. This one is the reverse: `if: is_template` means it runs
+# HERE and never in anything generated from this template. A generated
+# repository is supposed to diverge - that is the entire point of it - so a
+# parity check would fail on its owner's first commit. It stays as inert
+# scaffolding they can delete, like any other workflow that does not fit.
+enforcement-only-here:
+  - .github/template-parity.yml
+  - .github/scripts/template-parity.py
+  - .github/scripts/test_template_parity.py
+  - .github/workflows/template-parity.yml
+
+# --- The seeded documents ---
+# After the relocation above, every seeded document must be byte-identical to
+# its counterpart apart from the licence footer that difference 4 requires.
+#
+# Cross-links between seeds are RELATIVE, which is what makes this possible:
+# a relative link resolves the same at either depth, so it is the same string
+# on both sides. An absolute link would encode the depth and reintroduce a
+# difference per file. Relative is also the convention the standards index
+# already uses throughout.
+seeds:
+  # Footer-only comparison is not a switch: it is what "difference 2 moved the
+  # seeds, difference 4 changed their footers" MEANS, so there is no coherent
+  # `false` for it. A `footer-only: true` key used to sit here, read by
+  # nothing - a line of contract data that looked like a knob and turned
+  # nothing, which is precisely the failure this file exists to prevent.
+  footer-markers:
+    - 'Distributed under the MIT License.'
+    - 'Proprietary and confidential; all rights reserved.'
+  # The two index documents name the seed path in prose, which is only true
+  # on one side. Nothing else may appear in this list.
+  exceptions:
+    README.md: 'Names the seed path in prose, and says the seeds sit outside the tree you are building.'
+    templates/README.md: 'Names the seed path in prose when explaining where instantiated documents go.'
