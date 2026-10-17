@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+# ~/.local/bin/alien — TERMINAL, from any prompt
+#
+# This file is a SYMLINK into the dotfiles repo.  scripts/bootstrap.zsh's
+# link step puts it here, and the first conf.d leaf puts ~/.local/bin on
+# PATH, so `alien` at any prompt opens the cabinet -- the same one a new
+# window opens when the hook's switch is on, and the way in when it is off.
+#
+# THE REPO IS FOUND FROM THIS FILE'S OWN RESOLVED PATH, not from a path
+# written down at install time: :A follows the link into the repo, and four
+# :h climb home/.local/bin back to its root.  Move the repo and re-run the
+# installer; nothing here has to be told.
+self="${0:A}"
+root="${self:h:h:h:h}"
+if [[ ! -r "$root/terminal.command" ]]; then
+  print -u2 -r -- "alien: no terminal.command above $self — is the link still into the repo?"
+  exit 1
+fi
+export ALIEN_REPO="$root"
+exec zsh "$root/terminal.command" "$@"
