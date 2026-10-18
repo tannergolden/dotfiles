@@ -1,6 +1,6 @@
 <!--
 title: '🤖 AGENT HOME KIT'
-description: 'Installs one pinned release of the universal rules from tannergolden/intelligence into every AI coding app on this machine.'
+description: 'Installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine.'
 tags: [ai-agents, home-kit, dotfiles, intelligence]
 category: docs
 -->
@@ -28,9 +28,15 @@ Antigravity CLI and Copilot, plus the master copy in `~/.agents/AGENTS.md`.
 Grok Build reads Claude Code's copy, and Cursor's User Rules take a paste by
 hand.
 
-**Nothing is installed unless both downloaded files match their pins.** The
-pin file names a release and the SHA-256 of the home file and the installer
-it serves, and the installer never runs if either differs.
+A release also serves the hub's kit, and this installs it too: the guard
+hook that denies force-pushes, merges and other irreversible commands before
+they run, the `building-skills` skill, the Worker and Reviewer subagents,
+and the public knowledge facts.
+
+**Nothing is installed unless every downloaded file matches its pin.** The
+pin file names a release and the SHA-256 of the home file, the installer and
+the kit it serves, and the installer never runs if any of them differs. A
+release from before the kit pins no kit, and installs the rules alone.
 
 ---
 
@@ -49,9 +55,14 @@ and a failure there never stops the rest of the setup.
 To move to a new release:
 
 1. Run `make agents-pin VERSION=vX.Y.Z`.
-2. Compare the hashes it wrote with `make pins VERSION=vX.Y.Z` in the hub,
-   which reads them from the tag in git rather than from a download.
+2. Compare the three hashes it wrote with `make pins VERSION=vX.Y.Z` in the
+   hub, which reads them from the tag in git rather than from a download.
 3. Commit the pin file, then run `make agents` on each machine.
+
+> [!NOTE]
+> **Codex asks once to trust the guard hook.** It trusts a hook by its
+> declaration, so the next `codex` session shows it for review; trust it
+> once, and it stays trusted while its command stays the same.
 
 ---
 

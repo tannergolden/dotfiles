@@ -3,7 +3,8 @@
 
 WHY THIS EXISTS. `home-kit.sh` downloads code from the network and runs it,
 so its one promise matters more than anything else it does: the installer
-runs only when both downloaded files match the pins committed here. These
+runs only when every downloaded file matches the pins committed here, the
+kit included when one is pinned. These
 run the real script against a stand-in for a release, served from a local
 folder, with a stub in place of the installer that records how it was
 called. They also hold `install.sh` to never failing a new codespace.
@@ -30,6 +31,7 @@ KIT = HERE / 'home-kit.sh'
 INSTALL_SH = HERE.parent / 'install.sh'
 
 HOME_FILE = '<!-- INTELLIGENCE:BEGIN sha256:{} -->\n\n## Working rules\n\n- SEC-001: Never.\n\n<!-- INTELLIGENCE:END -->\n'
+KIT_JSON = b'{"format": 1}\n'
 STUB = (
     'import os, pathlib, sys\n'
     "pathlib.Path(os.environ['STUB_LOG']).write_text(' '.join(sys.argv[1:]))\n"
@@ -58,17 +60,21 @@ class HomeKit(unittest.TestCase):
         (release / 'home').mkdir(parents=True)
         (release / 'scripts').mkdir()
         (release / 'home' / 'intelligence.md').write_bytes(self.home_bytes)
+        (release / 'home' / 'kit.json').write_bytes(KIT_JSON)
         (release / 'scripts' / 'install.py').write_text(STUB, encoding='utf-8')
+        self.release = release
         self.log = self.root / 'stub.log'
 
     def tearDown(self) -> None:
         shutil.rmtree(self.root, ignore_errors=True)
 
-    def pin_release(self, home: str | None = None, install: str | None = None) -> None:
+    def pin_release(self, home: str | None = None, install: str | None = None, kit: str | None = '') -> None:
+        """Pin the fake release; `kit=None` pins its kit's real hash, '' pins no kit."""
         self.pin.write_text(
             f'version={self.version}\n'
             f'home_sha256={home or sha256(self.home_bytes)}\n'
-            f'install_sha256={install or sha256(STUB.encode())}\n', encoding='utf-8')
+            f'install_sha256={install or sha256(STUB.encode())}\n'
+            f'kit_sha256={sha256(KIT_JSON) if kit is None else kit}\n', encoding='utf-8')
 
     def run_kit(self, *args: str, script: pathlib.Path | None = None) -> subprocess.CompletedProcess[str]:
         env = dict(os.environ, HOME=str(self.root / 'home'), STUB_LOG=str(self.log),
@@ -89,6 +95,21 @@ class TestInstall(HomeKit):
         done = self.run_kit('install')
         self.assertEqual(done.returncode, 0, done.stderr)
         self.assertRegex(self.called() or '', r'^install --home-file .*/intelligence\.md$')
+
+    def test_a_pinned_kit_reaches_the_installer(self) -> None:
+        self.pin_release(kit=None)
+        for command in ('install', 'check'):
+            with self.subTest(command=command):
+                done = self.run_kit(command)
+                self.assertEqual(done.returncode, 0, done.stderr)
+                self.assertRegex(self.called() or '', rf'^{command} --home-file .*/intelligence\.md --kit-file .*/kit\.json$')
+
+    def test_a_kit_that_misses_its_pin_stops_everything(self) -> None:
+        self.pin_release(kit='0' * 64)
+        done = self.run_kit('install')
+        self.assertEqual(done.returncode, 1)
+        self.assertIn('the kit', done.stderr)
+        self.assertIsNone(self.called())
 
     def test_check_and_uninstall_reach_the_installer(self) -> None:
         self.pin_release()
@@ -131,14 +152,25 @@ class TestInstall(HomeKit):
 class TestPin(HomeKit):
     """`pin` records the hashes of what a release serves."""
 
-    def test_pinning_records_both_hashes(self) -> None:
+    def test_pinning_records_every_hash(self) -> None:
         done = self.run_kit('pin', self.version)
         self.assertEqual(done.returncode, 0, done.stderr)
         pin = self.pin.read_text(encoding='utf-8')
         self.assertIn(f'version={self.version}\n', pin)
         self.assertIn(f'home_sha256={sha256(self.home_bytes)}\n', pin)
         self.assertIn(f'install_sha256={sha256(STUB.encode())}\n', pin)
+        self.assertIn(f'kit_sha256={sha256(KIT_JSON)}\n', pin)
         self.assertEqual(self.run_kit('install').returncode, 0)
+        self.assertIn('--kit-file', self.called() or '')
+
+    def test_a_release_from_before_the_kit_pins_the_rules_alone(self) -> None:
+        (self.release / 'home' / 'kit.json').unlink()
+        done = self.run_kit('pin', self.version)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn('serves no kit', done.stderr)
+        self.assertIn('kit_sha256=\n', self.pin.read_text(encoding='utf-8'))
+        self.assertEqual(self.run_kit('install').returncode, 0)
+        self.assertNotIn('--kit-file', self.called() or '')
 
     def test_a_version_must_look_like_one(self) -> None:
         done = self.run_kit('pin', 'latest')
