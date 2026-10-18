@@ -112,3 +112,4 @@
 #/.github/workflows/template-parity.yml
 
 # --- Your rules ---------------------------------------------------------------
+# keep mine: /.github/workflows/checks.yml
