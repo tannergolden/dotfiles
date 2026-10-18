@@ -1,6 +1,6 @@
 # Dotfiles commands. The agents targets install the universal rules from
-# tannergolden/intelligence into every AI app's home folder; agents/README.md
-# explains them. `make help` lists every target.
+# tannergolden/intelligence into every AI app's home folder;
+# docs/technical/AI-Agent-Rules.md explains them. `make help` lists every target.
 
 VERSION ?=
 

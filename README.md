@@ -477,23 +477,23 @@ instead. 🏷️ Cut Release stays: any repository released by tag can adopt it.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
-| Entry                                       | Purpose                                                                                                                                                           |
-| :------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`.devcontainer/`](.devcontainer/README.md) | The language-neutral development container this repository ships, and how to give it the toolchain your project needs.                                            |
-| [`.github/`](.github/)                      | CODEOWNERS, Dependabot, release notes config, the parity contract, scripts and workflows - logged below                                                           |
-| [`.vscode/`](.vscode/README.md)             | The VS Code settings and extension recommendations this repository shares, and why every other file in this folder stays out of git.                              |
-| [`agents/`](agents/README.md)               | Installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine.                         |
-| [`assets/`](assets/README.md)               | Where this project keeps what presents it: four folders to start, a name ready for every other kind, and the rules every file follows.                            |
-| [`docs/`](docs/README.md)                   | Where this project keeps its own documents, and where the engineering standards it follows actually live.                                                         |
-| [`.editorconfig`](.editorconfig)            | Editor defaults every editor honours: UTF-8, LF, a final newline, and indentation per language                                                                    |
-| [`.env.example`](.env.example)              | Environment variable template for this project.                                                                                                                   |
-| [`.gitattributes`](.gitattributes)          | Git attributes - line endings, diffs, and what counts as binary                                                                                                   |
-| [`.gitignore`](.gitignore)                  | &#x1F5C4;&#xFE0F; Universal Ignore Patterns                                                                                                                       |
-| [`.markdownlint.json`](.markdownlint.json)  | Repository-wide markdownlint rules. Discovered by mechanism, which is why this lives at the root.                                                                 |
-| [`install.sh`](install.sh)                  | Set up a new machine or codespace from these dotfiles.                                                                                                            |
-| [`LICENSE`](LICENSE)                        | MIT License                                                                                                                                                       |
-| [`Makefile`](Makefile)                      | Dotfiles commands. The agents targets install the universal rules from tannergolden/intelligence into every AI app's home folder; agents/README.md explains them. |
-| [`README.md`](README.md)                    | This file.                                                                                                                                                        |
+| Entry                                       | Purpose                                                                                                                                                                           |
+| :------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`.devcontainer/`](.devcontainer/README.md) | The language-neutral development container this repository ships, and how to give it the toolchain your project needs.                                                            |
+| [`.github/`](.github/)                      | CODEOWNERS, Dependabot, release notes config, the parity contract, scripts and workflows - logged below                                                                           |
+| [`.vscode/`](.vscode/README.md)             | The VS Code settings and extension recommendations this repository shares, and why every other file in this folder stays out of git.                                              |
+| [`agents/`](agents/README.md)               | Installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine.                                         |
+| [`assets/`](assets/README.md)               | Where this project keeps what presents it: four folders to start, a name ready for every other kind, and the rules every file follows.                                            |
+| [`docs/`](docs/README.md)                   | Where this project keeps its own documents, and where the engineering standards it follows actually live.                                                                         |
+| [`.editorconfig`](.editorconfig)            | Editor defaults every editor honours: UTF-8, LF, a final newline, and indentation per language                                                                                    |
+| [`.env.example`](.env.example)              | Environment variable template for this project.                                                                                                                                   |
+| [`.gitattributes`](.gitattributes)          | Git attributes - line endings, diffs, and what counts as binary                                                                                                                   |
+| [`.gitignore`](.gitignore)                  | &#x1F5C4;&#xFE0F; Universal Ignore Patterns                                                                                                                                       |
+| [`.markdownlint.json`](.markdownlint.json)  | Repository-wide markdownlint rules. Discovered by mechanism, which is why this lives at the root.                                                                                 |
+| [`install.sh`](install.sh)                  | Set up a new machine or codespace from these dotfiles.                                                                                                                            |
+| [`LICENSE`](LICENSE)                        | MIT License                                                                                                                                                                       |
+| [`Makefile`](Makefile)                      | Dotfiles commands. The agents targets install the universal rules from tannergolden/intelligence into every AI app's home folder; docs/technical/AI-Agent-Rules.md explains them. |
+| [`README.md`](README.md)                    | This file.                                                                                                                                                                        |
 
 <!-- AUTO-INDEX:END -->
 

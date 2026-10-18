@@ -5,7 +5,6 @@ tags: [documentation, index, standards, templates]
 category: docs
 -->
 
-
 <div align="center">
 
 # 📚 DOCUMENTATION
@@ -44,6 +43,7 @@ why they ship as seed content rather than as law.
 | Entry                               | Purpose                                                                                               |
 | :---------------------------------- | :---------------------------------------------------------------------------------------------------- |
 | [`adrs/`](adrs/README.md)           | Architecture decision records, one file per decision, each logged with its status, date and evidence. |
+| [`technical/`](technical/README.md) | How the parts of these dotfiles work, one document each.                                              |
 | [`templates/`](templates/README.md) | Index of the reusable document templates and when to use each one.                                    |
 | [`README.md`](README.md)            | This file.                                                                                            |
 
