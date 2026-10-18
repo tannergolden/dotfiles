@@ -489,7 +489,7 @@ instead. 🏷️ Cut Release stays: any repository released by tag can adopt it.
 | [`.gitattributes`](.gitattributes)          | Git attributes - line endings, diffs, and what counts as binary                                                                        |
 | [`.gitignore`](.gitignore)                  | &#x1F5C4;&#xFE0F; Universal Ignore Patterns                                                                                            |
 | [`.markdownlint.json`](.markdownlint.json)  | Repository-wide markdownlint rules. Discovered by mechanism, which is why this lives at the root.                                      |
-| [`LICENSE`](LICENSE)                        | PROPRIETARY AND CONFIDENTIAL                                                                                                           |
+| [`LICENSE`](LICENSE)                        | MIT License                                                                                                                            |
 | [`README.md`](README.md)                    | This file.                                                                                                                             |
 
 <!-- AUTO-INDEX:END -->

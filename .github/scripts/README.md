@@ -38,6 +38,7 @@ only Python 3, plus PyYAML for the ones that read YAML.
 | Entry                                                          | Purpose                                                              |
 | :------------------------------------------------------------- | :------------------------------------------------------------------- |
 | [`README.md`](README.md)                                       | This file.                                                           |
+| [`test_dotfiles_gitignore.py`](test_dotfiles_gitignore.py)     | Tests for the dotfiles rules in this repository's .gitignore.        |
 | [`test_gitignore.py`](test_gitignore.py)                       | Tests for this repository's .gitignore.                              |
 | [`test_validate_repository.py`](test_validate_repository.py)   | Tests for the repository validator.                                  |
 | [`test_verify_stub_ceilings.py`](test_verify_stub_ceilings.py) | Tests for the stub ceiling checker.                                  |
