@@ -1,0 +1,9 @@
+Active Internet connections (including servers)
+Proto Recv-Q Send-Q  Local Address          Foreign Address        (state)
+tcp4       0      0  192.168.1.24.51884     140.82.113.26.443      ESTABLISHED
+tcp4       0      0  192.168.1.24.51882     17.253.144.10.443      ESTABLISHED
+tcp4       0      0  192.168.1.24.51871     104.18.32.47.443       ESTABLISHED
+tcp4       0      0  192.168.1.24.51844     162.159.135.234.443    ESTABLISHED
+tcp4       0      0  127.0.0.1.5432         *.*                    LISTEN
+tcp4       0      0  127.0.0.1.3000         *.*                    LISTEN
+tcp6       0      0  ::1.7000               *.*                    LISTEN

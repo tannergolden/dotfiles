@@ -217,3 +217,23 @@ credentials.*
 # Machine-written zsh files: the completion dump, and anything compiled.
 .zcompdump*
 *.zwc
+
+# --- The ALIEN Suite: What Stays On This Mac ---
+#
+# Each machine's own progress and settings, written beside the door. The
+# suite runs on its defaults without them, and bootstrap.zsh writes the one
+# switch it needs, so a fresh clone works as it is. The `.*` lines are their
+# temp and lock files.
+#
+# ⚠️ A terminal.save BESIDE terminal.command WINS over the real one in
+# ~/.local/state/alien, so a committed copy would take over on every machine
+# that clones this repository, as well as publishing the progress in it.
+terminal.save
+terminal.save.*
+terminal.conf
+terminal.conf.*
+
+# Working files: scratch from working on the suite, and backups.
+Claude outputs/
+_to_delete/
+*.bak

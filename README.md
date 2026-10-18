@@ -1,20 +1,20 @@
 <!--
-title: '🛤️ GOLDEN PATH (PRIVATE)'
-description: 'A private scaffold with no imposed structure, inheriting its community health files from the account .github repository.'
-tags: [template, scaffold, private, engineering-standards]
+title: '👽 THE ALIEN SUITE'
+description: 'A synthwave arcade cabinet that runs inside macOS Terminal, written entirely in zsh: one door, four machines, and the three shell files that hook it in.'
+tags: [dotfiles, zsh, macos, terminal, synthwave]
 category: docs
 -->
 
 
 <div align="center">
 
-# 🛤️ GOLDEN PATH (PRIVATE)
+# 👽 THE ALIEN SUITE
 
 <a name="top"></a>
 
-**The paved road, with the paving stones left for you to place.**
+**A synthwave arcade cabinet that runs inside macOS Terminal, written entirely in zsh.**
 
-_Standards wired. Structure yours to invent._
+_One door. Four machines. Nothing to install first._
 
 </div>
 
@@ -22,458 +22,324 @@ _Standards wired. Structure yours to invent._
 
 ## 💡 What This Is
 
-**A standards-wired empty room.** Every guardrail is already connected -
-continuous integration, secret scanning, static analysis, workflow linting,
-governance, pull request validation - and the structure those guardrails will
-eventually protect does not exist yet, because you are going to invent it.
+**Dotfiles that are one program.** Open a new Terminal window and a cabinet
+powers up in it: neon breathing up both walls, a CRT that warms, rolls and
+flickers, a starfield outside, and on the glass every machine in the suite with
+what each one is doing right now. Everything wears the plate of ALIEN DYNAMICS,
+a make-believe hardware maker of 1984, and the cabinet is its SYNTHWAVE series.
 
-That is the whole difference between this and its public counterpart:
+**It is zsh from end to end, on purpose.** macOS ships zsh and does not ship
+python3, so the cabinet comes up on a fresh Mac with nothing installed, and so
+does the installer that sets up the rest. No Python or Node sits in the path
+between a double-click and the menu.
 
-|                    | [`tannergolden/path`](https://github.com/tannergolden/path) (public) | This one (private)                               |
-| :----------------- | :------------------------------------------------------------------- | :----------------------------------------------- |
-| **Purpose**        | A boilerplate. A working shape, already decided                      | A foundation. Build the shape from scratch       |
-| **Standards**      | By link, from the standards repository                               | Identical - by link, same pins                   |
-| **Structure**      | Ships `src/`, `tests/`, `packages/`, `benchmarks/`                   | Ships none of it                                 |
-| **Assets**         | `branding/`, `screenshots/`, `diagrams/`, `html/` in `assets/`       | Identical - the Markdown Kit draws into it       |
-| **Seed documents** | `docs/`, in plain sight                                              | Identical - `docs/`, at the top of the tree      |
-| **Health files**   | Copied in, so any owner gets a complete repository                   | Inherited from the account's `.github`           |
-| **Licence**        | MIT                                                                  | Proprietary and confidential                     |
-| **Ownership**      | CODEOWNERS rules all commented, owner unknown                        | One live rule: `@tannergolden`                   |
-| **For**            | Anyone, including you, starting a conventional project               | You, starting something whose shape is the point |
+| Machine          | Model | What it is                                                                                                                                                                                                                    |
+| :--------------- | :---- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TERMINAL**     | AD-1  | The door: [`terminal.command`](terminal.command), one self-contained file holding the whole cabinet, from the renderer and the power-up to the menu, the CONFIG panel, the visitor and the sky. A copy on its own still runs. |
+| **SYSTEM**       | NX-88 | A monitor for the Mac: eight pages of live readings, from a radar scope of every process to the battery's cycle count. It only reads.                                                                                         |
+| **INTELLIGENCE** | IQ-88 | A switchboard for AI command lines: the cloud agents on this Mac, the local models and the runners that hold them, a router, a bench and a prompt library.                                                                    |
+| **XENOGOTCHI**   | XG-9  | An adoption centre. You sign for one animal, name it, and it lives in its room on the real clock.                                                                                                                             |
+| **ARCADE**       | NX-88 | Twelve cabinets, one coin a game, with a high-score table for every rung, a trophy room, and a marketplace that dresses the visitor.                                                                                          |
 
-Reach for the public one when the project fits a normal shape and you would
-rather not think about it. Reach for this one when the structure **is** the
-design work - a monorepo that is not laid out like anyone else's, a research
-tree, a service with an unusual topology - and an imposed `src/` would be the
-first thing you delete.
-
----
-
-## 🔀 Fork, Or "Use This Template"
-
-Both buttons hand you every file in this repository. They differ in exactly one
-thing: whether your copy keeps a **link back to this one**.
-
-**Fork it** when you want this repository's history, and to pull later changes
-back down through git. A fork remembers where it came from, so `Sync fork` and
-`git pull upstream` both work.
-
-**Click "Use this template"** when you want the current version as a starting
-point. You get a clean repository with a single `Initial commit` and no parent,
-and later fixes to the scaffold can still reach it - whenever you run
-**🔄 Template Sync**, as a pull request, one file at a time, merged with your
-changes. It is the route this template is built for, and the one
-**🚀 The First Five Minutes** assumes further down.
-
-|                              | Fork                                               | "Use this template"                 |
-| :--------------------------- | :------------------------------------------------- | :---------------------------------- |
-| **Link back to here**        | Kept - `Sync fork` works                           | None                                |
-| **Later scaffold fixes**     | `Sync fork`: every change, or none                 | 🔄 Template Sync: per file, as a PR |
-| **History**                  | Every commit this repository has                   | One `Initial commit`                |
-| **Actions**                  | **Disabled until you enable them**, per GitHub     | On from the start                   |
-| **Issues**                   | Off by default                                     | On                                  |
-| **A new pull request**       | Defaults to targeting **this** repository          | Targets yours                       |
-| **Visibility**               | Private, and a fork's visibility cannot be changed | Yours to choose                     |
-| **Your contributions graph** | Commits to a fork do not count                     | They count                          |
-
-### What a fork actually buys you
-
-Less than it looks, and it is worth knowing why before choosing it. **The
-standards reach both routes identically** - by link, same pins, as the table
-above says. Every `uses:` here points at `tannergolden/standards@v1`, a moving
-major tag, so every fix in the v1 line arrives the moment it is published
-whether you forked or generated. Forking does not make you more current; that
-part is already free.
-
-What a fork does sync is the **scaffold**: the fifteen stub workflows and the
-seeded documents in `docs/` - and this template ships no structure to
-sync in the first place, which is the whole of difference one. A generated
-repository can take those fixes too - every stub but `cut-release.yml` -
-whenever you run 🔄 Template Sync, so what a fork adds is the shared history -
-and with it, every change at once or none. In a
-fork, delete `.github/workflows/template-sync.yml`: `Sync fork` already carries
-the same changes, and two routes to them would only collide.
-
-> [!IMPORTANT]
-> **Initialisation and `Sync fork` want opposite things.** Once Actions are
-> running, the `init` job claims the repository and **force-pushes the default
-> branch** - here it is mostly rewriting the bare "Initial commit" into a
-> Conventional Commit, but the force-push is the same. That is the moment your
-> history stops being a fast-forward of this one's, so `Sync fork` begins
-> offering to discard your commits rather than catch you up.
->
-> Neither is misbehaving: a fork wants a shared history, and initialisation
-> deliberately rewrites one. If you want the fork **and** the shared history,
-> delete `.github/TEMPLATE_INIT` before enabling Actions. That skips
-> initialisation entirely.
-
-> [!WARNING]
-> **What follows your copy down both routes - and what does not.**
->
-> The **licence propagates** either way - difference three, covered in full under
-> 🔒 Licence below. Anything you fork or generate from here starts proprietary.
->
-> The **parity check stays behind.** 📐 Template Parity carries the inverted
-> guard (`if: is_template`, as **🌿 The Workflows** explains), so it runs here
-> and nowhere else: neither route inherits that flag. And its five files
-> enforce a contract that is not yours, so initialisation deletes four of them -
-> `.github/template-parity.yml`, its lock `.github/template-parity.lock`, and
-> its two scripts. The fifth, its workflow, it cannot: GitHub lets the
-> workflow token change nothing under `.github/workflows/`, so that one stays,
-> inert, and the run names it for you to delete. A copy that skips
-> initialisation, by deleting `.github/TEMPLATE_INIT` first, keeps all five,
-> inert, for you to delete.
->
-> The **community health files do not follow at all.** Difference two inherits
-> them from [`tannergolden/.github`](https://github.com/tannergolden/.github),
-> and that inheritance is per account. A copy landing outside `tannergolden` has
-> no code of conduct, contributing guide, security policy, issue forms or pull
-> request template until you provide them - see **⚠️ Three Things About
-> Inheritance** below.
-
-> [!TIP]
-> **There is a third route.** Generate with "Use this template", then add this
-> repository as a second remote:
->
-> ```bash
-> git remote add template https://github.com/tannergolden/repo
-> git fetch template
-> ```
->
-> Cherry-pick whatever you want from it, whenever you want it, with none of the
-> fork's costs - no disabled Actions, no force-push collision, and no pull
-> request that opens against the template by mistake. For the template's own
-> fixes, prefer 🔄 Template Sync: a cherry-pick arrives in the template author's
-> identity, unmerged with your edits.
-
-> [!NOTE]
-> **Neither route carries the template flag over.** Ten of the fifteen stubs
-> are guarded by `!github.event.repository.is_template`, and 🏷️ Cut Release and
-> the parity check by its inverse - which is what keeps those ten silent here
-> and the other two silent everywhere else. 🔄 Template Sync reads the same flag
-> to decide whether to check its list or to sync. A fork inherits that flag no
-> more than a generated repository does, so your copy lands on the right side of
-> every guard.
+The four machines live in [`scripts/suite/`](scripts/suite) as **page packs**:
+the door reads each one into itself the first time you open it, and it draws
+inside the door's own glass. [`scripts/bootstrap.zsh`](scripts/bootstrap.zsh) is
+the installer, and three small files under [`home/`](home) hook the cabinet into
+zsh.
 
 ---
 
-## 📐 Exactly Four Differences
+## 🚀 Install
 
-This is a **contract, not a description**. These four are the only ways this
-repository is permitted to differ from
-[`tannergolden/path`](https://github.com/tannergolden/path). Everything else -
-all fifteen trigger workflows (the stub ceiling check among them), `.editorconfig`,
-`.gitignore`, `.markdownlint.json`, `.env.example`, `.devcontainer`, `.vscode` and
-`assets/` - is byte-identical,
-and every seeded document in `docs/` is identical but for the licence footer
-that difference three requires.
+You need a Mac and its Terminal. zsh ships with macOS, and the cabinet needs
+nothing else.
 
-**Any difference outside these four is drift, and drift is a defect.** Fix it,
-do not document it.
-
-> [!IMPORTANT]
-> **The contract is enforced, not just asserted.** It lives as data in
-> [`.github/template-parity.yml`](.github/template-parity.yml), and
-> [`📐 Template Parity`](.github/workflows/template-parity.yml) compares the two
-> trees against it on every pull request, every push to the default branch, and
-> once a day. That file is the contract; this section describes it.
->
-> It was prose alone for a long time, and prose does not fail a check. Eight
-> seeded documents had quietly diverged by the time anybody diffed the trees -
-> each one carrying an absolute cross-link that encoded its own depth.
->
-> The same contract also drives the **parity sync**, which brings the public
-> template's changes here when you ask - see **And this template, from the
-> public one** below. The
-> standards are explicit that [a rule and its gate change
-> together](https://github.com/tannergolden/standards/blob/Development/README.md);
-> this was the rule that had no gate.
-
-### 1. No imposed structure
-
-No `src/`, `tests/`, `packages/`, or `benchmarks/`. The public template ships
-those as empty homes so somebody arriving cold has an obvious place for a first
-file. You do not need telling; you need the tree left alone so the shape can
-follow the project.
-
-**`assets/` is here anyway, and it is not structure.** It ships for one reason:
-so the [Markdown Kit](https://github.com/tannergolden/markdown), when a page
-uses it, has a place to put each file it generates. The kit makes a folder there
-for each part it draws, `banners/`, `badges/`, `trophies/` and `elements/`, the
-first time it draws it. And every repository carries an `assets/` folder
-whatever its project, because every project has something to show, so it starts
-with four folders: `branding/`, `screenshots/`, `diagrams/` and `html/`. So this
-one ships the public template's `assets/` byte for byte, and the parity check
-holds it to that.
-
-### 2. No community health files
-
-Inherited from [`tannergolden/.github`](https://github.com/tannergolden/.github)
-instead: code of conduct, contributing guide, governance charter, security
-policy, support guide, funding target, issue forms, discussion forms, and pull
-request template. One copy, edited in one place, reaching every repository on
-the account at once. The conditions this depends on are below.
-
-### 3. A proprietary licence
-
-Not MIT. Details in the licence section further down, including the part that
-matters most - it propagates to everything generated from here.
-
-### 4. A named owner in CODEOWNERS
-
-The public template ships every ownership rule commented out, because it cannot
-know who will generate from it and a rule naming an owner without write access
-is a GitHub error rather than a warning. This one knows: it is private and
-single-maintainer, so it names `@tannergolden` in a single live rule and drops
-the placeholders entirely.
-
-That does not block your own pull requests. The shipped rulesets require zero
-approvals and do not require code-owner review, so a solo maintainer cannot
-deadlock on being unable to approve their own work. What it buys is an
-automatic review request on anything opened by somebody else - Dependabot, or an
-agent acting on your behalf.
-
-### What follows from these, and is not a fifth difference
-
-Every seeded document differs by its licence footer, because difference three
-requires it, and by nothing else. `README.md` differs because it is this file.
-`.github/TEMPLATE_INIT` differs
-because difference two shaped what initialisation has to say here: the public
-copy names a `git grep` recipe over paths this tree does not have, and the
-funding target and issue chooser its initialisation rewrites are inherited
-rather than local. The parity contract, its sync's lock and
-the workflow enforcing it exist only here because this repository is the one
-defined as a delta - the baseline cannot check parity against itself.
-`.gitattributes` differs for the same reason, by the one line that marks that
-lock as machine-written, and so do the READMEs in `.github/workflows/` and
-`.github/scripts/`: each logs every file in its folder, and those folders hold
-the parity check's workflow and scripts on this side alone.
-`.github/template-sync` differs because each template names the files it
-ships, and after differences one and two the two ship different files. None of
-these is an independent decision, and none needs one.
-
-**The seeds sit where the public template keeps them: `docs/`, at the top of
-the tree.** They used to live in `.github/docs/`, out of sight, and that was a
-difference of its own: the two index documents had to name a different path in
-prose on each side, and every cross-link had to stay relative to resolve at
-either depth - absolute ones are how the eight documents above drifted. In the
-same place on both sides they are the same documents, footer aside. Cross-links
-stay relative all the same, the convention the [Standards
-Index](https://github.com/tannergolden/standards/blob/Development/docs/README.md)
-uses throughout, so seeds and standards link the same way.
-
----
-
-## ⚠️ Three Things About Inheritance
-
-**1. The `.github` repository must stay public.** GitHub will not serve default
-community health files from a private one. It can be public while every
-repository inheriting from it stays private - that part is fine.
-
-**2. `ISSUE_TEMPLATE` is all-or-nothing.** The moment this repository contains
-_any_ file in its own `.github/ISSUE_TEMPLATE/`, GitHub stops using **every**
-inherited issue form, not just the one you added. Adding a single
-project-specific template means copying the whole set down first.
-
-**3. Three files are never inherited**, which is why they are still here:
-
-| File             | Why it must be local                 |
-| :--------------- | :----------------------------------- |
-| `CODEOWNERS`     | Read only from the repository itself |
-| `dependabot.yml` | Same                                 |
-| `release.yml`    | Same                                 |
-
-`LICENSE`, `.gitignore`, `.gitattributes`, and `.editorconfig` are not GitHub
-features at all and are likewise always local.
-
----
-
-## 🔒 Licence
-
-**Proprietary and confidential. All rights reserved.** Not MIT, not open source,
-and not available under any public licence - unlike
-[`tannergolden/path`](https://github.com/tannergolden/path), which is MIT and
-stays that way.
-
-> [!IMPORTANT]
-> **The licence propagates.** Every repository generated from this template
-> inherits `LICENSE` verbatim, so anything built here starts proprietary by
-> default. That is the intent - but if you ever generate something you mean to
-> open source, replace `LICENSE` and the document footers **before** the first
-> public push, not after.
-
-The shared workflows and actions this repository calls are published separately
-under their own licence and are unaffected by this one.
-
----
-
-## ⚠️ CI Is Green, And Only Half Configured
-
-The `ci` job in `checks.yml` runs the commands **you** give it, and **fails when every stage resolves
-to nothing** rather than reporting a green check that checked nothing. An empty
-room has no source code to lint - but that is not the same as nothing to
-validate.
-
-So `lint-command` starts out pointing at
-[`.github/scripts/validate-repository.py`](.github/scripts/validate-repository.py),
-which checks what exists from the first commit: every YAML and JSON file parses,
-every workflow `uses:` is pinned to a tag or a commit rather than a branch, no
-CRLF or stray whitespace. It lives under `.github/` so the root stays yours.
-
-Nothing is testing or building anything yet, because there is nothing there yet.
-Replace the command when that changes:
-
-```yaml
-jobs:
-  ci:
-    uses: tannergolden/standards/.github/workflows/ci.yml@v1
-    with:
-      lint-command: 'golangci-lint run'
-      test-command: 'go test ./...'
-      build-command: 'go build ./...'
+```zsh
+git clone https://github.com/tannergolden/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+zsh scripts/bootstrap.zsh --install
 ```
 
-| Stack  | `lint-command`                      | `test-command`  | `build-command`         |
-| :----- | :---------------------------------- | :-------------- | :---------------------- |
-| Go     | `golangci-lint run`                 | `go test ./...` | `go build ./...`        |
-| Rust   | `cargo clippy -- -D warnings`       | `cargo test`    | `cargo build --release` |
-| Python | `ruff check .`                      | `pytest`        | `python -m build`       |
-| Node   | `npm run lint`                      | `npm test`      | `npm run build`         |
-| .NET   | `dotnet format --verify-no-changes` | `dotnet test`   | `dotnet build`          |
+`--install` does three things and asks nothing:
 
-One real command is enough. A `Makefile` with `lint`, `test`, `build`, and `docs`
-targets works too - delete the `with:` block and the `ci` job falls back to
-`make <target>`. That would put a file in the root, which is yours to decide.
+1. **Links three files into your home folder**, each a symlink back into this
+   repository: `~/.config/zsh/conf.d/00-alien-path.zsh`,
+   `~/.config/zsh/conf.d/10-alien-terminal.zsh` and `~/.local/bin/alien`. A link
+   that points somewhere else is replaced. A real file in the way is moved aside
+   as `*.pre-alien`, never overwritten.
+2. **Adds one marked block to `~/.zshrc`**, between `# >>> ALIEN dotfiles >>>`
+   and `# <<< ALIEN dotfiles <<<`. All it does is source every `.zsh` file in
+   `~/.config/zsh/conf.d`. A copy of the file is kept at `~/.zshrc.pre-alien`
+   first, and nothing outside the marks is ever touched.
+3. **Turns the hook switch on**, by writing `terminal.hook = on` into
+   `terminal.conf`.
 
----
+It is safe to run twice. Open a new window and the cabinet powers up.
 
-## 🤖 No AI Infrastructure, On Purpose
+| Command                                          | What it does                                                                                                                                       |
+| :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `zsh scripts/bootstrap.zsh`                      | The same install as a page: five checks, then one question before anything changes.                                                                |
+| `zsh scripts/bootstrap.zsh --status`             | What is linked and where it points, whether the switch is on, and which tools are here. Changes nothing.                                           |
+| `zsh scripts/bootstrap.zsh --tools`              | Homebrew if it is missing, then the [`Brewfile`](Brewfile), then ollama as a service that starts at login. Interactive: Homebrew asks for a password. |
+| `zsh scripts/bootstrap.zsh --plan`               | The exact lines `--tools` would run, with nothing run.                                                                                             |
+| `zsh scripts/bootstrap.zsh --hook on` (or `off`) | The switch alone.                                                                                                                                  |
+| `zsh scripts/bootstrap.zsh --remove`             | Takes the block out of `~/.zshrc`, unlinks the three files and turns the switch off. `~/.zshrc.pre-alien` and the Homebrew tools are left alone.   |
 
-This template ships **no agent instruction files and no agent configuration**.
-That is a decision, not an omission.
-
-Agent instructions are **always loaded**. Every byte is paid on every session, in
-every repository, forever. They also carry conventions that belong to a project
-rather than to a scaffold: how you write commits, what must never be touched by
-hand, which commands actually build the thing. Shipping a default set makes that
-choice on your behalf, invisibly, and the usual result is a file nobody wrote and
-nobody trusts.
-
-**Nothing here depends on them.** Initialisation, CI, the rulesets, the release
-flow and every workflow behave identically with none of it present. Adding it is
-additive, and so is taking it away.
-
-When you do want it, there are two supported routes and no wrong answer:
-
-| Route                                                       | You commit                  | Updates arrive by                            |
-| :----------------------------------------------------------- | :-------------------------- | :------------------------------------------- |
-| **By hand**                                                 | the instructions themselves | you editing them                             |
-| **[`tannergolden/intelligence`](https://github.com/tannergolden/intelligence)** | one workflow stub | a release moving a tag, with no pull request |
-
-Writing them by hand suits conventions that are specific to one project. The
-publisher suits several repositories that share one set, for the same reason the
-workflows here are called rather than copied: the law lives in one place, and a
-fix reaches everything pinned to it. Its README carries the stub to copy and the
-version to pin.
-
-> [!IMPORTANT]
-> **Whichever route you take, confirm the tools you actually use load what you
-> wrote.** They do not agree on which filename to read, and some will not find a
-> shared file at all unless a small per-tool file points them at it. Instructions
-> nothing loads are worse than none, because they look finished.
-
-> [!TIP]
-> **Either route stays reversible.** What you write by hand is yours to delete.
-> What the publisher delivers is listed with digests in a lockfile, so the
-> inventory of what arrived is also the manifest for removing it.
-
----
-
-## 🎉 What Happens On Its Own
-
-The `init` job in `lifecycle.yml` runs once and deletes `.github/TEMPLATE_INIT` so it never
-runs again. Because you own both this template and whatever it generates, the
-identity substitution has almost nothing to do. The real work it does here is
-**rewriting GitHub's bare "Initial commit" into a proper Conventional Commit**,
-so a new repository's history is compliant from its first entry rather than its
-second - and **deleting what only this template needs**: four of the five files
-of the parity contract, which [`.github/template-sync`](.github/template-sync)
-names under **Only ever in the template**, with every folder log redrawn to
-match. The fifth, `.github/workflows/template-parity.yml`, is yours to delete:
-GitHub lets the workflow token change no workflow file, so the run names it
-instead. 🏷️ Cut Release stays: any repository released by tag can adopt it.
+**Looking needs no install.** Double-click `terminal.command`, or run
+`zsh terminal.command`, and the cabinet comes up anyway. **[N] INSTALL** on its
+menu runs the same installer on the glass, and asks before it changes anything.
 
 > [!NOTE]
-> GitHub does not reliably fire an event when a repository is created from a
-> template. If nothing happens within a minute or two, run it from the Actions
-> tab. Running it twice is harmless.
+> A `terminal.command` that arrives inside a downloaded zip carries macOS's
+> quarantine flag, and Gatekeeper may refuse to open it with a double-click. A
+> `git clone` does not have this problem.
+
+**Moving the repository** leaves the three links pointing at nothing, and that
+fails safe: the hook does nothing and `alien` says it cannot find the door. Run
+`--install` again from the new place. Nothing else records where the repository
+is, because the door, the launcher and the hook each find it from their own
+resolved path.
 
 ---
 
-## 🚀 The First Five Minutes
+## 🕹️ Using It
 
-> [!TIP]
-> Every step below, plus signing and the token, is kept as one canonical
-> checklist in the standards:
-> [🙋 What You Do By Hand](https://github.com/tannergolden/standards/blob/Development/docs/introduction/What-You-Do-By-Hand.md).
+Three ways in, all to the same cabinet:
 
-1. **Check that init ran** - `.github/TEMPLATE_INIT` and the parity files
-   should be gone, and the first commit should read as a Conventional Commit
-   rather than GitHub's bare "Initial commit". If not, dispatch
-   **🎯 Standards Lifecycle** from the Actions tab; the `init` job is the one
-   that claims the repository.
-2. **Sign your commits off.** `git commit -s` adds the `Signed-off-by` trailer
-   the DCO check requires. Once branch protection is on, a commit without it
-   blocks the merge. `git config alias.ci 'commit -s'` and forget about it.
-3. **Configure the `ci` job in `checks.yml`**, as above, once you have
-   something to build. Until then it runs the repository validator and passes
-   honestly - the job fails only when every stage resolves to nothing, and
-   `lint-command` never does.
-4. **Apply the settings, then the protection** - run **🎯 Apply Standards**
-   from the Actions tab. `apply-settings` writes the repository settings
-   (squash-only merges, head branches deleted on merge, auto-merge, the
-   security features); `apply-rulesets` writes branch protection. Both preview
-   by default and change nothing until you turn `dry-run` off. Do settings
-   first: they are checkboxes, while a wrong ruleset blocks every merge.
-5. **Confirm `.github/CODEOWNERS` names the right owner.** Unlike the public
-   template this ships one live rule rather than commented placeholders, and
-   initialisation rewrites it. It never blocks your own work: the shipped
-   rulesets require zero approvals and no code-owner review, so a solo
-   maintainer cannot deadlock on approving their own pull request.
-6. **Enable ecosystems in `.github/dependabot.yml`** as you add manifests. Only
-   `github-actions` is on, because it is the only one guaranteed to apply.
-7. **Add a `BOT_ACCESS_TOKEN` secret that can read this template**, if you
-   mean to run 🔄 Template Sync. It is private, so the sync cannot even fetch
-   it without one; with one, the stubs under `.github/workflows/` update too. While you are there, put a `#`
-   in front of anything in `.github/template-sync` you want to own outright.
-8. **Replace this README.** Everything above describes the template, not your
-   project. Nothing rewrites it for you, because only you know what this
-   repository is for. The sections worth keeping are the workflow table and
-   the licence note; the rest is scaffolding that has done its job.
+- **A new Terminal window**, when the switch is on.
+- **`alien`** at any prompt, whatever the switch says.
+- **A double-click** on `terminal.command`.
 
-> [!IMPORTANT]
-> **🎯 Apply Standards needs a token for two of its three jobs.** Applying the
-> label taxonomy needs nothing. **Writing the settings and the rulesets** each
-> need a token with administration write as `ADMIN_TOKEN`. Without it, those
-> jobs stop with a sentence naming the missing token instead of a bare `403`.
->
-> A fine-grained token scoped to your repositories generated from the
-> templates, with **Administration: Read and write** and nothing else, is all
-> it needs. Step-by-step:
-> [Creating the ADMIN_TOKEN](https://github.com/tannergolden/standards/blob/Development/docs/operations/Branch-Protection.md#-creating-the-admin_token).
-> You can skip it entirely by applying the settings and rulesets yourself,
-> where your own rights are already enough.
+The power-up takes about thirteen seconds: the stars alone while every machine
+loads behind them, the tube warming, then the self test card saying what the
+cabinet found on this Mac. Any key skips it, and **BOOT** set to fast on the
+CONFIG page skips it for good.
 
-> [!NOTE]
-> **CodeQL skipping is expected here, not a failure.** Code scanning cannot
-> accept results from a private repository without GitHub Advanced Security,
-> so the job checks visibility and skips with a notice rather than erroring.
-> A repository with Advanced Security can analyse privately through GitHub's
-> built-in default setup instead.
+| Key                                 | On the menu                                                                                       |
+| :---------------------------------- | :------------------------------------------------------------------------------------------------ |
+| ▲ ▼ or `j` `k`, then ⏎              | Move through the rows and act on one. ⏎ on a machine walks into it.                               |
+| **[T]** TERMINAL                    | Your own login shell, inside the glass. `^]` steps back to the menu with the shell still running. |
+| **[N]** INSTALL / **[U]** UNINSTALL | The installer, on the glass. The row reads INSTALL until all three files are linked.              |
+| **[R]** RESCAN                      | Reads the machine again and shows the self test card.                                             |
+| **[C]** CONFIG                      | Sound, phosphor, frame rate, boot and screen, written straight to `terminal.conf`.                |
+| **[V]** VISITOR                     | The visitor's page.                                                                               |
+| **[Q]**                             | Power off, from anywhere. **[Y]** confirms.                                                       |
+
+The same keys mean the same thing on every surface: ◂ ▸ turn pages, ⎋ goes back
+one level, **[M]** or ⌫ leave a machine, and each page names its own keys along
+its foot.
+
+**The visitor** is the small grey-violet alien who lives in the glass and knows
+the house. On his page you can talk to him: he answers through a model running
+on this Mac (Ollama, llama.cpp, LM Studio or MLX) and through nothing that
+leaves it, and he wears whatever the arcade has sold you.
+
+---
+
+## 🖥️ The Machines
+
+**SYSTEM** reads the Mac with the commands macOS already has (`sysctl`,
+`vm_stat`, `df`, `netstat`, `ioreg`, `pmset`, `ps` and `top`) and changes
+nothing. It has six instruments, [O] OVERVIEW, [C] PROCESSOR, [R] MEMORY,
+[D] STORAGE, [N] NETWORK and [B] POWER, then two tables, [P] PROCESSES and
+[H] HARDWARE. The per-core split is the one figure macOS does not publish to a
+shell, so SYSTEM asks python3 for it when python3 is present, and shows the
+totals when it is not.
+
+**INTELLIGENCE** has seven pages. [C] CLOUD holds Claude Code, Antigravity, Grok
+Build and Codex, each used only through its own official command line and signed
+in on your own account. [L] LOCAL holds the runners (ollama, llama.cpp,
+LM Studio and MLX) and the models on this disk. [R] ROUTE puts a LiteLLM proxy
+between local and cloud, and [B] BENCH, [P] PROMPTS, [H] HISTORY and [K] KEYS
+round it out. Every install or removal shows the exact line it will run and
+waits for a **[Y]**. An egress guard checks anything bound for a cloud engine for
+secrets and fails closed, and the suite never reads, copies or proxies a token,
+or the value of an API key.
+
+**XENOGOTCHI** has four pages: [H] HOME, where the animal lives, [O] STORE,
+[A] ADOPT and [S] STATS. Twenty-five species arrive in shipments, three of them
+from further out than Earth. An animal ages on the wall clock, picks what to do
+next from a running emotional state, and keeps living while the cabinet is
+closed, gently: time away is capped, and a wrong clock is never read as a lost
+pet.
+
+**ARCADE** holds twelve games: NEON SNAKE, BLOCK FALL, VOID PONG, BRICK NOVA,
+STAR RAIDER, GRID RUNNER, LASER DODGE, NIGHT DRIVE, LIGHT CYCLE, PLASMA BALL,
+ASTRO DRIFT and BEAT GRID. Each has four rungs, ROOKIE to INSANE, with a
+high-score table for every one. Coins come from playing. The MARKETPLACE sells
+the machines and 166 things for the visitor to wear, and the TROPHY ROOM holds
+190 trophies.
+
+---
+
+## 🚪 Ways Out
+
+A hook that opens a full-screen program in every new shell could lock you out
+of your own terminal if the cabinet ever broke. So there are four ways out, and
+every one of them works:
+
+| Way out                                | What you get                              |
+| :------------------------------------- | :---------------------------------------- |
+| `ALIEN_NO_TERMINAL=1 zsh`              | A plain prompt in this window, right now. |
+| **[Q]** then **[Y]** in the cabinet    | Your own prompt, in the same window.      |
+| `zsh scripts/bootstrap.zsh --hook off` | The switch off, with nothing uninstalled. |
+| `zsh scripts/bootstrap.zsh --remove`   | The hook taken back out entirely.         |
+
+The hook also keeps out of the way on its own. It opens nothing in a script, a
+one-off command, a pipe, `scp` or `rsync`; in tmux or screen; over ssh; in the
+terminals inside VS Code, Warp or Hyper; or in a shell that is already inside
+the suite. Whenever it is unsure, it fails toward a plain prompt.
+
+---
+
+## ⚙️ Settings
+
+`terminal.conf` sits beside `terminal.command` and holds every setting, one
+`key = value` per line. It belongs to each Mac and is **kept out of git**: a
+fresh clone runs on the defaults, and the installer writes the one switch it
+needs. The last spelling of a key wins, and every program leaves alone the keys
+it does not own.
+
+| Key                 | Values                       | What it sets                                                         |
+| :------------------ | :--------------------------- | :------------------------------------------------------------------- |
+| `sound`             | `on` · `off`                 | The cabinet's small noises. CONFIG, or [U] in the arcade.            |
+| `phosphor`          | `soft` · `sharp`             | How the lit sprites are drawn. CONFIG.                               |
+| `beat`              | `auto` · `30` · `60` · `120` | The frame rate. CONFIG.                                              |
+| `boot`              | `full` · `fast`              | The whole opening, or straight to the menu. CONFIG.                  |
+| `screen`            | `float` · `fill`             | The cabinet centred in the window, or the glass filling it. CONFIG.  |
+| `terminal.hook`     | `on` · `off`                 | Whether a new window opens the cabinet. Only exactly `on` opens it.  |
+| `arcade.attract`    | `on` · `off`                 | The demo reel after 20 idle seconds. The arcade's SETTINGS.          |
+| `arcade.freeplay`   | `on` · `off`                 | Play without coins, and earn none. The arcade's SETTINGS.            |
+| `arcade.difficulty` | `0` to `3`                   | The rung last started on, ROOKIE to INSANE.                          |
+| `arcade.player`     | a name                       | The name high scores are signed with. Empty uses your Mac user name. |
+
+The door reads the file at power-on, so a hand edit takes effect at the next
+one.
+
+---
+
+## 💾 Your Save
+
+`terminal.save` holds every machine's progress: the arcade's coin bank, tables,
+trophies and wardrobe, and every animal you have signed for, one dotted
+`key=value` a line. The cabinet looks for it **beside `terminal.command`
+first**, then in `~/.local/state/alien/`, and `ALIEN_SAVE=<file>` overrides
+both. The self test's READING SAVE AND CONFIG lines say which one it found.
+
+It is **kept out of git**, and the one in `~/.local/state/alien/` should stay
+there: a copy beside `terminal.command` takes precedence over it.
+
+**To carry your progress to another Mac**, copy `terminal.save`, and
+`terminal.conf` for your settings, beside `terminal.command` there, then
+install.
+
+`~/.local/state/alien/` (or `$XDG_STATE_HOME/alien`) also holds the suite's
+short-lived facts and the configs INTELLIGENCE writes. None of it belongs in
+git.
+
+---
+
+## 🧰 What It Leans On
+
+The [`Brewfile`](Brewfile) names only what the machines reach for, and
+`bootstrap.zsh --tools` installs it:
+
+| Package     | Why                                                                                                      |
+| :---------- | :------------------------------------------------------------------------------------------------------- |
+| `ollama`    | Holds a local model in memory and answers on `127.0.0.1:11434`. The tools step starts it at every login. |
+| `llama.cpp` | The other runner: one server per GGUF file, on port 8080.                                                |
+| `opencode`  | The coding agent that runs a local model when you press ⏎ on it in INTELLIGENCE's LOCAL page.            |
+| `node`      | Codex installs with npm.                                                                                 |
+
+Everything else ships with macOS: zsh, curl, perl, sysctl, vm_stat, top, ioreg,
+pmset, netstat, osascript, afplay and pbcopy. The four cloud agents are not in
+the Brewfile. Each one signs in to your own account, so INTELLIGENCE installs
+them one at a time, behind its gate.
+
+---
+
+## 🧪 Testing
+
+Three checks prove the suite still works, and none of them reads the real
+machine:
+
+```zsh
+# Every file parses.
+for f in terminal.command home/.local/bin/alien **/*.zsh; do zsh -n "$f"; done
+
+# SYSTEM reads the invented Mac byte for byte: no output means all 1,108 lines match.
+SYSTEM_MOCK=1 zsh scripts/suite/system.zsh --probe | diff - scripts/fixtures/system/probe.expected
+
+# The door comes up, finds all four machines, and reports what it found.
+TERMINAL_MOCK=1 zsh terminal.command --probe
+```
+
+The invented Mac is `moonbase`, a 16-inch M3 Max in
+[`scripts/fixtures/system/`](scripts/fixtures/system/README.md): plain data
+files, so the pictures are reproducible and leak nothing about a real machine.
+
+| Launch flag        | What it does                               |
+| :----------------- | :----------------------------------------- |
+| `--probe`          | A text report of what it found, then exit. |
+| `--once`           | Paint one frame and exit.                  |
+| `--fast`           | The card, with no ceremony.                |
+| `--back`           | Skip the power-up.                         |
+| `--check`          | The glyph test card.                       |
+| `--256` / `--true` | Force the xterm 256 palette, or 24-bit.    |
+| `--plain`          | No colour at all.                          |
+| `--sharp`          | The sprites as ink, not ground.            |
+| `--fps N`          | Pin the frame rate.                        |
+
+| Variable                                   | What it does                                                                                       |
+| :----------------------------------------- | :------------------------------------------------------------------------------------------------- |
+| `TERMINAL_MOCK=1`                          | The door reads an invented Mac. INTELLIGENCE and XENOGOTCHI follow it.                             |
+| `SYSTEM_MOCK=1`                            | SYSTEM reads the fixture. Set both for a wholly invented machine.                                  |
+| `INTELLIGENCE_MOCK=1`, `XENOGOTCHI_MOCK=1` | Mock one machine at a time.                                                                        |
+| `ALIEN_SAVE=<file>`                        | Point the cabinet at another save. Test against a copy, never against your own save.               |
+| `ALIEN_AT=<seconds>`                       | Stop the animation clock at that instant, so a captured frame is the same on any machine.          |
+| `ALIEN_MIRROR=<n>/<m>`                     | Stand in for how many of the home links are in place, which decides between INSTALL and UNINSTALL. |
+| `ALIEN_OSASCRIPT=<command>`                | Stand in for osascript.                                                                            |
+| `ALIEN_NO_TERMINAL=1`                      | Keep the hook out of this shell. Set it on any interactive shell your own tooling opens.           |
+
+### Changing the code
+
+- **The door opens with `emulate -L zsh`, `setopt KSH_ARRAYS SH_WORD_SPLIT
+  NO_NOMATCH` and `set -u`**, and the packs are sourced into it, so they run
+  under the same options. Arrays are 0-based, an unset variable is an error, and
+  a bare `$arr` is the first element, so write `"${arr[@]}"`.
+- **The packs share the door's namespace.** Each one prefixes its own functions
+  and globals (`sy_`, `in_`, `xg_` and `ar_`, and their capitals), and short
+  output names like `REPLY` are common to all of them, so check
+  `terminal.command` before adding a new short name.
+- **Comments explain why**, in a capitalised lead sentence.
+- **Test against copies.** Point `ALIEN_SAVE` at a copy of a save, and never
+  change an animal somebody already owns.
 
 ---
 
 ## 📦 What's Inside
+
+**Paths are contracts.** The door finds `scripts/suite/<name>.zsh`,
+`scripts/bootstrap.zsh`, `scripts/fixtures/system/`, `terminal.conf` and
+`terminal.save` by these exact relative paths. The launcher and the hook find
+the repository by following their own link and climbing back up, four levels
+from `home/.local/bin/alien` and five from the hook, so `home/` has to keep
+exactly this shape.
+
+```text
+terminal.command                                the door: the whole cabinet, in one file
+terminal.conf                                   settings: this Mac's own, never committed
+Brewfile                                        ollama, llama.cpp, opencode and node
+home/.config/zsh/conf.d/00-alien-path.zsh       ~/.local/bin, and Homebrew's bin if missing, on PATH
+home/.config/zsh/conf.d/10-alien-terminal.zsh   the hook: opens the cabinet in a new interactive shell
+home/.local/bin/alien                           the launcher behind `alien`
+scripts/bootstrap.zsh                           the installer
+scripts/suite/system.zsh                        SYSTEM
+scripts/suite/intelligence.zsh                  INTELLIGENCE
+scripts/suite/xenogotchi.zsh                    XENOGOTCHI
+scripts/suite/arcade.zsh                        ARCADE
+scripts/fixtures/system/                        moonbase, the invented Mac, and its golden probe output
+```
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
@@ -485,25 +351,27 @@ instead. 🏷️ Cut Release stays: any repository released by tag can adopt it.
 | [`agents/`](agents/README.md)               | Installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine.                                         |
 | [`assets/`](assets/README.md)               | Where this project keeps what presents it: four folders to start, a name ready for every other kind, and the rules every file follows.                                            |
 | [`docs/`](docs/README.md)                   | Where this project keeps its own documents, and where the engineering standards it follows actually live.                                                                         |
+| [`home/`](home/)                            | The three files the installer links into your home folder: the PATH leaf, the hook and the alien launcher.                                                                        |
+| [`scripts/`](scripts/)                      | The installer, the four machines as page packs, and moonbase, the invented Mac that SYSTEM reads in demo mode.                                                                    |
 | [`.editorconfig`](.editorconfig)            | Editor defaults every editor honours: UTF-8, LF, a final newline, and indentation per language                                                                                    |
 | [`.env.example`](.env.example)              | Environment variable template for this project.                                                                                                                                   |
 | [`.gitattributes`](.gitattributes)          | Git attributes - line endings, diffs, and what counts as binary                                                                                                                   |
 | [`.gitignore`](.gitignore)                  | &#x1F5C4;&#xFE0F; Universal Ignore Patterns                                                                                                                                       |
 | [`.markdownlint.json`](.markdownlint.json)  | Repository-wide markdownlint rules. Discovered by mechanism, which is why this lives at the root.                                                                                 |
+| [`_typos.toml`](_typos.toml)                | The spell check's accepted words and exclusions for this repository, passed to CI as `typos-config` in .github/workflows/checks.yml.                                              |
+| [`Brewfile`](Brewfile)                      | B R E W F I L E what this suite needs from homebrew (c) ALIEN DYNAMICS 1984 &#xB7; read by scripts/bootstrap.zsh --tools                                                          |
 | [`install.sh`](install.sh)                  | Set up a new machine or codespace from these dotfiles.                                                                                                                            |
 | [`LICENSE`](LICENSE)                        | MIT License                                                                                                                                                                       |
 | [`Makefile`](Makefile)                      | Dotfiles commands. The agents targets install the universal rules from tannergolden/intelligence into every AI app's home folder; docs/technical/AI-Agent-Rules.md explains them. |
 | [`README.md`](README.md)                    | This file.                                                                                                                                                                        |
+| [`terminal.command`](terminal.command)      | T E R M I N A L the way into the ALIEN suite (c) ALIEN DYNAMICS 1984 &#xB7; model AD-1 "SYNTHWAVE"                                                                                |
 
 <!-- AUTO-INDEX:END -->
 
-Nothing else but the seeds in `docs/`: the root carries only what a tool
-discovers there by mechanism.
-
-**Every folder carries a `README.md` that logs each file inside it**, with one
-exception. GitHub shows a README in `.github/` in place of this page, so that
-folder's own files are logged here instead. 🗂️ Machined Indexes redraws both
-tables after every push:
+The folders that came with the template each carry a `README.md` that logs the
+files inside them. GitHub shows a README in `.github/` in place of this page, so
+that folder's own files are logged here instead. 🗂️ Machined Indexes redraws
+both tables after every push:
 
 <!-- AUTO-INDEX:BEGIN dir=./.github style=log -->
 
@@ -522,159 +390,41 @@ tables after every push:
 
 ---
 
-## 🌿 The Workflows
+## 🌿 The Repository
 
-| Workflow                   | Gives you                                             |
-| :------------------------- | :---------------------------------------------------- |
-| `checks.yml`               | Lint/test/build, secret scan, CodeQL, workflow lint   |
-| `governance.yml`           | PR title and DCO checks, triage, stale sweep, slash commands |
-| `release.yml`              | Draft notes, publish assets, prune superseded releases |
-| `maintenance.yml`          | Prunes stale deployments and draft releases           |
-| `lifecycle.yml`            | Claims this repository once; flags a new major        |
-| `dependabot-automerge.yml` | Approves and queues patch and minor updates           |
-| `ci-failure-alert.yml`     | Opens an issue when a watched workflow fails          |
-| `apply-standards.yml`      | Dispatch-only. The label taxonomy and branch protection |
-| `auto-format.yml`          | Formats what a push touched                           |
-| `preview-deploy.yml`       | Deploys pushes to a preview target, once configured   |
-| `prune-runs.yml`           | Deletes old workflow runs, with their logs and artifacts |
-| `verify-stubs.yml`         | Proves every ceiling matches its called workflow      |
-| `auto-index.yml`           | Redraws every folder log and index after a push       |
-| `template-sync.yml`        | Proposes this template's later fixes as one pull request, when run |
-| `cut-release.yml`          | Publishes this template's releases. Inert in yours until you adopt it |
-| `template-parity.yml`      | Enforces the four-differences contract. Deleted from yours at init |
+This repository was generated from a standards template, so the machinery around
+the suite is the same as in every other repository here. Work lands on
+`Development` through pull requests, squash-merged, so each pull request title
+becomes one Conventional Commit.
 
-**Do not rename the job ids** `ci` and `secrets` (in `checks.yml`) or `pr`
-(in `governance.yml`) - branch protection depends on them; the file a job
-lives in does not matter, but its id does. Only `preview-deploy.yml` names a
-branch, because `Preview` is a promotion branch rather than your default one;
-everywhere else a pull request always runs and a push runs only on the default
-branch, whatever it happens to be called.
+- **🚦 Checks** run on every pull request and on `Development`: the repository
+  validator and its tests, a gitleaks secret scan, CodeQL, workflow lint,
+  spelling and links.
+- **⚖️ Governance** holds pull request titles to Conventional Commits.
+- **🔄 Template Sync** brings the template's later fixes as a pull request, and
+  only when you run it. The rules this repository adds to `.gitignore` and
+  `.gitattributes` sit at the end of each file, where a sync keeps them. See
+  [`.github/template-sync.md`](.github/template-sync.md).
 
-Every workflow ships installed, and most carry an `is_template` guard, so they
-are silent here and come alive in every repository generated from this one.
-**Three do not, and run in the template as well:** `prune-runs.yml`, because a
-template accumulates run history like any repository and nothing else would
-ever clear it, `verify-stubs.yml`, because a stub with a wrong ceiling is
-broken wherever it sits, and `auto-index.yml`, because the template's own
-folder logs need keeping too. `template-sync.yml` runs on both sides of the
-guard, differently: here it checks that `.github/template-sync` names every
-file the template ships, and in your copy it syncs when you run it. `cut-release.yml` and
-`template-parity.yml` invert the guard instead - they run *only* here, and
-initialisation deletes `template-parity.yml` from your copy with the rest of the
-contract. Delete any file that does not fit; each one is yours, and
-🔄 Template Sync switches a deleted file off rather than bringing it back.
-
-> [!IMPORTANT]
-> **🎯 Apply Standards previews by default and changes nothing** until you turn
-> `dry-run` off - a wrong ruleset blocks every merge here. Labels need no
-> token; writing rulesets needs `ADMIN_TOKEN`.
-
-**Sign your commits off.** `git commit -s` - the DCO check is a required status
-check once the rulesets are on, and a commit without the trailer blocks the
-merge.
-
-> [!NOTE]
-> Nothing here pins a third-party action; every `uses:` points at
-> `tannergolden/standards`, so the pins that need maintaining are maintained
-> once, there. The one caveat to leaving a repository alone: **GitHub disables
-> scheduled workflows in a public repository after 60 days of inactivity** -
-> not an issue for this private one, but it applies to anything public you
-> generate from it. Dependabot is exempt from that rule and still surfaces a
-> new major, so a dormant repository finds out either way.
-
-> [!IMPORTANT]
-> **CodeQL needs a public repository or GitHub Advanced Security.** On a private
-> repository without it, that job skips rather than failing - so it will not
-> redden anything, and it will not analyse anything either.
+Every workflow is described in
+[`.github/workflows/README.md`](.github/workflows/README.md).
 
 ---
 
-## 🔄 Template Sync: Fixes When You Ask
+## 🔒 Licence
 
-This template keeps improving after you generate from it - a stub gains a
-guard, the repository validator learns a check, a seeded document gets
-clearer. **🔄 Template Sync** is how those fixes reach your copy, and it runs
-only when you run it.
-
-**Nothing happens on its own.** There is no schedule. When you want the
-template's latest release, run **🔄 Template Sync** from the Actions tab: it
-compares your repository with that release and proposes whatever changed as
-**one pull request** on `chore/template-sync`, which you review and merge like
-any other. If you never run it, nothing in your repository ever changes.
-
-| It always...                  | Because                                                                                                        |
-| :---------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| Merges rather than overwrites | Each file is merged with whatever you changed in it, by the same three-way merge git uses                      |
-| Writes in your identity       | The template is rewritten exactly as initialisation rewrote it, so footers and the owner stay yours            |
-| Leaves a conflict untouched   | A file you and the template changed in the same place stays as you have it; the pull request shows the change |
-| Respects a deletion           | A file you delete is switched off, under its old name or a new one, until you take the `#` off its line again  |
-| Leaves your own files alone   | This README, the licence, CODEOWNERS and `assets/` start switched off, and nothing you add is ever touched   |
-
-Three files describe it, and only one of them is yours to edit:
-
-| File                                                   | What it is                                                                                         |
-| :----------------------------------------------------- | :------------------------------------------------------------------------------------------------- |
-| [`.github/template-sync`](.github/template-sync)       | Every path the template ships, in `.gitignore` syntax. Put a `#` in front of a line to keep that file as yours |
-| `.github/template-sync.lock`                           | Where each file was last synced from. Written by the sync alone; never edit it                     |
-| [`.github/template-sync.md`](.github/template-sync.md) | The full explanation: every outcome, every option, and what to do when something waits on you      |
-
-> [!IMPORTANT]
-> **This template is private, so the sync needs a `BOT_ACCESS_TOKEN` that can
-> read it** - without one it cannot even fetch the template. The same secret
-> lets workflow files under `.github/workflows/` arrive, which GitHub's default
-> token can never write, and lets CI run on the pull request.
-
-**You follow a major, and a new one is your decision.** This template publishes
-versions with 🏷️ Cut Release, moving `v1` to each new one, and a sync takes
-whatever `v1` points at. A breaking change ships as `v2`, which nothing follows
-until you change `ref:` in `.github/workflows/template-sync.yml`. To remove the
-option altogether, delete that file.
-
-### And this template, from the public one
-
-The same engine keeps this template close to
-[`tannergolden/path`](https://github.com/tannergolden/path), through the
-four-differences contract rather than a list. Dispatch **📐 Template Parity**
-with `sync` ticked and it proposes everything the public template changed as
-one pull request on `chore/template-parity`: the seeds take this repository's
-footer, nothing absent, inherited or listed under
-`sync-never` in [`.github/template-parity.yml`](.github/template-parity.yml)
-arrives, and every other file is merged, so the permitted differences survive.
-`.github/template-sync` gains or loses a line for every file that comes or goes,
-so its own check stays green. Like everything else here, it never runs
-unasked; the daily run only checks. It follows the public template's default
-branch rather than its releases - the tree the check compares against - holds
-workflow files back without a `BOT_ACCESS_TOKEN` that can write them, and keeps
-whatever waits on you in one issue, **📐 Template Parity Sync is waiting on
-you**.
-
-The engine lives in [`tannergolden/standards`](https://github.com/tannergolden/standards/blob/Development/docs/distribution/automation/Template-Sync.md),
-called rather than copied, like every other workflow here.
-
----
-
-## 📚 The Standards
-
-Everything about how to branch, review, release, and secure a repository lives
-in the [Standards Index](https://github.com/tannergolden/standards/blob/Development/docs/README.md).
-Follow it **by link**. A standard copied into your repository is a standard that
-starts going stale the moment you paste it.
-
-The one exception is [`docs/templates/`](docs/templates/README.md),
-which is meant to be copied: those are fill-in documents that become _your_
-project's decisions. A fill-in document's destination mirrors its path minus
-`templates/`, and where you put it is yours to choose.
+MIT. See [`LICENSE`](LICENSE).
 
 ---
 
 <div align="center">
 
-**Same road. Your paving stones.**
+**Insert coin.**
 
 [↑ Back to Top](#top)
 
 <br />
 
-Built with ❤️ by [@tannergolden](https://github.com/tannergolden). Proprietary and confidential; all rights reserved.
+Built with ❤️ by [@tannergolden](https://github.com/tannergolden). Distributed under the MIT License.
 
 </div>

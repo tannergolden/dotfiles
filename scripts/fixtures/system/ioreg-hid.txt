@@ -1,0 +1,6 @@
++-o AppleHSBluetoothDevice  <class AppleHSBluetoothDevice>
+    "Product" = "Magic Trackpad"
+    "BatteryPercent" = 71
++-o AppleHSBluetoothDevice  <class AppleHSBluetoothDevice>
+    "Product" = "Magic Keyboard"
+    "BatteryPercent" = 94
