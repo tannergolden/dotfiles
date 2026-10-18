@@ -357,6 +357,7 @@ scripts/fixtures/system/                        moonbase, the invented Mac, and 
 | [`.gitattributes`](.gitattributes)          | Git attributes - line endings, diffs, and what counts as binary                                                                        |
 | [`.gitignore`](.gitignore)                  | &#x1F5C4;&#xFE0F; Universal Ignore Patterns                                                                                            |
 | [`.markdownlint.json`](.markdownlint.json)  | Repository-wide markdownlint rules. Discovered by mechanism, which is why this lives at the root.                                      |
+| [`_typos.toml`](_typos.toml)                | The spell check's accepted words and exclusions for this repository, passed to CI as `typos-config` in .github/workflows/checks.yml.   |
 | [`Brewfile`](Brewfile)                      | B R E W F I L E what this suite needs from homebrew (c) ALIEN DYNAMICS 1984 &#xB7; read by scripts/bootstrap.zsh --tools               |
 | [`LICENSE`](LICENSE)                        | MIT License                                                                                                                            |
 | [`README.md`](README.md)                    | This file.                                                                                                                             |
