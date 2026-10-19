@@ -352,7 +352,7 @@ scripts/fixtures/system/                        moonbase, the invented Mac, and 
 | [`assets/`](assets/README.md)               | Where this project keeps what presents it: four folders to start, a name ready for every other kind, and the rules every file follows.                                            |
 | [`docs/`](docs/README.md)                   | Where this project keeps its own documents, and where the engineering standards it follows actually live.                                                                         |
 | [`home/`](home/)                            | The three files the installer links into your home folder: the PATH leaf, the hook and the alien launcher.                                                                        |
-| [`scripts/`](scripts/)                      | The installer, the four machines as page packs, and moonbase, the invented Mac that SYSTEM reads in demo mode.                                                                    |
+| [`scripts/`](scripts/README.md)             | The installer, the four machines as page packs, and moonbase, the invented Mac that SYSTEM reads in demo mode.                                                                    |
 | [`.editorconfig`](.editorconfig)            | Editor defaults every editor honours: UTF-8, LF, a final newline, and indentation per language                                                                                    |
 | [`.env.example`](.env.example)              | Environment variable template for this project.                                                                                                                                   |
 | [`.gitattributes`](.gitattributes)          | Git attributes - line endings, diffs, and what counts as binary                                                                                                                   |
@@ -377,9 +377,10 @@ both tables after every push:
 
 | Entry                                              | Purpose                                                                                                                             |
 | :------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| [`actions/`](.github/actions/README.md)            | The composite actions this repository keeps for its own workflows, and for any other repository that calls them.                    |
 | [`scripts/`](.github/scripts/README.md)            | The checks this repository runs on its own configuration, and the tests that guard them.                                            |
 | [`workflows/`](.github/workflows/README.md)        | Every workflow in this repository: the name it shows in the Actions tab, what triggers it, and what it does.                        |
-| [`CODEOWNERS`](.github/CODEOWNERS)                 | CODEOWNERS - review ownership                                                                                                       |
+| [`CODEOWNERS`](.github/CODEOWNERS)                 | Review ownership                                                                                                                    |
 | [`dependabot.yml`](.github/dependabot.yml)         | Dependabot - automated dependency updates                                                                                           |
 | [`release.yml`](.github/release.yml)               | GitHub auto-generated release notes configuration.                                                                                  |
 | [`template-sync`](.github/template-sync)           | Every path tannergolden/repo ships, and whether &#x1F504; Template Sync, when you run it, keeps it current in this repository.      |
