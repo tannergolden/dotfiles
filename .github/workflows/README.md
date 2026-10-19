@@ -80,10 +80,13 @@ its `on:` events and its opening comment.
   `verify-stubs.yml` and `auto-index.yml` carry no such guard and run in the
   template as well; `template-sync.yml` checks its list here.
 - **`template-parity.yml` and `cut-release.yml` invert that guard.** They run
-  only in this template. Initialisation deletes the parity workflow from every
-  repository generated from it, along with the contract, its lock and its two
-  scripts; `cut-release.yml` stays, inert until a repository released by tag
-  adopts it.
+  only in a template, and Template Parity only in the two golden path
+  templates its contract is about, so it stays skipped in a repository
+  generated from here even when its owner makes that repository a template.
+  Initialisation deletes the parity contract, its lock and its two scripts
+  from every repository generated from here, and names the workflow for its
+  owner to delete; `cut-release.yml` stays, inert until a repository released
+  by tag adopts it.
 - **Three job ids are check names.** `ci` and `secrets` in `checks.yml`, and
   `pr` in `governance.yml`, report as `<job id> / <job name>`, which is what
   branch protection requires. Rename one and every pull request waits on a

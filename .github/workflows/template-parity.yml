@@ -17,13 +17,19 @@
 # ⚠️ THE GUARD IS INVERTED HERE, AND THAT IS DELIBERATE. Most optional
 # workflows in this repository carry `!is_template`, so they are silent in the
 # template and come alive in repositories generated from it. Like 🏷️ Cut
-# Release, this one is the reverse: `is_template` is true ONLY in this
-# repository, so the check runs here and never in anything generated from it.
-# A generated repository is meant to diverge - that is what it is for - and a
-# parity check there would fail on its owner's first commit. So it never runs
-# in one: `.github/template-sync` names this workflow, the contract, its lock
+# Release, this one is the reverse: it runs only in a template. A generated
+# repository is meant to diverge - that is what it is for - and a parity
+# check there would fail on its owner's first commit. So it never runs in
+# one: `.github/template-sync` names this workflow, the contract, its lock
 # and its two scripts under "Only ever in the template", and initialisation
 # deletes the other four from every repository generated from here.
+#
+# ⚠️ IS_TEMPLATE ALONE IS NOT ENOUGH, SO THE GUARD NAMES THE TWO TEMPLATES.
+# An owner can make a repository generated from here a template of its own,
+# and `is_template` is then true there too, with no contract to hold. This
+# contract is between the two golden path templates, so both jobs run only in
+# a template named `repo` or `path`, and stay skipped in every other. Rename
+# either template and rename it in both guards.
 #
 # ⚠️ THIS FILE IT CANNOT DELETE. Initialisation pushes with the workflow
 # token, and GitHub lets that token change nothing under .github/workflows/.
@@ -76,14 +82,14 @@ permissions: {}
 jobs:
   parity:
     name: '📐 Four Differences'
-    # Runs ONLY in the template itself. See the inverted-guard note above.
+    # Runs ONLY in the two golden path templates. See the guard notes above.
     #
     # A pull request always runs. A direct push runs only on the default
     # branch, WHATEVER IT IS CALLED - the same guard every job in checks.yml
     # carries, and for the same reason: without it a branch with an open pull
     # request runs this twice on one commit, and this job clones two whole
     # repositories each time.
-    if: ${{ github.event.repository.is_template && (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch) }}
+    if: ${{ github.event.repository.is_template && contains(fromJSON('["repo", "path"]'), github.event.repository.name) && (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -158,9 +164,10 @@ jobs:
 
   sync:
     name: '📐 Sync From The Baseline'
-    # Runs ONLY in the template itself, like the check, and ONLY when asked:
-    # a dispatch with `sync` ticked. The daily schedule never reaches it.
-    if: ${{ github.event.repository.is_template && github.event_name == 'workflow_dispatch' && inputs.sync }}
+    # Runs ONLY in the two golden path templates, like the check, and ONLY
+    # when asked: a dispatch with `sync` ticked. The daily schedule never
+    # reaches it.
+    if: ${{ github.event.repository.is_template && contains(fromJSON('["repo", "path"]'), github.event.repository.name) && github.event_name == 'workflow_dispatch' && inputs.sync }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
