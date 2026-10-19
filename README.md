@@ -1,8 +1,8 @@
 <!--
 title: '👽 THE ALIEN SUITE'
 description: 'A synthwave arcade cabinet that runs inside macOS Terminal, written entirely in zsh: one door, four machines, and the three shell files that hook it in.'
-tags: [dotfiles, zsh, macos, terminal, synthwave]
-category: docs
+type: index
+keywords: [dotfiles, zsh, macos, terminal, synthwave]
 -->
 
 

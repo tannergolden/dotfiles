@@ -1,8 +1,8 @@
 <!--
 title: '🔧 TECHNICAL'
 description: 'How the parts of these dotfiles work, one document each.'
-tags: [docs, technical]
-category: docs
+type: index
+keywords: [docs]
 -->
 
 <div align="center">

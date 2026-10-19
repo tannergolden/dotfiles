@@ -1,8 +1,8 @@
 <!--
 title: '🤖 AGENT HOME KIT'
 description: 'Installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine.'
-tags: [ai-agents, home-kit, dotfiles, intelligence]
-category: docs
+type: index
+keywords: [ai-agents, dotfiles, intelligence]
 -->
 
 <div align="center">

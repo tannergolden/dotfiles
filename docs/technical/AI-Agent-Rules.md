@@ -1,8 +1,8 @@
 <!--
 title: '🤖 AI AGENT RULES'
 description: 'How make agents installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine, and how to move to a new release.'
-tags: [ai-agents, home-kit, intelligence, pins]
-category: docs
+type: guide
+keywords: [ai-agents, home-kit, intelligence, pins]
 -->
 
 <div align="center">
