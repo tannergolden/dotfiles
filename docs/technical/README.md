@@ -1,5 +1,5 @@
 <!--
-title: '🔧 TECHNICAL'
+title: '🛠️ TECHNICAL'
 description: 'How the parts of these dotfiles work, one document each.'
 type: index
 keywords: [docs]
@@ -7,7 +7,7 @@ keywords: [docs]
 
 <div align="center">
 
-# 🔧 TECHNICAL
+# 🛠️ TECHNICAL
 
 <a name="top"></a>
 

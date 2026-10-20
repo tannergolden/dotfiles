@@ -68,7 +68,7 @@ To move to a new release:
 ## 🔗 See Also
 
 - [The Home Kit](https://github.com/tannergolden/intelligence/blob/Development/docs/technical/The-Home-Kit.md): what each app receives, and the guard hook
-- [Releasing](https://github.com/tannergolden/intelligence/blob/Development/docs/operations/Releasing.md): where pinning falls among the hub's release steps
+- [Releasing](https://github.com/tannergolden/intelligence/blob/Development/docs/distribution/Releasing.md): where pinning falls among the hub's release steps
 
 ---
 

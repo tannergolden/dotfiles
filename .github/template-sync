@@ -113,3 +113,14 @@
 
 # --- Your rules ---------------------------------------------------------------
 # keep mine: /.github/workflows/checks.yml
+# technical/ keeps a README that describes these dotfiles' own pages, so
+# the template's, written for any project, never replaces it.
+!/docs/technical/README.md
+# These dotfiles are MIT, and the template's documents carry its
+# proprietary footer: these five folder READMEs keep this repository's own
+# footer while every other change the template makes to them still arrives.
+# keep mine: /docs/distribution/README.md
+# keep mine: /docs/introduction/README.md
+# keep mine: /docs/library/README.md
+# keep mine: /docs/operations/README.md
+# keep mine: /docs/references/README.md
