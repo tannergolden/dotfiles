@@ -41,9 +41,11 @@ the folder holds.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
-| Entry                    | Purpose    |
-| :----------------------- | :--------- |
-| [`README.md`](README.md) | This file. |
+| Entry                                          | Purpose                                                                                                                                                                                                                                                                           |
+| :--------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`Glossary.md`](Glossary.md)                   | The words the suite's code, comments and README coin for its parts, from the door and the glass to leaves, the mirror and the gate, one line each with where it lives. Consult it when a comment or a page uses a word this repository made up.                                   |
+| [`Machine-Footprint.md`](Machine-Footprint.md) | Every file, folder, service and environment variable these dotfiles put on a Mac or read from it: what writes each one, whether it travels in git, and what takes it off again. Consult it when moving to another machine, cleaning one up, or looking for where something lives. |
+| [`README.md`](README.md)                       | This file.                                                                                                                                                                                                                                                                        |
 
 <!-- AUTO-INDEX:END -->
 

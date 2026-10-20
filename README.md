@@ -5,7 +5,6 @@ type: index
 keywords: [dotfiles, zsh, macos, terminal, synthwave]
 -->
 
-
 <div align="center">
 
 # 👽 THE ALIEN SUITE
@@ -76,14 +75,14 @@ zsh scripts/bootstrap.zsh --install
 
 It is safe to run twice. Open a new window and the cabinet powers up.
 
-| Command                                          | What it does                                                                                                                                       |
-| :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `zsh scripts/bootstrap.zsh`                      | The same install as a page: five checks, then one question before anything changes.                                                                |
-| `zsh scripts/bootstrap.zsh --status`             | What is linked and where it points, whether the switch is on, and which tools are here. Changes nothing.                                           |
+| Command                                          | What it does                                                                                                                                          |
+| :----------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `zsh scripts/bootstrap.zsh`                      | The same install as a page: five checks, then one question before anything changes.                                                                   |
+| `zsh scripts/bootstrap.zsh --status`             | What is linked and where it points, whether the switch is on, and which tools are here. Changes nothing.                                              |
 | `zsh scripts/bootstrap.zsh --tools`              | Homebrew if it is missing, then the [`Brewfile`](Brewfile), then ollama as a service that starts at login. Interactive: Homebrew asks for a password. |
-| `zsh scripts/bootstrap.zsh --plan`               | The exact lines `--tools` would run, with nothing run.                                                                                             |
-| `zsh scripts/bootstrap.zsh --hook on` (or `off`) | The switch alone.                                                                                                                                  |
-| `zsh scripts/bootstrap.zsh --remove`             | Takes the block out of `~/.zshrc`, unlinks the three files and turns the switch off. `~/.zshrc.pre-alien` and the Homebrew tools are left alone.   |
+| `zsh scripts/bootstrap.zsh --plan`               | The exact lines `--tools` would run, with nothing run.                                                                                                |
+| `zsh scripts/bootstrap.zsh --hook on` (or `off`) | The switch alone.                                                                                                                                     |
+| `zsh scripts/bootstrap.zsh --remove`             | Takes the block out of `~/.zshrc`, unlinks the three files and turns the switch off. `~/.zshrc.pre-alien` and the Homebrew tools are left alone.      |
 
 **Looking needs no install.** Double-click `terminal.command`, or run
 `zsh terminal.command`, and the cabinet comes up anyway. **[N] INSTALL** on its
@@ -99,6 +98,9 @@ fails safe: the hook does nothing and `alien` says it cannot find the door. Run
 `--install` again from the new place. Nothing else records where the repository
 is, because the door, the launcher and the hook each find it from their own
 resolved path.
+
+A whole machine in order, with the agent rules and what a codespace gets
+instead, is in [New Machine Setup](docs/introduction/New-Machine-Setup.md).
 
 ---
 
@@ -190,6 +192,9 @@ one-off command, a pipe, `scp` or `rsync`; in tmux or screen; over ssh; in the
 terminals inside VS Code, Warp or Hyper; or in a shell that is already inside
 the suite. Whenever it is unsure, it fails toward a plain prompt.
 
+Anything else that goes wrong has its message and its fix in
+[Troubleshooting](docs/operations/Troubleshooting.md).
+
 ---
 
 ## ⚙️ Settings
@@ -235,7 +240,8 @@ install.
 
 `~/.local/state/alien/` (or `$XDG_STATE_HOME/alien`) also holds the suite's
 short-lived facts and the configs INTELLIGENCE writes. None of it belongs in
-git.
+git. [Machine Footprint](docs/references/Machine-Footprint.md) lists each
+file, and everything else the suite leaves on a Mac.
 
 ---
 
@@ -303,10 +309,11 @@ files, so the pictures are reproducible and leak nothing about a real machine.
 
 ### Changing the code
 
-- **The door opens with `emulate -L zsh`, `setopt KSH_ARRAYS SH_WORD_SPLIT
-  NO_NOMATCH` and `set -u`**, and the packs are sourced into it, so they run
-  under the same options. Arrays are 0-based, an unset variable is an error, and
-  a bare `$arr` is the first element, so write `"${arr[@]}"`.
+- **The door opens with `emulate -L zsh`,
+  `setopt KSH_ARRAYS SH_WORD_SPLIT NO_NOMATCH` and `set -u`**, and the packs
+  are sourced into it, so they run under the same options. Arrays are 0-based,
+  an unset variable is an error, and a bare `$arr` is the first element, so
+  write `"${arr[@]}"`.
 - **The packs share the door's namespace.** Each one prefixes its own functions
   and globals (`sy_`, `in_`, `xg_` and `ar_`, and their capitals), and short
   output names like `REPLY` are common to all of them, so check
@@ -314,6 +321,13 @@ files, so the pictures are reproducible and leak nothing about a real machine.
 - **Comments explain why**, in a capitalised lead sentence.
 - **Test against copies.** Point `ALIEN_SAVE` at a copy of a save, and never
   change an animal somebody already owns.
+- **Read the contracts first.** [Page Packs](docs/technical/Page-Packs.md) is
+  the one between the door and each machine,
+  [Shell Hook & Installer](docs/technical/Shell-Hook-&-Installer.md) the one
+  between a new shell, the installer and the door, and
+  [Checking A Change](docs/distribution/Checking-A-Change.md) says what CI
+  cannot check for you. The cabinet's own words are in the
+  [Glossary](docs/references/Glossary.md).
 
 ---
 

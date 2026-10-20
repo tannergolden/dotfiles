@@ -24,7 +24,9 @@ _Every path here is a contract the door keeps._
 [`bootstrap.zsh`](bootstrap.zsh) is the installer. It links three files from
 [`home/`](../home) into `~`, appends one marked block to `~/.zshrc` and turns
 the switch on, and with `--tools` installs what the [`Brewfile`](../Brewfile)
-names. Every command it takes is in the [README](../README.md).
+names. Every command it takes is in the [README](../README.md), and how it
+works, with what the door needs of it, is in
+[Shell Hook & Installer](../docs/technical/Shell-Hook-&-Installer.md).
 
 The four machines live in [`suite/`](suite/README.md) as page packs, and
 [`fixtures/system/`](fixtures/system/README.md) is `moonbase`, the invented Mac

@@ -24,7 +24,9 @@ _Each one draws inside the door's own glass._
 Each machine here is a page pack: `terminal.command` reads it into itself the
 first time you open that machine, and it draws inside the door's glass while
 the door keeps the walls, the tube and the frame. What each machine is, and how
-to check one, is in the [README](../../README.md).
+to check one, is in the [README](../../README.md). The hooks a pack declares,
+and when the door calls each one, are in
+[Page Packs](../../docs/technical/Page-Packs.md).
 
 The door finds each pack as `scripts/suite/<name>.zsh`, so a machine is never
 renamed here alone.

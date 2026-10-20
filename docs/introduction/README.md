@@ -41,9 +41,10 @@ the folder holds.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
-| Entry                    | Purpose    |
-| :----------------------- | :--------- |
-| [`README.md`](README.md) | This file. |
+| Entry                                          | Purpose                                                                                                                                                                                                                              |
+| :--------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`New-Machine-Setup.md`](New-Machine-Setup.md) | Every step from a fresh Mac or a new codespace to a working cabinet and agent rules, in order: what to carry over first, what each step needs, how to check it, and how to take a machine back. Read it before setting up a machine. |
+| [`README.md`](README.md)                       | This file.                                                                                                                                                                                                                           |
 
 <!-- AUTO-INDEX:END -->
 
