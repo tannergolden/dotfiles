@@ -58,10 +58,9 @@ class HomeKit(unittest.TestCase):
         self.home_bytes = HOME_FILE.format('0' * 64).encode()
         release = self.root / 'release' / self.version
         (release / 'home').mkdir(parents=True)
-        (release / 'scripts').mkdir()
         (release / 'home' / 'intelligence.md').write_bytes(self.home_bytes)
         (release / 'home' / 'kit.json').write_bytes(KIT_JSON)
-        (release / 'scripts' / 'install.py').write_text(STUB, encoding='utf-8')
+        (release / 'home' / 'install.py').write_text(STUB, encoding='utf-8')
         self.release = release
         self.log = self.root / 'stub.log'
 
@@ -110,6 +109,14 @@ class TestInstall(HomeKit):
         self.assertEqual(done.returncode, 1)
         self.assertIn('the kit', done.stderr)
         self.assertIsNone(self.called())
+
+    def test_a_release_from_before_home_served_the_installer_still_installs(self) -> None:
+        (self.release / 'scripts').mkdir()
+        (self.release / 'home' / 'install.py').rename(self.release / 'scripts' / 'install.py')
+        self.pin_release()
+        done = self.run_kit('install')
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertRegex(self.called() or '', r'^install --home-file .*/intelligence\.md$')
 
     def test_check_and_uninstall_reach_the_installer(self) -> None:
         self.pin_release()

@@ -2,8 +2,8 @@
 # Install the universal rules from tannergolden/intelligence into every AI app's home folder.
 #
 # WHY THIS EXISTS. The hub publishes one set of rules for every AI coding
-# agent, and a kit around them: the guard hook, the skills, the subagents
-# and the knowledge facts. This machine installs exactly one release of it,
+# agent, and a kit around them: the guard hook, the skills and the
+# subagents. This machine installs exactly one release of it,
 # named in the pin file beside this script with the SHA-256 of each file
 # that release serves: the home file, the kit and the installer. Nothing is
 # installed, and the installer never runs, unless every pinned file matches.
@@ -43,9 +43,12 @@ download() {
   curl -fsSL --retry 2 --max-time 30 "$BASE/$1" -o "$2"
 }
 
+# A release serves its installer from home/, and one from before the hub
+# moved it there, from scripts/. The pin decides either way.
 fetch() {
   download "$1/home/intelligence.md" "$2/intelligence.md" \
-    && download "$1/scripts/install.py" "$2/install.py"
+    && { download "$1/home/install.py" "$2/install.py" 2>/dev/null \
+      || download "$1/scripts/install.py" "$2/install.py"; }
 }
 
 verified() {
