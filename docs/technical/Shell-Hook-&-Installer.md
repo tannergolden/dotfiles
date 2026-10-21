@@ -2,7 +2,6 @@
 title: '⚙️ SHELL HOOK & INSTALLER'
 description: 'How home/ and scripts/bootstrap.zsh put the cabinet in every new shell: the startup chain, the hook''s guards in order, how each file finds the repository, what the installer writes and the records the door reads, and how to add a file to home/. Read it before changing any of them.'
 type: guide
-keywords: [zsh, zshrc, symlinks, bootstrap, conf.d, launcher, dotfiles]
 -->
 
 <div align="center">

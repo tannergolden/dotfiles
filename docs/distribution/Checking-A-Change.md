@@ -2,7 +2,6 @@
 title: '🧪 CHECKING A CHANGE'
 description: 'What 🚦 Checks runs on every pull request here, why none of it runs zsh, and the checks a change to the suite, the hook, the installer or the agent kit needs on a Mac before it is pushed. Read it before pushing any change to these dotfiles.'
 type: guide
-keywords: [ci, tests, zsh, probe, fixtures, pull request, validation]
 -->
 
 <div align="center">

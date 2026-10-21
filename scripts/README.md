@@ -2,7 +2,6 @@
 title: '🧰 SCRIPTS'
 description: 'The installer, the four machines as page packs, and moonbase, the invented Mac that SYSTEM reads in demo mode.'
 type: index
-keywords: [zsh, installer, page-packs, fixtures]
 -->
 
 <div align="center">

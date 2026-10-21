@@ -2,7 +2,6 @@
 title: '🚀 NEW MACHINE SETUP'
 description: 'Every step from a fresh Mac or a new codespace to a working cabinet and agent rules, in order: what to carry over first, what each step needs, how to check it, and how to take a machine back. Read it before setting up a machine.'
 type: guide
-keywords: [install, bootstrap, codespaces, homebrew, agent rules, migration, onboarding]
 -->
 
 <div align="center">

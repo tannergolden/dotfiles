@@ -2,7 +2,6 @@
 title: '🤖 Agent Instructions'
 description: 'How AI agents work on the dotfiles, tannergolden/dotfiles: the universal rules first, then the rules for the zsh suite, its installer and hook, and the agent kit. Read it before any change here.'
 type: standard
-keywords: [agents-md, ai-agents, zsh, dotfiles, agent-kit, terminal]
 -->
 
 <!-- markdownlint-disable MD041 -->

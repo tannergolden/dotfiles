@@ -2,7 +2,6 @@
 title: '🔧 TROUBLESHOOTING'
 description: 'What each message and symptom from the hook, the cabinet, the installer and the agent kit means, and what to do about it, from a window that opens no cabinet to a pin that does not match. Read it when something on a machine does not do what the README says.'
 type: guide
-keywords: [runbook, errors, messages, hook, cabinet, homebrew, agent rules, fixes]
 -->
 
 <div align="center">

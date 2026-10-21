@@ -2,7 +2,6 @@
 title: '🔤 GLOSSARY'
 description: 'The words the suite''s code, comments and README coin for its parts, from the door and the glass to leaves, the mirror and the gate, one line each with where it lives. Consult it when a comment or a page uses a word this repository made up.'
 type: reference
-keywords: [terms, vocabulary, definitions, cabinet, door, glass, mirror]
 -->
 
 <div align="center">

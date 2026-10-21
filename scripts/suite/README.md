@@ -2,7 +2,6 @@
 title: '🕹️ THE MACHINES'
 description: 'SYSTEM, INTELLIGENCE, XENOGOTCHI and ARCADE: the four page packs the door reads into itself the first time each is opened.'
 type: index
-keywords: [zsh, page-packs, terminal]
 -->
 
 <div align="center">

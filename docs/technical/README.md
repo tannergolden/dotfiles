@@ -2,7 +2,6 @@
 title: '🛠️ TECHNICAL'
 description: 'How the parts of these dotfiles work, one document each.'
 type: index
-keywords: [docs]
 -->
 
 <div align="center">

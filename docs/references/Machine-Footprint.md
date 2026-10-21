@@ -2,7 +2,6 @@
 title: '📦 MACHINE FOOTPRINT'
 description: 'Every file, folder, service and environment variable these dotfiles put on a Mac or read from it: what writes each one, whether it travels in git, and what takes it off again. Consult it when moving to another machine, cleaning one up, or looking for where something lives.'
 type: reference
-keywords: [state folder, xdg, environment variables, paths, cleanup, migration, gitignore]
 -->
 
 <div align="center">

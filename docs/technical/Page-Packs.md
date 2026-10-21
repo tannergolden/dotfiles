@@ -2,7 +2,6 @@
 title: '🧩 PAGE PACKS'
 description: 'The contract between terminal.command and the four machines in scripts/suite: what a pack declares, when the door calls each hook, what it draws with, the rules it keeps, how a failing pack is caught, and what the door holds about each machine. Read it before changing a machine or adding one.'
 type: guide
-keywords: [hooks, machines, door, zsh, contract, terminal.command, glass]
 -->
 
 <div align="center">
