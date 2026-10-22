@@ -103,6 +103,10 @@ REPO="${SELF:h}"
 export ALIEN_REPO="$REPO"
 ALIEN_DOOR=""; [[ -r "$SELF" ]] && ALIEN_DOOR="$SELF"
 export ALIEN_DOOR
+# ...AND WHICH COPY OF IT THIS IS: zsh goes on reading the file it opened, so a
+# door git replaces while it runs is still the old one (SECTION 22c).
+zmodload -F zsh/stat +b:zstat 2>/dev/null; typeset -ga _ino; UPD_INO=''
+zstat -A _ino +inode -- "$SELF" 2>/dev/null && UPD_INO="${_ino[0]}"; unset _ino
 
 # ── THE FIXTURE, AND THE CLOCK THAT STOPS ───────────────────────────────────
 MOCK=0; [[ -n "${TERMINAL_MOCK:-}" ]] && MOCK=1
@@ -113,7 +117,7 @@ FROZEN=''; [[ "${ALIEN_AT:-}" == (<->|<->.<->) ]] && FROZEN="$ALIEN_AT"
 # ── ARGUMENTS ───────────────────────────────────────────────────────────────
 OPT_ONCE=0 OPT_FAST=0 OPT_BACK=0 OPT_256=0 OPT_TRUE=0 OPT_PLAIN=0
 OPT_PROBE=0 OPT_CHECK=0 OPT_SHARP=0 OPT_FPS=0
-# CONFIG's OWN TWO, the settings no command-line flag already carries.  They
+# CONFIG's OWN FOUR, the settings no command-line flag already carries.  They
 # sit here with the flags because terminal.conf sets them at power-up the same
 # way an argument would (cfg_load, SECTION 18d), and a reader changes them on
 # the CONFIG page by hand.
@@ -125,6 +129,7 @@ CFG_FILL=0                           # 0 the cabinet floats · 1 the glass fills
 # launch after, with no page left to change it back on.  FAST means what the
 # page says it means: skip the ceremony and open on the menu.
 CFG_BOOT_FAST=0                      # boot: 0 the whole opening · 1 straight to the menu (BOOT, 18d)
+CFG_UPDATE=1                         # update: 1 a power-on takes origin's new commits · 0 never (22c)
 _argv=("$@")
 _i=0
 while (( _i < ${#_argv[@]} )); do
@@ -5834,7 +5839,9 @@ page_sky() {
   # THE NAMES BELOW ARE ITS OWN: a pack is read in from inside this function,
   # and a top-level line of one that set a plain `t` or `fin` would set these.
   local -F _sk_t _sk_t0=$EPOCHREALTIME _sk_due=0.0 _sk_rem _sk_f0
-  local -i _sk_fin=0 _sk_lfin=0
+  local -i _sk_fin=0 _sk_lfin=0 _sk_wb=0
+  # A SKY CARRIED ON FROM THE DOOR THIS ONE REPLACED (22c) is not owed twice
+  (( UPD_SKY > 0.0 )) && { _sk_t0=$UPD_SKY; UPD_SKY=0.0 }
   while :; do
     _sk_t=$(( $EPOCHREALTIME - _sk_t0 ))
     c_clear
@@ -5843,7 +5850,10 @@ page_sky() {
     r_flush
     if (( ! _sk_lfin )); then
       load_step || _sk_lfin=1
+    # THE PACKS WAIT ON THE FETCH FOR A MOMENT (SECTION 22c), unread
+    elif (( ! _sk_wb )) && upd_hold $_sk_t0; then :
     elif (( ! _sk_fin )); then
+      _sk_wb=1
       if (( $EPOCHREALTIME - _sk_t0 > OV_HOLD + WARM_HOLD )); then _sk_fin=1
       else
         _sk_f0=$EPOCHREALTIME
@@ -6169,13 +6179,19 @@ page_boot() {   # page_boot [FORCED]
   # THE SAVE AND THE CONFIG, read the way the slots were: a heading, then a
   # line each, landing a beat apart
   boot_files
-  local -i fline
+  local -i fline uline
   _boot $(( last + 0.22 )) "READING SAVE AND CONFIG..." $AMBER
   for (( i = 0; i < ${#BOOT_FT[@]}; i++ )); do
     _boot $(( last + 0.52 + i * 0.22 )) "${BOOT_FT[$i]}" ${BOOT_FC[$i]}
   done
   fline=$(( ${#AT[@]} - 1 ))               # the CONFIG line · seen once the card has shown it
   last=$(( last + 0.52 + ${#BOOT_FT[@]} * 0.22 ))
+  # ...AND WHAT THE CLONE TOOK FROM ORIGIN (SECTION 22c), the same way
+  upd_line
+  _boot $(( last + 0.22 )) "CHECKING ORIGIN FOR UPDATES..." $AMBER
+  _boot $(( last + 0.52 )) "$UPD_TX" $UPD_IC
+  uline=$(( ${#AT[@]} - 1 ))
+  last=$(( last + 0.74 ))
   _boot $(( last )) "" $GREY
   _boot $(( last + 0.22 )) "MIRROR $P_LINKED OF $P_LEAVES LINKED INTO ~" $CYAN
   cmix $LIME $WHITE 0.3
@@ -6251,6 +6267,7 @@ page_boot() {   # page_boot [FORCED]
       (( shown++ ))
     done
     (( shown > fline )) && BOOT_SAW_FILES=1
+    (( shown > uline )) && UPD_SAW=1
     # LAID OUT LIKE A CARD, not dumped in a corner.  The old one started at
     # the top-left cell of a hundred-and-six-column glass and left the other
     # ninety columns and fourteen rows empty, which read as a machine that
@@ -9249,13 +9266,14 @@ hsh_dress() {
 # this instant, or `restart` at the next power-on.  Colour is settled once as
 # the tube is built and boot once as the opening is decided, so those two are
 # written now and read on the way up, not turned under the reader's hand.
-CFG_NAME=(SOUND PHOSPHOR BEAT BOOT SCREEN)
+CFG_NAME=(SOUND PHOSPHOR BEAT BOOT SCREEN UPDATE)
 CFG_DESC=("blips, cursor ticks, the alert on a no"
           "the tube's soft bleed, or hard blocks"
           "the frame rate the whole cabinet runs"
           "the opening ceremony, or skip to it"
-          "float in the night, or fill the window")
-CFG_WHEN=(live live live restart live)
+          "float in the night, or fill the window"
+          "pull origin's new commits at power-on")
+CFG_WHEN=(live live live restart live restart)
 typeset -gi CFG_N=${#CFG_NAME[@]}
 typeset -gi CFG_ROW=0 CFG_GEN=0
 CFG_BEATV=(0 30 60 120)              # the rungs [BEAT] steps through · 0 self-governs
@@ -9280,13 +9298,13 @@ cfg_hooks_restore() {
 typeset -g  CFG_STATE='none'
 typeset -gi CFG_KEYS=0
 # THE READER IS save_load's in miniature, pointed at the conf and taking only
-# the five keys CONFIG owns.  Everything else in the file -- comments, the hook
+# the six keys CONFIG owns.  Everything else in the file -- comments, the hook
 # switch bootstrap.zsh writes, a key another machine adds one day -- is read
 # past here and, by cfg_save, kept.
 cfg_load() {
   local conf="$REPO/terminal.conf"
   # WHAT WAS FOUND, for the self test · found · unreadable · none, and how
-  # many settings are in it (every machine's, not only these five)
+  # many settings are in it (every machine's, not only these six)
   CFG_KEYS=0
   if [[ ! -e "$conf" ]]; then CFG_STATE='none'; return 0; fi
   if [[ ! -f "$conf" || ! -r "$conf" ]]; then CFG_STATE='unreadable'; return 0; fi
@@ -9308,6 +9326,7 @@ cfg_load() {
       beat)     case "$v" in 30|60|120) OPT_FPS=$v ;; *) OPT_FPS=0 ;; esac ;;
       boot)     case "$v" in fast) CFG_BOOT_FAST=1 ;; *) CFG_BOOT_FAST=0 ;; esac ;;
       screen)   case "$v" in fill|on|1) CFG_FILL=1 ;; *) CFG_FILL=0 ;; esac ;;
+      update)   case "$v" in off|0|no|false) CFG_UPDATE=0 ;; *) CFG_UPDATE=1 ;; esac ;;
     esac
   done < "$conf"
   # THE RATE FELT AT LAUNCH, resolved now while it is still early enough: it is
@@ -9342,18 +9361,19 @@ cfg_count() {   # CFG_STATE CFG_KEYS · whether terminal.conf is there now, and 
 # glass, always).  A conf carried over from an older Mac loses them the first
 # time CONFIG writes it, and every other line is kept exactly as it was.
 CFG_RETIRED=(colour intelligence.open)
-cfg_save() {   # terminal.conf rewritten · our five keys set, the retired ones dropped, everything else kept
+cfg_save() {   # terminal.conf rewritten · our six keys set, the retired ones dropped, everything else kept
   local conf="$REPO/terminal.conf" dir
   dir="${conf:h}"
   [[ -d "$dir" && -w "$dir" ]] || return 1
-  local sound phosphor beat boot screen
+  local sound phosphor beat boot screen update
   (( CFG_SOUND )) && sound=on       || sound=off
   (( OPT_SHARP )) && phosphor=sharp || phosphor=soft
   (( OPT_FPS ))   && beat="$OPT_FPS" || beat=auto
   (( CFG_BOOT_FAST )) && boot=fast || boot=full
   (( CFG_FILL )) && screen=fill || screen=float
+  (( CFG_UPDATE )) && update=on || update=off
   typeset -A want hit
-  want=(sound "$sound" phosphor "$phosphor" beat "$beat" boot "$boot" screen "$screen")
+  want=(sound "$sound" phosphor "$phosphor" beat "$beat" boot "$boot" screen "$screen" update "$update")
   local -a out
   local line raw t k
   if [[ -f "$conf" && -r "$conf" ]]; then
@@ -9370,7 +9390,7 @@ cfg_save() {   # terminal.conf rewritten · our five keys set, the retired ones 
       out+=("$line")
     done < "$conf"
   fi
-  for k in sound phosphor beat boot screen; do
+  for k in sound phosphor beat boot screen update; do
     [[ -n "${hit[$k]:-}" ]] && continue
     out+=("$k = ${want[$k]}")
   done
@@ -9392,6 +9412,7 @@ cfg_val() {   # cfg_val I -> CFGV
     2) (( OPT_FPS ))   && CFGV="$OPT_FPS" || CFGV=auto ;;
     3) (( CFG_BOOT_FAST )) && CFGV=fast || CFGV=full ;;
     4) (( CFG_FILL ))  && CFGV=fill   || CFGV=float ;;
+    5) (( CFG_UPDATE )) && CFGV=on    || CFGV=off ;;
   esac
   return 0
 }
@@ -9409,6 +9430,7 @@ cfg_cycle() {   # cfg_cycle DIR — the setting under the cursor · DIR +1 or -1
        beat_reset ;;                  # the one change felt at once · rebuild the ladder
     3) CFG_BOOT_FAST=$(( 1 - CFG_BOOT_FAST )) ;;
     4) CFG_FILL=$(( 1 - CFG_FILL )); scr_refit ;;  # repaint the still layer for the new mode
+    5) CFG_UPDATE=$(( 1 - CFG_UPDATE )) ;;
   esac
   (( CFG_GEN++ ))
   if cfg_save; then snd pick
@@ -12551,6 +12573,197 @@ warm_idle() {
   return 0
 }
 
+# ══════════════════════════════════════════════════════════════════════════
+# SECTION 22c · KEEPING UP WITH ORIGIN      the clone, fast-forwarded at power-on
+# ══════════════════════════════════════════════════════════════════════════
+# A CLONE USED TO STAY THE VERSION IT WAS CLONED AT.  Now every power-on asks
+# the branch's upstream for new commits behind the stars, and takes only what
+# `git pull --ff-only` would; anything else leaves the clone as it is, and the
+# self test's ORIGIN line says why.  Only the clone ~ links to keeps up.  THE
+# PACKS WAIT ON THE FETCH FOR UPD_WAIT SECONDS AT MOST, and a later answer is
+# taken at the next power-on, before the screen is up.  A fast-forward that
+# replaced THIS file starts the cabinet again as the new one: zsh goes on
+# running the file it opened, and the old door with new packs is untested.
+typeset -g  UPD_STATE='' UPD_FROM='' UPD_TO='' UPD_BR='' UPD_OUT='' UPD_GIT='' UPD_TX='' UPD_BRIEF=''
+typeset -gi UPD_N=0 UPD_SAW=0 UPD_IC=0
+typeset -gF UPD_T0=0.0 UPD_SKY=0.0 UPD_WAIT=2.0
+typeset -ga UPD_ARGV
+
+upd_git() {   # git, in this clone only, with nobody to ask anything of
+  ( unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE
+    GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never "$UPD_GIT" -C "$REPO" "$@" ) </dev/null 2>/dev/null
+}
+
+upd_branch() {   # UPD_BR · the branch checked out, read off .git/HEAD
+  local h=''; UPD_BR=''
+  [[ -f "$REPO/.git/HEAD" && -r "$REPO/.git/HEAD" ]] && h="$(<"$REPO/.git/HEAD")"
+  [[ "$h" == 'ref: refs/heads/'* ]] && UPD_BR="${${h#ref: refs/heads/}//[^[:print:]]/·}"
+  return 0
+}
+
+upd_begin() {   # upd_begin ARGS: at power-on, before anything is read · may not return
+  local -a f; local ino="$UPD_INO" dev; local -i took=0
+  UPD_ARGV=("$@"); UPD_INO=''
+  # A DOOR STARTED BY ONE THAT HAD JUST UPDATED says what that one found, adopts
+  # a fetch still out, and asks nothing more: one restart a power-on.
+  if [[ -n "${ALIEN_UPDATED:-}" ]]; then
+    f=(${=ALIEN_UPDATED})
+    [[ -n "${f[0]:-}" && "${f[0]}" != *[^a-z]* ]] && UPD_STATE="${f[0]}"
+    [[ "${f[1]:-}${f[2]:-}" != *[^0-9a-f]* ]] && { UPD_FROM="${f[1]:-}"; UPD_TO="${f[2]:-}" }
+    [[ "${f[3]:-}" == <-> ]] && UPD_N=${f[3]}
+    [[ "${f[4]:-}" == */alien-update.* && -f "${f[4]}" ]] && UPD_OUT="${f[4]}"
+    [[ "$UPD_STATE" == asking && -z "$UPD_OUT" ]] && UPD_STATE=''
+    [[ "${ALIEN_SKY_T0:-}" == <->.<-> ]] && (( EPOCHREALTIME - ALIEN_SKY_T0 < 30.0 )) && UPD_SKY=$ALIEN_SKY_T0
+    unset ALIEN_UPDATED ALIEN_SKY_T0
+    upd_branch
+    return 0
+  fi
+  UPD_STATE=demo;      (( MOCK )) && return 0
+  upd_branch
+  UPD_STATE=off;       (( CFG_UPDATE )) || return 0
+  UPD_STATE='';        (( OPT_BACK )) && return 0
+  UPD_STATE=noclone;   [[ -e "$REPO/.git" ]] || return 0
+  _mirror
+  UPD_STATE=elsewhere; (( P_LINKED )) || return 0
+  UPD_STATE=nogit;     UPD_GIT="${commands[git]:-}"
+  [[ -n "$UPD_GIT" && -x "$UPD_GIT" ]] || return 0
+  # /usr/bin/git ON A MAC WITHOUT THE COMMAND LINE TOOLS IS A DIALOG, not a
+  # program: it offers to install them, over the desktop, at every power-on.
+  if (( IS_MAC )) && [[ "$UPD_GIT" == /usr/bin/git ]]; then
+    dev="$(xcode-select -p 2>/dev/null)"
+    [[ -n "$dev" && -x "$dev/usr/bin/git" ]] || return 0
+  fi
+  UPD_STATE=''; [[ -n "$ino" ]] || return 0
+  UPD_INO="$ino"
+  # WHAT AN EARLIER FETCH BROUGHT is taken now, with nothing read yet and
+  # nothing on the screen, so a restart here costs the reader nothing
+  upd_apply && took=1
+  upd_stale && upd_restart
+  # ...and one update a power-on is plenty, and no upstream is nothing to fetch
+  if (( took )) || [[ "$UPD_STATE" == noupstream ]]; then UPD_INO=''; return 0; fi
+  upd_fetch_start
+  return 0
+}
+
+upd_count() {   # where HEAD stands against its upstream · 0 when it is only behind
+  local out; local -a c
+  out="$(upd_git rev-list --left-right --count 'HEAD...@{upstream}')"
+  c=(${=out})
+  if [[ "${c[0]:-}" != <-> || "${c[1]:-}" != <-> ]]; then UPD_STATE=noupstream; return 1; fi
+  UPD_N=${c[1]}
+  if (( c[0] && c[1] )); then UPD_STATE=diverged
+  elif (( c[1] )); then UPD_STATE=behind; return 0
+  elif (( c[0] )); then UPD_STATE=ahead
+  else UPD_STATE=current; fi
+  return 1
+}
+
+upd_apply() {   # the fast-forward, when that is all it would be · 0 when HEAD moved
+  upd_count || return 1
+  local -a s
+  s=(${(f)"$(upd_git rev-parse HEAD '@{upstream}')"})
+  # A LOCAL EDIT THE NEW COMMITS WOULD OVERWRITE stops the merge, tree untouched;
+  # so does another window taking them first, which leaves this clone current.
+  if (( ${#s[@]} != 2 )) || ! upd_git merge --ff-only --quiet "${s[1]}" >/dev/null; then
+    upd_stale && UPD_STATE=current || UPD_STATE=blocked
+    return 1
+  fi
+  UPD_FROM="${s[0][0,6]}"; UPD_TO="${s[1][0,6]}"; UPD_STATE=updated
+  return 0
+}
+
+upd_stale() {   # has terminal.command been replaced since this process opened it
+  [[ -n "$UPD_INO" ]] || return 1
+  local -a st
+  zstat -A st +inode -- "$SELF" 2>/dev/null || return 1
+  [[ "${st[0]:-}" != "$UPD_INO" ]]
+}
+
+upd_restart() {   # upd_restart [SKY_T0]: this process becomes the door now on disk
+  [[ -r "$SELF" ]] || return 1
+  export ALIEN_UPDATED="$UPD_STATE ${UPD_FROM:--} ${UPD_TO:--} $UPD_N ${UPD_OUT:--}"
+  if [[ -n "${1:-}" ]]; then
+    export ALIEN_SKY_T0="$1"
+    # THE TERMINAL IS PUT BACK FIRST, the way cleanup puts it back, so a new door
+    # that cannot start leaves the reader a prompt and not a dead picture
+    scr_leave; tty_back; err_free
+  fi
+  exec "${commands[zsh]:-zsh}" "$SELF" "${UPD_ARGV[@]}"
+}
+
+upd_fetch_start() {   # the fetch, off to one side · its answer lands in UPD_OUT
+  UPD_OUT="$(mktemp "${TMPDIR:-/tmp}/alien-update.XXXXXX" 2>/dev/null)" \
+    || { UPD_OUT=''; UPD_STATE=''; UPD_INO=''; return 0 }
+  UPD_STATE=asking; UPD_T0=$EPOCHREALTIME
+  { upd_fetch "$UPD_OUT" &! } 2>/dev/null
+  return 0
+}
+
+upd_fetch() {   # upd_fetch OUT: in the background · `ok` or `fail` into OUT, once
+  local ssh; local -i rc=0
+  # NOTHING MAY ASK: a password, passphrase or host-key prompt would land on the
+  # cabinet's own keyboard, so a fetch that needs one fails instead.
+  ssh="${GIT_SSH_COMMAND:-$(upd_git config core.sshCommand)}"
+  GIT_SSH_COMMAND="${ssh:-ssh} -o BatchMode=yes -o ConnectTimeout=10" \
+    GIT_HTTP_LOW_SPEED_LIMIT=1000 GIT_HTTP_LOW_SPEED_TIME=20 upd_git fetch --quiet || rc=1
+  # ...and a cabinet that has gone by now takes nothing, so nothing is left behind
+  kill -0 $$ 2>/dev/null || { rm -f -- "$1"; return 0 }
+  { (( rc )) && print -r -- fail || print -r -- ok } > "$1.part" 2>/dev/null \
+    && mv -f -- "$1.part" "$1" 2>/dev/null
+  return 0
+}
+
+upd_poll() {   # 0 once the fetch has answered · UPD_STATE fetched or offline
+  [[ "$UPD_STATE" == asking && -n "$UPD_OUT" && -s "$UPD_OUT" ]] || return 1
+  local r="$(<"$UPD_OUT")"
+  rm -f -- "$UPD_OUT" 2>/dev/null; UPD_OUT=''
+  [[ "$r" == ok ]] && UPD_STATE=fetched || UPD_STATE=offline
+  return 0
+}
+
+upd_hold() {   # upd_hold SKY_T0: 0 while the packs wait on the fetch · may not return
+  [[ -n "$UPD_INO" ]] || return 1
+  if [[ "$UPD_STATE" == asking ]]; then
+    if ! upd_poll; then (( EPOCHREALTIME - UPD_T0 < UPD_WAIT )) && return 0
+    elif [[ "$UPD_STATE" == fetched ]]; then upd_apply; fi
+  fi
+  upd_stale && upd_restart "$1"
+  UPD_INO=''                  # asked once, and the packs go ahead
+  return 1
+}
+
+upd_line() {   # -> UPD_TX UPD_IC the self test's ORIGIN line · UPD_BRIEF the coin door's
+  local st s=''
+  local -i grey=0
+  # an answer that came after the packs stopped waiting is counted, not taken
+  upd_poll && [[ "$UPD_STATE" == fetched ]] && upd_count
+  (( UPD_N == 1 )) || s=S
+  UPD_BRIEF=''
+  case "$UPD_STATE" in
+    updated)    st="UPDATED · ${UPD_FROM:u} → ${UPD_TO:u} · $UPD_N NEW COMMIT$s"
+                UPD_BRIEF="updated to $UPD_TO · $UPD_N new commit${s:l}" ;;
+    current)    st='UP TO DATE' ;;
+    behind)     st="$UPD_N NEW COMMIT$s · TAKEN AT THE NEXT POWER-ON" ;;
+    asking)     st='STILL ASKING · ANYTHING NEW COMES AT THE NEXT POWER-ON' ;;
+    offline)    st='NOT REACHED · LEFT AS IT IS' ;;
+    diverged)   st='HAS COMMITS OF ITS OWN · LEFT AS IT IS' ;;
+    blocked)    st='GIT WOULD NOT FAST-FORWARD · LEFT AS IT IS' ;;
+    nogit)      st='NO GIT ON THIS MAC · NOT CHECKED' ;;
+    ahead)      st='AHEAD OF ORIGIN · NOTHING TO TAKE'; grey=1 ;;
+    noupstream) st='NO UPSTREAM BRANCH · NOT CHECKED'; grey=1 ;;
+    noclone)    st='NOT A GIT CLONE · NOT CHECKED'; grey=1 ;;
+    elsewhere)  st='NOT THE INSTALLED CLONE · NOT CHECKED'; grey=1 ;;
+    off)        st='SWITCHED OFF IN CONFIG · NOT CHECKED'; grey=1 ;;
+    demo)       st='DEMO MACHINE · NOT CHECKED'; grey=1 ;;
+    *)          st='NOT CHECKED'; grey=1 ;;
+  esac
+  if [[ "$UPD_STATE" == (updated|current) ]]; then UPD_IC=$LIME
+  elif (( grey )); then cshade $GREY 1.05; UPD_IC=$CS
+  else cshade $AMBER 0.85; UPD_IC=$CS; fi
+  UPD_TX="$(printf '  %-9s %-16s %s' ORIGIN "${${UPD_BR:u}[0,15]:--}" "$st")"
+  return 0
+}
+
 # THE THREE SEAMS WANT THE READINGS AND NOT THE CEREMONY, so they drain the
 # queue in one go -- as far as the chrome, which they never draw.
 if (( OPT_PROBE )); then load_upto 5; probe_text; exit 0; fi
@@ -12679,6 +12892,8 @@ cleanup() {
   # pty outlives the shell that opened it, and a program left holding one
   # after the cabinet is gone is a process with a terminal nobody will read.
   { gt_all_stop; vc_leave; gt_tmp_sweep } >/dev/null 2>&1
+  # THE FETCH'S ANSWER (SECTION 22c), if nothing got round to reading it
+  [[ -n "$UPD_OUT" ]] && rm -f -- "$UPD_OUT" "$UPD_OUT.part" 2>/dev/null
   # THE LOADING SCREEN'S NOTE (SECTION 22b) is left behind only by a machine
   # that took the cabinet down while it was being got ready -- not by a window
   # closed on it, and not by a cabinet that was not getting anything ready
@@ -12715,6 +12930,9 @@ trap 'cleanup' EXIT
 # arrive in a window of a different size; a cabinet that cannot promise the
 # second half should not accept the first.  [Q] is the way out.
 trap '' TSTP
+# THE CLONE IS BROUGHT UP TO DATE FIRST (SECTION 22c), before the screen is
+# taken and before any machine is read; this power-on's fetch goes out now.
+upd_begin "$@"
 # NO OVERTURE, NO PLACE TO PUT THE LOADING.  Coming back from a machine, or
 # opening into a window too small for the cabinet, there are no stars to load
 # behind -- so the queue is drained HERE, before the alternate screen, where
@@ -12754,6 +12972,8 @@ if (( FITS && ! OPT_BACK && ! BOOT_SAW_FILES )); then
   boot_files
   say "$BOOT_FBRIEF"
 fi
+# ...AND AN UPDATE IS NEWS, for a reader the card did not tell (SECTION 22c)
+if (( FITS && ! UPD_SAW )) && [[ "$UPD_STATE" == updated ]]; then upd_line; say "$UPD_BRIEF"; fi
 # THE MENU IS NOT THE OPENING and does not cost what it cost.  An opening
 # frame paints the whole glass from nothing every time; a menu frame copies a
 # rectangle that was finished once and lays four moving things on it, which

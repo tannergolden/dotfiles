@@ -116,6 +116,27 @@ against a copy, never against your own save.
 
 ---
 
+## 🔄 Updates
+
+The self test's ORIGIN line says what this power-on took from the branch's
+upstream, and `git -C <clone> pull --ff-only` shows git's own reason for any
+line that is not `UPDATED` or `UP TO DATE`.
+
+| The ORIGIN line says                         | Why                                                         | Do                                                           |
+| :------------------------------------------- | :---------------------------------------------------------- | :----------------------------------------------------------- |
+| `NOT REACHED`                                | No network, or a remote that wanted a password or a key     | Fetch once by hand, so git can ask                           |
+| `STILL ASKING`, `TAKEN AT THE NEXT POWER-ON` | The fetch outlasted the two seconds the machines wait       | Nothing: the next power-on takes it                          |
+| `GIT WOULD NOT FAST-FORWARD`                 | A local edit the new commits would overwrite                | Commit, stash or drop the edit                               |
+| `HAS COMMITS OF ITS OWN`                     | The branch and its upstream have both moved                 | Merge or rebase by hand                                      |
+| `NO UPSTREAM BRANCH`                         | A detached HEAD, or a branch that tracks nothing            | `git switch Development`, or `git branch -u origin/<branch>` |
+| `NOT THE INSTALLED CLONE`                    | Your home folder links to another clone                     | Nothing: only that one updates itself                        |
+| `NO GIT ON THIS MAC`                         | No git, or only the stub that offers the Command Line Tools | `xcode-select --install`                                     |
+
+An update that broke the cabinet comes back out with `update = off` in
+`terminal.conf`, then `git -C <clone> reset --keep ORIG_HEAD`.
+
+---
+
 ## 🧰 The Tools
 
 | `--status` or `--tools` says           | Why                                                   | Do                                                        |

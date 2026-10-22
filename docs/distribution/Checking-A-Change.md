@@ -99,6 +99,9 @@ original. Find out why before writing the file again.
   `TERMINAL_MOCK=1 ALIEN_AT=8 zsh terminal.command --once` paints the same
   frame on any machine. A window under 122 x 43 cells gets a line saying so
   instead of a frame.
+- **Only the installed clone updates itself.** A clone you open with
+  `zsh terminal.command` is never fetched or moved, and under `TERMINAL_MOCK`
+  the door runs no git at all.
 - **`--install` is never a test.** It writes your real home folder and the
   switch in this clone's `terminal.conf`.
 

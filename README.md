@@ -116,13 +116,22 @@ loads behind them, the tube warming, then the self test card saying what the
 cabinet found on this Mac. Any key skips it, and **BOOT** set to fast on the
 CONFIG page skips it for good.
 
+**It keeps itself up to date.** While the stars are up, the clone your home
+folder links to fetches its branch's upstream and fast-forwards to any new
+commits, as `git pull --ff-only` would. When they change `terminal.command`,
+the cabinet starts again as the new version. Commits of its own, or local
+edits the new commits would overwrite, leave the clone as it is, and the self
+test's ORIGIN line says which. A fetch slower than two seconds, or any fetch
+with BOOT set to fast, is taken at the next power-on, and **UPDATE** on the
+CONFIG page turns updating off.
+
 | Key                                 | On the menu                                                                                       |
 | :---------------------------------- | :------------------------------------------------------------------------------------------------ |
 | ▲ ▼ or `j` `k`, then ⏎              | Move through the rows and act on one. ⏎ on a machine walks into it.                               |
 | **[T]** TERMINAL                    | Your own login shell, inside the glass. `^]` steps back to the menu with the shell still running. |
 | **[N]** INSTALL / **[U]** UNINSTALL | The installer, on the glass. The row reads INSTALL until all three files are linked.              |
 | **[R]** RESCAN                      | Reads the machine again and shows the self test card.                                             |
-| **[C]** CONFIG                      | Sound, phosphor, frame rate, boot and screen, written straight to `terminal.conf`.                |
+| **[C]** CONFIG                      | Sound, phosphor, frame rate, boot, screen and update, written straight to `terminal.conf`.        |
 | **[V]** VISITOR                     | The visitor's page.                                                                               |
 | **[Q]**                             | Power off, from anywhere. **[Y]** confirms.                                                       |
 
@@ -211,6 +220,7 @@ it does not own.
 | `beat`              | `auto` · `30` · `60` · `120` | The frame rate. CONFIG.                                              |
 | `boot`              | `full` · `fast`              | The whole opening, or straight to the menu. CONFIG.                  |
 | `screen`            | `float` · `fill`             | The cabinet centred in the window, or the glass filling it. CONFIG.  |
+| `update`            | `on` · `off`                 | Whether a power-on takes origin's new commits. CONFIG.               |
 | `terminal.hook`     | `on` · `off`                 | Whether a new window opens the cabinet. Only exactly `on` opens it.  |
 | `arcade.attract`    | `on` · `off`                 | The demo reel after 20 idle seconds. The arcade's SETTINGS.          |
 | `arcade.freeplay`   | `on` · `off`                 | Play without coins, and earn none. The arcade's SETTINGS.            |

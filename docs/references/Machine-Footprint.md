@@ -45,6 +45,11 @@ What each key of `terminal.conf` does is in the Settings section of the
 in the state folder, which is why a committed one would take over every
 machine that cloned it.
 
+**The installed clone moves at power-on.** The door fetches the checked-out
+branch's upstream into `.git` and, when the branch is only behind, runs
+`git merge --ff-only`, so tracked files change without a command from you.
+`update = off` in `terminal.conf` stops both.
+
 ---
 
 ## 🏠 In The Home Folder
@@ -110,7 +115,7 @@ rules write is the hub's to say: [AI Agent Rules](../technical/AI-Agent-Rules.md
 ## ⏳ Temporary Files
 
 Every temporary file the suite makes is named `alien-` and something, in
-`${TMPDIR:-/tmp}`, and is taken away by the code that made it. Three are worth
+`${TMPDIR:-/tmp}`, and is taken away by the code that made it. Four are worth
 knowing by name:
 
 | Name                                       | Made by                                                                         |
@@ -118,6 +123,7 @@ knowing by name:
 | `alien-pack.<pid>`, `alien-pack.<pid>.log` | The door: its breadcrumb around a pack it sources, and the pack's stderr        |
 | `alien-term.*`                             | The door: its AppleScripts, their errors, and its stderr while the screen is up |
 | `alien-sys.*`                              | SYSTEM: the reading it takes in the background                                  |
+| `alien-update.*`                           | The door: what the fetch it starts at power-on answered                         |
 
 INTELLIGENCE's request bodies and answers (`alien-chat`, `alien-rw` and the
 rest) are made with `mktemp` and set to mode 600. When a pack takes the
@@ -164,6 +170,7 @@ parts, not settings:
 | `ALIEN_REPORT`                      | The door                    | The installer, which then answers in records                                   |
 | `PACK_SOURCED`                      | The door                    | A pack, which then knows it was sourced and not run                            |
 | `ALIEN_GLASS`, `ALIEN_INTELLIGENCE` | The door                    | Every program started in the terminal on the glass, the **[T]** shell included |
+| `ALIEN_UPDATED`, `ALIEN_SKY_T0`     | The door                    | The door it starts again after an update, which reads and unsets them          |
 
 ---
 
