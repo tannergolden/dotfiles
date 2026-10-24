@@ -113,7 +113,8 @@ in `warm-skip` is read only when you open it, until its file changes; delete
 
 `--uninstall` stops ollama's login service, uninstalls the Brewfile's
 formulas, runs `brew autoremove` and takes the agent rules out. Homebrew
-itself, the cloud agents and the models stay.
+itself, the cloud agents and the models stay, so take those off on their
+pages first, while the cabinet and ollama are still here.
 
 The cloud agents' install lines are `IN_GET` in
 [`scripts/suite/intelligence.zsh`](../../scripts/suite/intelligence.zsh), and

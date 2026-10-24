@@ -175,9 +175,10 @@ zsh scripts/bootstrap.zsh --uninstall --plan   # what would go, with nothing cha
 zsh scripts/bootstrap.zsh --uninstall          # all of it, this clone last
 ```
 
-Homebrew itself stays, and so do the cloud agents and the models, which come
-off with **[U]** on INTELLIGENCE's CLOUD and LOCAL pages. `--remove` takes out
-the hook alone and leaves the rest.
+Homebrew itself stays, and so do the cloud agents and the models. Take those
+off first, with **[U]** on INTELLIGENCE's CLOUD and LOCAL pages, while the
+cabinet and ollama are still here. `--remove` takes out the hook alone and
+leaves the rest.
 
 ---
 
