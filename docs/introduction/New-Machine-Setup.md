@@ -164,15 +164,20 @@ safe: the hook opens nothing, and `alien` says it cannot find the door. Run
 
 ## 🚪 Taking A Machine Back
 
+**[U] UNINSTALL** on the cabinet's menu takes back everything the suite put
+on the Mac. It copies `terminal.save` and `terminal.conf` to a new folder in
+`~/Downloads`, powers the cabinet off, and then removes the hook and what it
+left, the state folder, ollama's login service and the Brewfile's tools, the
+agent rules, and last the clone. From a prompt in the clone:
+
 ```zsh
-zsh scripts/bootstrap.zsh --remove   # the block out, the three links gone, the switch off
-make agents-uninstall                # each app's rules put back as they were
-brew services stop ollama            # ollama no longer started at login
+zsh scripts/bootstrap.zsh --uninstall --plan   # what would go, with nothing changed
+zsh scripts/bootstrap.zsh --uninstall          # all of it, this clone last
 ```
 
-`--remove` leaves `~/.zshrc.pre-alien`, the state folder and Homebrew's tools
-where they are. Each tool comes off with `brew uninstall <name>`, and the
-cloud agents with **[U]** on INTELLIGENCE's CLOUD page.
+Homebrew itself stays, and so do the cloud agents and the models, which come
+off with **[U]** on INTELLIGENCE's CLOUD and LOCAL pages. `--remove` takes out
+the hook alone and leaves the rest.
 
 ---
 

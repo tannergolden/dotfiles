@@ -45,6 +45,11 @@ What each key of `terminal.conf` does is in the Settings section of the
 in the state folder, which is why a committed one would take over every
 machine that cloned it.
 
+`--uninstall` copies `terminal.save` and `terminal.conf` to a new
+`alien-backup-<date>-<time>` folder in `~/Downloads` before it deletes the
+clone, so copying them back beside `terminal.command` in a fresh clone carries
+on where you were.
+
 **The installed clone moves at power-on.** The door fetches the checked-out
 branch's upstream into `.git` and, when the branch is only behind, runs
 `git merge --ff-only`, so tracked files change without a command from you.
@@ -59,12 +64,14 @@ branch's upstream into `.git` and, when the branch is only behind, runs
 | `~/.config/zsh/conf.d/00-alien-path.zsh`     | `--install`, as a link into the clone        | `--remove`     |
 | `~/.config/zsh/conf.d/10-alien-terminal.zsh` | `--install`, as a link into the clone        | `--remove`     |
 | `~/.local/bin/alien`                         | `--install`, as a link into the clone        | `--remove`     |
-| `~/<leaf>.pre-alien`                         | `--install`, for a real file in a link's way | By hand        |
+| `~/<leaf>.pre-alien`                         | `--install`, for a real file in a link's way | `--uninstall`  |
 | The block in `~/.zshrc`                      | `--install`, between its two marks           | `--remove`     |
-| `~/.zshrc.pre-alien`                         | `--install`, once, before the first block    | By hand        |
+| `~/.zshrc.pre-alien`                         | `--install`, once, before the first block    | `--uninstall`  |
 
 `--remove` unlinks only links that still point into this clone, so a link
-somebody pointed elsewhere is left alone.
+somebody pointed elsewhere is left alone. `--uninstall`, which **[U]**
+UNINSTALL runs, takes off every row here: a file moved aside goes back under
+its own name, and a `~/.zshrc` the install made goes once nothing else is in it.
 
 ---
 
@@ -72,8 +79,8 @@ somebody pointed elsewhere is left alone.
 
 `~/.local/state/alien/` holds the suite's short-lived facts and the configs
 INTELLIGENCE writes. The installer makes it, and every writer makes it again
-on the way if it is missing. Nothing takes it off: delete it by hand once the
-suite is gone, keeping `terminal.save` if your progress lives there.
+on the way if it is missing. `--uninstall` takes it off, after copying a
+`terminal.save` that lives there to `~/Downloads`.
 
 | File                  | Written by                                                | Holds                                                                   |
 | :-------------------- | :-------------------------------------------------------- | :---------------------------------------------------------------------- |
@@ -103,6 +110,10 @@ in `warm-skip` is read only when you open it, until its file changes; delete
 | Claude Code, Antigravity, Grok Build, Codex          | **[I]** on INTELLIGENCE's CLOUD page, each vendor's line | **[U]** on the same page    |
 | Models                                               | **[I]** on INTELLIGENCE's LOCAL page                     | **[U]** on the same page    |
 | The universal agent rules, in each app's home folder | `make agents`                                            | `make agents-uninstall`     |
+
+`--uninstall` stops ollama's login service, uninstalls the Brewfile's
+formulas, runs `brew autoremove` and takes the agent rules out. Homebrew
+itself, the cloud agents and the models stay.
 
 The cloud agents' install lines are `IN_GET` in
 [`scripts/suite/intelligence.zsh`](../../scripts/suite/intelligence.zsh), and

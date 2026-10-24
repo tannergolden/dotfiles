@@ -82,6 +82,8 @@ It is safe to run twice. Open a new window and the cabinet powers up.
 | `zsh scripts/bootstrap.zsh --plan`               | The exact lines `--tools` would run, with nothing run.                                                                                                |
 | `zsh scripts/bootstrap.zsh --hook on` (or `off`) | The switch alone.                                                                                                                                     |
 | `zsh scripts/bootstrap.zsh --remove`             | Takes the block out of `~/.zshrc`, unlinks the three files and turns the switch off. `~/.zshrc.pre-alien` and the Homebrew tools are left alone.      |
+| `zsh scripts/bootstrap.zsh --uninstall`          | What **[U]** UNINSTALL runs: your progress and settings copied to `~/Downloads`, then everything else out, this clone last. Asks nothing.             |
+| `zsh scripts/bootstrap.zsh --uninstall --plan`   | What `--uninstall` would take out, with nothing taken out.                                                                                            |
 
 **Looking needs no install.** Double-click `terminal.command`, or run
 `zsh terminal.command`, and the cabinet comes up anyway. **[N] INSTALL** on its

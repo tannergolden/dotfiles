@@ -336,6 +336,7 @@ do_status() {
   print -r -- "  ${D}--plan         the exact lines --tools would run, and nothing run${N}"
   print -r -- "  ${D}--hook on|off  the switch only${N}"
   print -r -- "  ${D}--remove       take the hook back out · no questions${N}"
+  print -r -- "  ${D}--uninstall    everything back out, the tools and this clone too · progress copied to ~/Downloads first${N}"
   print -r -- ''
 }
 
@@ -455,6 +456,164 @@ page_reset() {
   return 0
 }
 
+# ── [U] UNINSTALL · EVERYTHING THIS FOLDER PUT ON THE MAC, THEN THE FOLDER ─
+# --remove takes the hook out and nothing else, because it is the way out
+# printed for somebody locked out of a window and must cost them nothing
+# more.  --uninstall is the menu's [U], and it leaves nothing behind.
+# TERMINAL powers off before it runs, since the last thing to go is the folder
+# the cabinet is read from.  `--uninstall --plan` has every step say what it
+# would do and do none of it: the glass asks its question over those lines,
+# so the plan and the work are the same code.
+typeset -gi DRY=0 KEEP=0   # KEEP: something only this clone can finish is undone
+
+gone() {   # gone PATH · under --plan say it, otherwise take it away and say so
+  [[ -e "$1" || -L "$1" ]] || return 0
+  if (( DRY )); then note "${1/#$HOME/~}"; return 0; fi
+  rm -rf -- "$1" 2>/dev/null && ok "took away ${1/#$HOME/~}" || bad "cannot take away ${1/#$HOME/~}"
+  return 0
+}
+
+un_hook() {   # the block, the links, and the copies the install made on the way in
+  local leaf f what=''
+  local -i n=0
+  if (( DRY )); then
+    for leaf in "${LEAVES[@]}"; do
+      [[ "$(readlink "$HOME/$leaf" 2>/dev/null)" == "$REPO/home/$leaf" ]] && (( n++ ))
+      [[ -e "$HOME/$leaf.pre-alien" ]] && note "~/$leaf.pre-alien, back to its own name"
+    done
+    (( n )) && what="the $n links into this clone"
+    zrc_has && what+="${what:+, and }the block in ${ZRC/#$HOME/~}"
+    [[ -n "$what" ]] && note "$what"
+    [[ -e "$ZRC.pre-alien" ]] && note "${ZRC/#$HOME/~}.pre-alien"
+    return 0
+  fi
+  do_unlink
+  # A FILE OF YOURS THE INSTALL MOVED ASIDE GOES BACK UNDER ITS OWN NAME
+  for leaf in "${LEAVES[@]}"; do
+    f="$HOME/$leaf"
+    [[ -e "$f.pre-alien" ]] || continue
+    if [[ -e "$f" || -L "$f" ]]; then warn "~/$leaf.pre-alien stays: something else is at ~/$leaf"
+    else mv -f "$f.pre-alien" "$f" 2>/dev/null && ok "put ~/$leaf back"; fi
+  done
+  # THE COPY IS ~/.zshrc AS IT WAS BEFORE THE FIRST BLOCK.  With the block out,
+  # ~/.zshrc is that file plus whatever you added since, so the copy goes, or
+  # comes back as ~/.zshrc when there is none.  A ~/.zshrc the install made,
+  # with nothing left in it, goes too.  A block that could not come out keeps
+  # its copy.
+  do_unzrc || return 0
+  if [[ -e "$ZRC.pre-alien" && -e "$ZRC" ]]; then gone "$ZRC.pre-alien"
+  elif [[ -e "$ZRC.pre-alien" ]]; then
+    mv -f "$ZRC.pre-alien" "$ZRC" 2>/dev/null && ok "put ${ZRC/#$HOME/~} back from its copy"
+  elif [[ -f "$ZRC" && -z "${$(<"$ZRC")//[[:space:]]}" ]]; then gone "$ZRC"
+  fi
+  return 0
+}
+
+un_tools() {   # the Brewfile's formulas, and ollama starting at login
+  local brew='' f line
+  local -a have want
+  for brew in "$(whence -p brew 2>/dev/null)" /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    [[ -n "$brew" && -x "$brew" ]] && break
+  done
+  [[ -n "$brew" && -x "$brew" ]] || { ok "no homebrew, so none of its tools to take out"; return 0 }
+  if runner_service_on; then
+    if (( DRY )); then note "brew services stop ollama"
+    else "$brew" services stop ollama >/dev/null 2>&1 && ok "ollama no longer starts at login" \
+                                                     || bad "brew services could not stop ollama"; fi
+  fi
+  # THE BREWFILE SAYS WHICH, so the list that put them in takes them out
+  if [[ -r "$BREWFILE" ]]; then
+    have=(${(f)"$("$brew" list --formula -1 2>/dev/null)"})
+    while IFS= read -r line; do
+      [[ "$line" == brew\ \"*\"* ]] || continue
+      f="${${line#brew \"}%%\"*}"
+      (( ${have[(Ie)$f]} )) && want+=("$f")
+    done < "$BREWFILE"
+  fi
+  (( ${#want[@]} )) || { ok "none of the Brewfile's tools are installed"; return 0 }
+  if (( DRY )); then note "brew uninstall --formula ${want[*]}, then brew autoremove"; return 0; fi
+  # ONE AT A TIME: brew refuses a formula something else still needs, and
+  # that refusal must not keep the others in place
+  for f in "${want[@]}"; do
+    "$brew" uninstall --formula "$f" && ok "uninstalled $f" \
+      || bad "$f stays: brew says why above, and brew uses --installed $f names what needs it"
+  done
+  "$brew" autoremove && ok "brew autoremove took away what only they needed"
+  return 0
+}
+
+un_rules() {   # what make agents put in each AI app, put back the way the kit found it
+  local line v=''
+  [[ -r "$REPO/agents/intelligence.pin" ]] && while IFS= read -r line; do
+    [[ "$line" == version=* ]] && { v="${line#version=}"; break }
+  done < "$REPO/agents/intelligence.pin"
+  [[ -n "$v" ]] || { ok "agents/intelligence.pin names no release, so no agent rules came from it"; return 0 }
+  if (( DRY )); then note "sh agents/home-kit.sh uninstall, for release $v"; return 0; fi
+  sh "$REPO/agents/home-kit.sh" uninstall && { ok "the agent rules are out of every AI app"; return 0 }
+  bad "the agent rules are still in, so this clone stays: run make agents-uninstall in it"
+  KEEP=1
+  return 0
+}
+
+un_clone() {   # last, this folder, unless something only it can finish is undone
+  local p="${REPO/#$HOME/~}" f why=''
+  # NEVER A FOLDER THAT IS NOT PLAINLY THE CLONE.  Its own git checkout, and
+  # not / or ~: these files copied loose into a folder of yours make that
+  # folder look like the repository, and everything else in it would go too.
+  [[ "$REPO" != / && "$REPO" != "$HOME" && -e "$REPO/.git" && -f "$REPO/terminal.command" ]] \
+    || why='it is not a git clone of the dotfiles, so delete it yourself'
+  (( KEEP )) && why='make agents-uninstall still has to run from it'
+  if [[ -n "$why" ]]; then
+    # ...and what it holds of yours goes anyway, since Downloads has a copy
+    (( DRY )) || for f in "$REPO"/terminal.(conf|save)(|.*)(N); do gone "$f"; done
+    warn "$p stays: $why"; return 0
+  fi
+  if (( DRY )); then
+    # THE WORDS BEFORE THE PATH: a long one runs off the glass, and the line
+    # must still say what it is about
+    note "this clone, last, and the folders left empty under ~/.config and ~/.local: $p"
+    [[ -n "$(git -C "$REPO" status --porcelain 2>/dev/null)$(git -C "$REPO" log --oneline '@{upstream}..' 2>/dev/null)" ]] \
+      && warn "the clone holds work that is not pushed, and that goes too"
+    return 0
+  fi
+  rm -rf -- "$REPO" 2>/dev/null && ok "took away $p" || { bad "cannot take away $p"; return 0 }
+  [[ "$PWD/" == "$REPO/"* ]] && note "this window's prompt is in a folder that is gone now: cd ~"
+  return 0
+}
+
+do_uninstall() {
+  local f to out='' d
+  local -a src
+  # THE BACKUP FIRST, AND NOTHING GOES WITHOUT IT.  terminal.save is every
+  # machine's progress and terminal.conf every setting; a copy that fails stops
+  # here, before anything is taken away.
+  for f in "$CONF" "$REPO/terminal.save" "$STATED/terminal.save"; do [[ -f "$f" ]] && src+=("$f"); done
+  if (( ! ${#src[@]} )); then ok "no progress or settings to back up"
+  elif (( DRY )); then note "copy ${(j: and :)${(@u)src:t}} to a new folder in ~/Downloads"
+  else
+    out="$HOME/Downloads/alien-backup-$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$out" 2>/dev/null || { bad "cannot make ${out/#$HOME/~}, so nothing was taken out"; return 1 }
+    for f in "${src[@]}"; do
+      # a save in the state folder behind the one in use keeps its own name
+      to="$out/${f:t}"; [[ -e "$to" ]] && to="$out/unused-${f:t}"
+      cp -p "$f" "$to" 2>/dev/null || { bad "cannot copy ${f/#$HOME/~}, so nothing was taken out"; return 1 }
+    done
+    ok "copied ${(j: and :)${(@u)src:t}} to ${out/#$HOME/~}"
+  fi
+  un_hook
+  gone "$STATED"
+  un_tools
+  un_rules
+  # THE FOLDERS THE INSTALL MADE, deepest first, each only once it is empty
+  (( DRY )) || for d in "$CONFD" "${CONFD:h}" "$HOME/.config/zsh/conf.d" "$HOME/.config/zsh" \
+                        "$HOME/.config" "$HOME/.local/bin" "${STATED:h}" "$HOME/.local"; do
+    [[ -d "$d" ]] && rmdir -- "$d" 2>/dev/null && ok "took away the empty ${d/#$HOME/~}"
+  done
+  un_clone
+  [[ -n "$out" ]] && note "to bring your progress back, copy what is in ${out/#$HOME/~} beside terminal.command"
+  return 0
+}
+
 # ── THE ARGUMENTS ARE THE DOOR'S, AND THEN THIS FILE'S ────────────────────
 case "${1:-}" in
   '')            page_install ;;
@@ -472,6 +631,10 @@ case "${1:-}" in
                  note "ollama, llama.cpp, opencode and node stay — they are homebrew's: brew uninstall <name>"
                  note "so does ollama at login — brew services stop ollama takes it off"
                  print -r -- '' ;;
+  # EVERYTHING · the menu's [U], after TERMINAL has powered off · or its plan
+  --uninstall)   [[ "${2:-}" == --plan ]] && DRY=1
+                 (( RPT )) || print -r -- $'\n'"${B}ALIEN dotfiles · uninstall${N}  ${D}$REPO${N}"$'\n'
+                 do_uninstall; print -r -- '' ;;
   # THE TOOLS · interactive, in the terminal · and the plan, as records
   --tools)       do_tools ;;
   --plan)        RPT=1; do_plan ;;
@@ -487,6 +650,6 @@ case "${1:-}" in
   --status)      do_status ;;
   # THE GLASS'S OWN WAY IN · records only, no page around them
   --report)      RPT=1; do_checks ;;
-  *) print -r -- "usage: $SELF [--on install|reset] [--install] [--tools] [--plan] [--remove] [--hook on|off] [--status] [--report]"
+  *) print -r -- "usage: $SELF [--on install|reset] [--install] [--tools] [--plan] [--remove] [--uninstall [--plan]] [--hook on|off] [--status] [--report]"
      exit 2 ;;
 esac

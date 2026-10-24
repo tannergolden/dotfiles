@@ -123,6 +123,18 @@ again.
 this clone, and turns the switch off. It leaves `.zshrc.pre-alien`, the state
 folder and Homebrew's tools where they are.
 
+`--uninstall` leaves nothing. It copies `terminal.save` and `terminal.conf` to
+a new `alien-backup-<date>-<time>` folder in `~/Downloads`, and stops before
+changing anything if that copy fails. Then it takes out the block and the
+links, puts back any file it moved aside, and deletes `.zshrc.pre-alien` (or
+puts it back as `.zshrc` when there is none), a `.zshrc` it made that is now
+empty, and the state folder. It stops ollama's login service, uninstalls the
+Brewfile's formulas one at a time, runs `brew autoremove`, and runs
+`agents/home-kit.sh uninstall` when the pin names a release. Last it deletes
+the folders left empty under `~/.config` and `~/.local`, and the clone. A
+clone whose agent rules could not come out stays, so `make agents-uninstall`
+can run from it, and so does a folder that is not a git clone.
+
 > [!WARNING]
 > **The links always go under `~/.config` and `~/.local/bin`.** The block
 > sources `$XDG_CONFIG_HOME/zsh/conf.d` when `XDG_CONFIG_HOME` is set, and the
@@ -146,16 +158,20 @@ colour. The door draws those records on the glass itself.
 | `--on reset`         | Its checks and a question, then the block out, the links gone and the switch off                                       |
 | `--install`          | The links, the block and the switch, asking nothing                                                                    |
 | `--remove`           | The block out, the links gone and the switch off, asking nothing                                                       |
+| `--uninstall`        | A copy of the save and the config in `~/Downloads`, then everything else out, this clone last, asking nothing          |
+| `--uninstall --plan` | The steps `--uninstall` would take, with none of them taken                                                            |
 | `--tools`            | Homebrew if it is missing, `brew bundle` on the Brewfile, then ollama started at login                                 |
 | `--plan`             | The lines `--tools` would run, as records, with nothing run                                                            |
 | `--report`           | The checks alone, as records                                                                                           |
 | `--status`           | The checks, as a page                                                                                                  |
 | `--hook on`, `off`   | The switch alone                                                                                                       |
 
-The door runs `--report`, `--install`, `--remove` and `--plan` and reads their
-records back. It hands the real terminal to `--tools`, which is interactive
-because Homebrew asks for a password. Under `TERMINAL_MOCK` it runs only
-`--report`, and says nothing on the machine was touched.
+The door runs `--report`, `--install`, `--plan` and `--uninstall --plan` and
+reads their records back. It hands the real terminal to `--tools`, which is
+interactive because Homebrew asks for a password. **[U] UNINSTALL** powers the
+cabinet off and becomes `--uninstall` with `exec`, since the clone it is read
+from is the last thing to go. Under `TERMINAL_MOCK` it runs only `--report`
+and `--uninstall --plan`, and says nothing on the machine was touched.
 
 So a change here keeps three promises:
 
