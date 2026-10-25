@@ -1,12 +1,12 @@
 <!--
-title: '👽 THE ALIEN SUITE'
+title: '👽 DOTFILES'
 description: 'A synthwave arcade cabinet that runs inside macOS Terminal, written entirely in zsh: one door, four machines, and the three shell files that hook it in.'
 type: index
 -->
 
 <div align="center">
 
-# 👽 THE ALIEN SUITE
+# 👽 DOTFILES
 
 <a name="top"></a>
 
