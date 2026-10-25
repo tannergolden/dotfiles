@@ -47,7 +47,7 @@
 /.github/ISSUE_TEMPLATE/Feedback-Report.yaml
 /.github/ISSUE_TEMPLATE/Performance-Report.yaml
 /.github/ISSUE_TEMPLATE/README.md
-/.github/ISSUE_TEMPLATE/Vulnerability-Report.yaml
+#/.github/ISSUE_TEMPLATE/Vulnerability-Report.yaml
 /.github/ISSUE_TEMPLATE/config.yml
 /.github/SECURITY.md
 /.github/SUPPORT.md
@@ -83,6 +83,7 @@
 /.github/workflows/prune-runs.yml
 /.github/workflows/release.yml
 /.github/workflows/scorecard.yml
+/.github/workflows/semantic-pr.yml
 /.github/workflows/template-sync.yml
 /.github/workflows/verify-stubs.yml
 
@@ -161,6 +162,7 @@
 #/assets/**
 #/benchmarks/**
 #/docs/adrs/ADR-0001-Record-Architecture-Decisions.md
+#/examples/**
 #/packages/**
 #/src/**
 #/tests/**
