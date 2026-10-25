@@ -34,17 +34,16 @@ Discussions as the only ways in.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log fields=name -->
 
-| Entry                                                    | Name                                   | Purpose                                                                                                                                    |
-| :------------------------------------------------------- | :------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| [`Accessibility-Report.yaml`](Accessibility-Report.yaml) | &#x267F; Accessibility Report          | &#x26D1;&#xFE0F; Report accessibility issues to improve compliance and inclusive User Experience (UX).                                     |
-| [`Bug-Report.yaml`](Bug-Report.yaml)                     | &#x1F41B; Bug Report                   | &#x1F41E; Report a defect, regression, or unexpected behavior so we can reproduce and fix it quickly.                                      |
-| [`config.yml`](config.yml)                               | -                                      | Steer reporters into the right template, and keep vulnerability reports PRIVATE.                                                           |
-| [`Documentation-Report.yaml`](Documentation-Report.yaml) | &#x1F4DA; Documentation Report         | &#x1F4D6; Report documentation gaps, inaccuracies, outdated sections, or clarity issues so we can correct and improve them.                |
-| [`Feature-Request.yaml`](Feature-Request.yaml)           | &#x2728; Feature Request               | &#x1FA84; Propose new functionality or enhancements with clear acceptance criteria, rationale, and success metrics.                        |
-| [`Feedback-Report.yaml`](Feedback-Report.yaml)           | &#x1F4DD; Feedback Report              | &#x1F4A1; Share feedback, suggestions, or usability insights to help us improve the project.                                               |
-| [`Performance-Report.yaml`](Performance-Report.yaml)     | &#x1F680; Performance Report           | &#x26A1;&#xFE0F; Report slow pages, high latency, memory spikes, or inefficiencies so we can measure, reproduce, and optimize performance. |
-| [`README.md`](README.md)                                 | -                                      | This file.                                                                                                                                 |
-| [`Vulnerability-Report.yaml`](Vulnerability-Report.yaml) | &#x1F6E1;&#xFE0F; Vulnerability Report | PRIVATE repos only: report suspected vulnerabilities here. For PUBLIC repos, do not open an issue - use SECURITY.md for private reporting. |
+| Entry                                                    | Name                           | Purpose                                                                                                                                    |
+| :------------------------------------------------------- | :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| [`Accessibility-Report.yaml`](Accessibility-Report.yaml) | &#x267F; Accessibility Report  | &#x26D1;&#xFE0F; Report accessibility issues to improve compliance and inclusive User Experience (UX).                                     |
+| [`Bug-Report.yaml`](Bug-Report.yaml)                     | &#x1F41B; Bug Report           | &#x1F41E; Report a defect, regression, or unexpected behavior so we can reproduce and fix it quickly.                                      |
+| [`config.yml`](config.yml)                               | -                              | Steer reporters into the right template, and keep vulnerability reports PRIVATE.                                                           |
+| [`Documentation-Report.yaml`](Documentation-Report.yaml) | &#x1F4DA; Documentation Report | &#x1F4D6; Report documentation gaps, inaccuracies, outdated sections, or clarity issues so we can correct and improve them.                |
+| [`Feature-Request.yaml`](Feature-Request.yaml)           | &#x2728; Feature Request       | &#x1FA84; Propose new functionality or enhancements with clear acceptance criteria, rationale, and success metrics.                        |
+| [`Feedback-Report.yaml`](Feedback-Report.yaml)           | &#x1F4DD; Feedback Report      | &#x1F4A1; Share feedback, suggestions, or usability insights to help us improve the project.                                               |
+| [`Performance-Report.yaml`](Performance-Report.yaml)     | &#x1F680; Performance Report   | &#x26A1;&#xFE0F; Report slow pages, high latency, memory spikes, or inefficiencies so we can measure, reproduce, and optimize performance. |
+| [`README.md`](README.md)                                 | -                              | This file.                                                                                                                                 |
 
 <!-- AUTO-INDEX:END -->
 
