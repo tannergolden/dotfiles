@@ -48,9 +48,10 @@ the folder holds.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
-| Entry                    | Purpose    |
-| :----------------------- | :--------- |
-| [`README.md`](README.md) | This file. |
+| Entry                                      | Purpose                                                                                                                                                                                                                                                           |
+| :----------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`README.md`](README.md)                   | This file.                                                                                                                                                                                                                                                        |
+| [`Troubleshooting.md`](Troubleshooting.md) | What each message and symptom from the hook, the cabinet, the installer and the agent kit means, and what to do about it, from a window that opens no cabinet to a pin that does not match. Read it when something on a machine does not do what the README says. |
 
 <!-- AUTO-INDEX:END -->
 

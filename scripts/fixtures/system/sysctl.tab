@@ -1,0 +1,10 @@
+hw.cpufrequency_max	0
+hw.logicalcpu	16
+hw.memsize	38654705664
+hw.model	Mac16,7
+hw.perflevel0.logicalcpu	12
+hw.perflevel1.logicalcpu	4
+hw.physicalcpu	16
+kern.memorystatus_vm_pressure_level	1
+machdep.cpu.brand_string	Apple M3 Max
+vm.swapusage	total = 2048.00M  used = 411.25M  free = 1636.75M  (encrypted)

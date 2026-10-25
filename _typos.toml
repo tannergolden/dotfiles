@@ -1,0 +1,128 @@
+# --- Spell-Check Configuration ---
+#
+# The spell check's accepted words and exclusions for this repository,
+# passed to CI as `typos-config` in .github/workflows/checks.yml.
+#
+# ⚠️ AN OVERRIDE REPLACES THE SHARED FILE, IT DOES NOT EXTEND IT. So
+# everything here but the ALIEN suite's entries is tannergolden/standards'
+# config/_typos.toml at v1, copied as it was, and a word added there has to
+# be added here as well.
+#
+# Additive by design. A word missing here fails a build that should have
+# passed, so err toward adding the term rather than rewording the sentence.
+#
+# ---
+
+[files]
+extend-exclude = [
+  "_typos.toml",
+  "lychee.md",
+  "package-lock.json",
+  ".config/",
+  ".cursorrules",
+  ".windsurfrules",
+  "LICENSE",
+  # A drawn SVG is glyph outlines, coordinates and hashed ids, not prose,
+  # and a hex id can spell a two-letter word: "p33ba0b" reads as "ba".
+  # What the drawing says comes from a data file, which is checked.
+  "*.svg",
+  # The ALIEN suite's code. Its zsh is dense with short names (AR_SHW_N,
+  # SR_DIVET, IZ_, thr) and carries its sprites as encoded strings (VN_AF,
+  # VN_AL), which typos read as about 1,400 misspellings in October 2026,
+  # none of them one. Renaming a name or a cell to please it would break the
+  # suite. The cost is that the comments in these five files go unchecked;
+  # the README, the installer and the shell hooks are still read.
+  "terminal.command",
+  "scripts/suite/*.zsh",
+]
+
+[default.extend-words]
+a11y = "a11y"
+ADR = "ADR"
+ADRs = "ADRs"
+adrs = "adrs"
+agentic = "agentic"
+Agentic = "Agentic"
+Ansible = "Ansible"
+Antigravity = "Antigravity"
+AppVeyor = "AppVeyor"
+AWS = "AWS"
+Azure = "Azure"
+CFR = "CFR"
+cheatsheets = "cheatsheets"
+Cheatsheets = "Cheatsheets"
+checkmarx = "checkmarx"
+CircleCI = "CircleCI"
+codeowners = "codeowners"
+CODEOWNERS = "CODEOWNERS"
+CodeQL = "CodeQL"
+conventionalcommits = "conventionalcommits"
+declutters = "declutters"
+Dependabot = "Dependabot"
+Docker = "Docker"
+docstrings = "docstrings"
+Docstrings = "Docstrings"
+DORA = "DORA"
+ESLint = "ESLint"
+GCP = "GCP"
+GitHub = "GitHub"
+gitkraken = "gitkraken"
+glassmorphism = "glassmorphism"
+Husky = "Husky"
+Jenkins = "Jenkins"
+Jules = "Jules"
+Kafka = "Kafka"
+KPI = "KPI"
+KPIs = "KPIs"
+Kubernetes = "Kubernetes"
+lineal = "lineal"
+lockfiles = "lockfiles"
+LTS = "LTS"
+lycheeverse = "lycheeverse"
+Markdownlint = "Markdownlint"
+MFA = "MFA"
+mojibake = "mojibake"
+MTBF = "MTBF"
+MTTR = "MTTR"
+Netlify = "Netlify"
+npm = "npm"
+nvm = "nvm"
+nvmrc = "nvmrc"
+nwo = "nwo" # jekyll-github-metadata's repository_nwo ("name with owner"), used by _layouts/
+OIDC = "OIDC"
+opensourceinitiative = "opensourceinitiative"
+passwordless = "passwordless"
+pip = "pip"
+PostgreSQL = "PostgreSQL"
+Prettier = "Prettier"
+Pulumi = "Pulumi"
+pyenv = "pyenv"
+pytest = "pytest"
+quad-tier = "quad-tier"
+RabbitMQ = "RabbitMQ"
+RBAC = "RBAC"
+Redis = "Redis"
+RPO = "RPO"
+RTO = "RTO"
+SBOM = "SBOM"
+SemVer = "SemVer"
+SLA = "SLA"
+SLI = "SLI"
+SLO = "SLO"
+SQLite = "SQLite"
+stefanzweifel = "stefanzweifel"
+Stylelint = "Stylelint"
+Supabase = "Supabase"
+tannergolden = "tannergolden"
+Terraform = "Terraform"
+TOTP = "TOTP"
+toupper = "toupper"
+TravisCI = "TravisCI"
+UAT = "UAT"
+unparseable = "unparseable" # accepted variant of "unparsable"; used across the label parser, governance gate, and research-shelf lifecycle
+Vercel = "Vercel"
+vite = "vite"
+vitest = "vitest"
+WCAG = "WCAG"
+WebAuthn = "WebAuthn"
+XSS = "XSS"

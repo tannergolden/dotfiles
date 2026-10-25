@@ -1,0 +1,7 @@
+# The intelligence release this machine installs, and the SHA-256 of each
+# file it downloads. Change it with make agents-pin VERSION=vX.Y.Z, compare
+# the hashes with make pins VERSION=vX.Y.Z in the hub, then commit it.
+version=
+home_sha256=
+install_sha256=
+kit_sha256=

@@ -1,0 +1,4 @@
++-o IOBlockStorageDriver  <class IOBlockStorageDriver>
+    "Statistics" = {"Operations (Read)"=8812044,"Bytes (Read)"=904188220144,
+    "Operations (Write)"=4188223,"Bytes (Write)"=288411220884,
+    "Latency Time (Read)"=0,"Latency Time (Write)"=0}

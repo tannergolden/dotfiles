@@ -146,3 +146,18 @@ docs/**  linguist-documentation=true
 .gitignore     export-ignore
 .editorconfig  export-ignore
 .git-blame-ignore-revs export-ignore
+
+# --- The ALIEN suite ---------------------------------------------------------
+#
+# zsh reads a stray carriage return as part of a command (`$'\r': command not
+# found`), so every file the suite runs or sources is pinned to LF. The rules
+# above already cover *.zsh; the door is a .command, and the launcher and the
+# Brewfile have no extension at all. Markdown is pinned with them.
+*.command             text eol=lf
+home/.local/bin/alien text eol=lf
+Brewfile              text eol=lf
+*.md                  text eol=lf
+
+# A property list may be XML or Apple's binary format. `-text` never touches
+# its line endings, where bare `text` would corrupt the binary kind.
+*.plist -text

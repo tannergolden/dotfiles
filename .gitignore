@@ -223,3 +223,91 @@ playwright/.cache/
 _site/
 .jekyll-cache/
 .jekyll-metadata
+
+# --- Dotfiles: What Must Never Be Committed ---
+#
+# This repository is public, and it holds a home directory's configuration,
+# which is where a machine keeps its keys, its tokens and a record of
+# everything typed into it. Every rule here is unanchored or starts with
+# `**/`, so it holds wherever a file lands in the tree.
+#
+# ⚠️ AN IGNORE RULE KEEPS A KNOWN FILE OUT, AND NOTHING ELSE. A token typed
+# INTO a tracked file - an `export` in a shell rc - is caught by the secret
+# scan instead, and by then it has been pushed. Put secrets in a `.local`
+# file the tracked one sources (below), never in the tracked file itself.
+#
+# A file one of these catches by mistake gets a negation under its rule, not
+# a `git add -f`, so the exception is written down where the next reader
+# looks. test_dotfiles_gitignore.py holds every rule to both halves: what it
+# must catch, and the file beside it that it must leave alone.
+
+# SSH and GnuPG: everything in the folder stays out but its configuration,
+# so a private key under ANY name is covered, not only id_rsa, and so are
+# known_hosts, authorized_keys, the keyrings and the agent's sockets.
+**/.ssh/*
+!**/.ssh/config
+!**/.ssh/config.d/
+**/.gnupg/*
+!**/.gnupg/*.conf
+
+# Files that hold a token or a password in plain text, beyond the keystores
+# and credential stores the template's rules above already keep out.
+# `credentials` alone is git's store, AWS, RubyGems and Cargo's old name;
+# `credentials.*` is Cargo's new one, gcloud's database and Terraform's
+# token file.
+credentials
+credentials.*
+.vault-token
+**/gh/hosts.yml
+
+# Tools that keep their tokens and account details beside their settings,
+# so the whole folder stays out.
+**/.aws/
+**/.azure/
+**/.kube/
+**/.config/gcloud/
+**/.config/github-copilot/
+**/.config/configstore/
+
+# Shell and REPL history: everything typed, including whatever was pasted
+# into a prompt by mistake. XDG state is the same kind of file by
+# definition - history, logs, undo - and never portable.
+*_history
+.zhistory
+.histfile
+.lesshst
+.viminfo
+.wget-hsts
+.bash_sessions/
+.zsh_sessions/
+**/.local/state/
+
+# Local overrides: one machine's settings, and the secrets a tracked file
+# must not hold, kept in a file it sources - `.zshrc.local` by `.zshrc`.
+# `?*` and not `*`, because `*` also matches nothing, and `*.local` would
+# swallow the whole `.local/` folder along with them.
+?*.local
+
+# Machine-written zsh files: the completion dump, and anything compiled.
+.zcompdump*
+*.zwc
+
+# --- The ALIEN Suite: What Stays On This Mac ---
+#
+# Each machine's own progress and settings, written beside the door. The
+# suite runs on its defaults without them, and bootstrap.zsh writes the one
+# switch it needs, so a fresh clone works as it is. The `.*` lines are their
+# temp and lock files.
+#
+# ⚠️ A terminal.save BESIDE terminal.command WINS over the real one in
+# ~/.local/state/alien, so a committed copy would take over on every machine
+# that clones this repository, as well as publishing the progress in it.
+terminal.save
+terminal.save.*
+terminal.conf
+terminal.conf.*
+
+# Working files: scratch from working on the suite, and backups.
+Claude outputs/
+_to_delete/
+*.bak

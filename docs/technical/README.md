@@ -1,6 +1,6 @@
 <!--
 title: '🛠️ TECHNICAL'
-description: 'How this project is built: its architecture, stack and source, one document for each part that needs one, and the designs, plans and research behind them.'
+description: 'How the parts of these dotfiles work, one document each.'
 type: index
 -->
 
@@ -10,9 +10,9 @@ type: index
 
 <a name="top"></a>
 
-**How this project is built.**
+**How the parts of these dotfiles work, one document each.**
 
-_Written down where the code cannot say it._
+_Each folder's README links here for its explanation._
 
 </div>
 
@@ -20,29 +20,8 @@ _Written down where the code cannot say it._
 
 ## 💡 What This Folder Is For
 
-How this project is built: its architecture and how its parts fit, the stack it
-runs on and where its source lives, and one document for each part that needs
-one.
-
-- **The architecture**: the system as it stands, its actors, building blocks,
-  interfaces and trust boundaries, from the
-  [Architecture Overview](../templates/technical/Architecture-Overview.md) seed.
-- **The stack and the source**: what the project is built with, and where each
-  part of it lives.
-- **One folder per area**: `backend/`, `database/`, `infrastructure/`,
-  `interface/` and `testing/`, as the fill-in standards lay them out.
-- **Designs, plans and research**: `designs/`, `plans/` and `research/`, from
-  the Technical Design, Implementation Plan and Research Log templates.
-
-The fill-in standards in [`templates/technical/`](../templates/technical/README.md)
-copy out to the same path here, without `templates/`:
-`docs/templates/technical/backend/API-Design-Standards.md` becomes
-`docs/technical/backend/API-Design-Standards.md`.
-
-Its documents are **yours from the first commit**: nothing upstream ever
-writes, moves or removes one. Only this README is ever updated from the
-template, when you run 🔄 Template Sync, and its log is redrawn from the files
-the folder holds.
+Every explanation of how these dotfiles work lives here, and each folder's
+README links to the document for its part.
 
 ---
 
@@ -50,27 +29,20 @@ the folder holds.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
-| Entry                    | Purpose    |
-| :----------------------- | :--------- |
-| [`README.md`](README.md) | This file. |
+| Entry                                                    | Purpose                                                                                                                                                                                                                                                                                               |
+| :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`AI-Agent-Rules.md`](AI-Agent-Rules.md)                 | How make agents installs one pinned release of the universal rules and their kit from tannergolden/intelligence into every AI coding app on this machine, and how to move to a new release.                                                                                                           |
+| [`Page-Packs.md`](Page-Packs.md)                         | The contract between terminal.command and the four machines in scripts/suite: what a pack declares, when the door calls each hook, what it draws with, the rules it keeps, how a failing pack is caught, and what the door holds about each machine. Read it before changing a machine or adding one. |
+| [`README.md`](README.md)                                 | This file.                                                                                                                                                                                                                                                                                            |
+| [`Shell-Hook-&-Installer.md`](Shell-Hook-&-Installer.md) | How home/ and scripts/bootstrap.zsh put the cabinet in every new shell: the startup chain, the hook's guards in order, how each file finds the repository, what the installer writes and the records the door reads, and how to add a file to home/. Read it before changing any of them.             |
 
 <!-- AUTO-INDEX:END -->
-
-🗂️ Machined Indexes redraws this log after every push to the default branch,
-from each document's own frontmatter.
-
----
-
-## 🔗 See also
-
-- [Documentation index](../README.md) - every document this project keeps
-- [Template catalogue](../templates/README.md) - every seed, and where each one is copied to
 
 ---
 
 <div align="center">
 
-**Write down what the code cannot say.**
+**One document per part, and every part explained.**
 
 [↑ Back to Top](#top)
 
