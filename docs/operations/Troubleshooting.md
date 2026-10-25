@@ -84,7 +84,6 @@ is in [Shell Hook & Installer](../technical/Shell-Hook-&-Installer.md).
 | `let Terminal control Terminal · System Settings › Privacy › Automation`   | macOS has not let Terminal script itself                                                       | Allow it in that pane                                                                     |
 | A tab that opens as a new window                                           | A tab needs <kbd>⌘</kbd> <kbd>T</kbd> pressed through System Events, which needs Accessibility | Allow Accessibility for Terminal, or keep the window                                      |
 | `run <command> in a terminal`, for a runner                                | INTELLIGENCE could not open a tab here                                                         | Run that line yourself                                                                    |
-| `he can't talk yet` or `he can't talk right now`, from the visitor         | No local runner holds a model, or none is running                                              | Install or start one on INTELLIGENCE's LOCAL page                                         |
 | `the router is not running · start litellm on :4000`                       | ROUTE's LiteLLM proxy is not up, and nothing here installs it                                  | **[G]** on ROUTE, then start it with the line the page shows                              |
 
 **The glyphs do not line up.** `zsh terminal.command --check` draws every

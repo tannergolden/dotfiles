@@ -13,7 +13,7 @@
 #   The old TERMINAL borrowed its cabinet.  chassis.zsh drew the walls, the neon,
 #   the bezel, the coin door and both power sequences; theme, worlds, exit,
 #   nav, sound, sky and save drew or decided the rest; vanity.py lit the
-#   visitor and the sky over him.  Nine files had to be present and readable
+#   sprites.  Nine files had to be present and readable
 #   before TERMINAL could say a word, and the first thing a fresh Mac gets
 #   from a repo it has not installed yet is a machine that cannot open it.
 #
@@ -42,16 +42,12 @@
 #   INSTALL, the one thing that would have fixed it, could be reached.  zsh is
 #   what macOS ships.
 #
-#   WHAT IT CANNOT DRAW, IT CARRIES.  The visitor and the sun and moon over
-#   him are lit sprites: a grid of materials, one key light, a downsample to
-#   whole cells.  None of that is done here -- the CARDS vanity.py composed
-#   are carried in this file, cell for cell, folded on the one axis they
-#   repeat along (he is alive in his eyes and nowhere else, so the head is
-#   stored once and the eyes as bands).  Same visitor, same light, no python3
-#   anywhere in the path.  DRESSED, he is the ARCADE's to compose: its
-#   wardrobe is that same pipeline ported to zsh, so the door borrows it --
-#   read from the arcade's own file the first time he has something on --
-#   rather than carrying a second one to keep in step.
+#   WHAT IT CANNOT DRAW, IT CARRIES.  The sun and the moon are lit sprites: a
+#   grid of materials, one key light, a downsample to whole cells.  None of
+#   that is done here -- the CARDS vanity.py composed are carried in this
+#   file, cell for cell, and XENOGOTCHI's porthole hangs whichever one the
+#   sky over this machine calls for.  Same light, no python3 anywhere in the
+#   path.
 #
 #   THE ROSTER IS THE MACHINES, one row each on the readout:
 #     SYSTEM        the machine at once -- scope, tapes, gauges
@@ -62,16 +58,14 @@
 #   ...and the MENU is what TERMINAL DOES, which is not the same list:
 #     not installed     [N] INSTALL    [R] RESCAN
 #     installed         [T] TERMINAL   [E] RESET   [R] RESCAN
-#   and [Q] the way out.  [V] steps aside to the VISITOR's own page: him in
-#   whatever the arcade has put on him, and a line to talk to him on, answered
-#   by a model running on this Mac and by nothing that leaves it.
+#   and [Q] the way out.
 #
 #   FLAGS
 #     --once     paint one frame and exit       --fast   the card, no ceremony
 #     --probe    what it found, as text         --256    force the xterm palette
 #     --plain    no colour at all               --check  glyph test card
-#     --sharp    the sprites as ink, not ground --fps N  pin the rate
 #     --back     skip the power-up              --true   24-bit even on Terminal
+#     --fps N    pin the rate
 #
 #   ── THE SEAMS ──  Every one of them is for a harness, and every one of them
 #   is off unless something sets it.  TERMINAL_MOCK=1 reads a FIXTURE instead
@@ -116,7 +110,7 @@ FROZEN=''; [[ "${ALIEN_AT:-}" == (<->|<->.<->) ]] && FROZEN="$ALIEN_AT"
 
 # ── ARGUMENTS ───────────────────────────────────────────────────────────────
 OPT_ONCE=0 OPT_FAST=0 OPT_BACK=0 OPT_256=0 OPT_TRUE=0 OPT_PLAIN=0
-OPT_PROBE=0 OPT_CHECK=0 OPT_SHARP=0 OPT_FPS=0
+OPT_PROBE=0 OPT_CHECK=0 OPT_FPS=0
 # CONFIG's OWN FOUR, the settings no command-line flag already carries.  They
 # sit here with the flags because terminal.conf sets them at power-up the same
 # way an argument would (cfg_load, SECTION 18d), and a reader changes them on
@@ -142,7 +136,6 @@ while (( _i < ${#_argv[@]} )); do
     --plain) OPT_PLAIN=1 ;;
     --probe) OPT_PROBE=1 ;;
     --check) OPT_CHECK=1 ;;
-    --sharp) OPT_SHARP=1 ;;
     --fps)   (( _i++ )); OPT_FPS="${_argv[$_i]:-0}" ;;
   esac
   (( _i++ ))
@@ -482,11 +475,9 @@ C_SCR=$(( C_SCR_BOX + 1 ))                            # 8
 MIN_W=$ARC_W; MIN_H=$ARC_H
 
 # ── the glass's own map · TERMINAL's business and nobody else's ─────────────
-# THE ARCADE'S MENU IS TWO COLUMNS and so is this one: a list on the left, a
-# panel on the right, a rule between them.  What is in the right-hand column
-# is the difference between a cabinet that sells you a game and a TERMINAL that
-# lets you into a house -- there it is a preview of the machine under the
-# cursor, here it is the VISITOR, standing under whatever the sky is doing.
+# THE ARCADE'S MENU IS TWO COLUMNS, a list on the left and a preview of the
+# machine under the cursor on the right.  This one is the list alone, edge to
+# edge, so G_DIV is the list's own right edge and not a rule between columns.
 G_HEAD=0                             # the header band
 G_DIV=104                            # the list's own right edge now, not a rule
 G_LW=104                             # the list column, 0 .. 103
@@ -502,16 +493,9 @@ G_SPEC=18                            # ...and the machine's own readings under i
 # THE SAME DESIGN, STANDING IN A TALLER BOX.  Nothing above moved: the header
 # is still the top row, the menu still sits under it, the readout still under
 # that.  What the nine new rows buy is the FLOOR -- the rule and the key bar
-# go to the bottom of the glass where they belong, and the visitor stands on
-# it rather than a third of the way up, which is where he stood on the machine
-# this was cut from.
+# go to the bottom of the glass where they belong.
 G_RULE=28
 G_HINT=29
-G_CEL_X=93; G_CEL_Y=2                # what hangs over him · his own card's
-                                     # top three rows are air, so it clears him
-G_VIS_X=82; G_VIS_Y=18               # ...and where he stands, his own card's
-                                     # three columns of headroom either side
-                                     # already taken off
 G_NAME_X=5; G_DESC_X=19; G_READ_R=102
 # THIRTEEN, AND EVERY ONE OF THEM SPOKEN FOR.  INTELLIGENCE is twelve cells
 # and used to set this on its own -- but a suite row spends four of them on
@@ -534,7 +518,6 @@ F_SCR_W=$SCR_W F_SCR_H=$SCR_H F_C_SCR=$C_SCR F_R_SCR=$R_SCR F_SCR_BOT=$R_SCR_BOT
 F_G_DIV=$G_DIV F_G_LW=$G_LW F_G_READ_R=$G_READ_R F_G_DESC_X=$G_DESC_X F_DESC_MAX=$DESC_MAX
 F_G_SUITE=$G_SUITE F_G_MACH=$G_MACH F_G_MIRROR=$G_MIRROR F_G_SPEC=$G_SPEC
 F_G_RULE=$G_RULE F_G_HINT=$G_HINT
-F_G_CEL_X=$G_CEL_X F_G_CEL_Y=$G_CEL_Y F_G_VIS_X=$G_VIS_X F_G_VIS_Y=$G_VIS_Y
 geom_float() {   # the cabinet's fixed glass, put back cell-for-cell
   # the machine floats centred again · c_size's own sums, in case fill zeroed them
   OX=$(( (TCOLS - ARC_W) / 2 )); (( OX < 0 )) && OX=0
@@ -546,7 +529,6 @@ geom_float() {   # the cabinet's fixed glass, put back cell-for-cell
   # taller, so everything under it moves down one and keeps its gaps
   if (( S_N > 4 )); then (( G_MACH += S_N - 4, G_MIRROR += S_N - 4, G_SPEC += S_N - 4 )); fi
   G_RULE=$F_G_RULE; G_HINT=$F_G_HINT
-  G_CEL_X=$F_G_CEL_X; G_CEL_Y=$F_G_CEL_Y; G_VIS_X=$F_G_VIS_X; G_VIS_Y=$F_G_VIS_Y
   GEOM_FILL=0
   return 0
 }
@@ -558,7 +540,7 @@ geom_fill() {   # the same map, stretched to the whole terminal
   (( gh < F_SCR_H )) && gh=$F_SCR_H
   OX=0; OY=0                           # the glass starts at the window's own corner
   SCR_W=$gw; SCR_H=$gh; C_SCR=0; R_SCR=0; R_SCR_BOT=$gh
-  G_LW=$(( gw - 2 )); G_DIV=$G_LW              # the list fills the glass · the visitor has his own page now
+  G_LW=$(( gw - 2 )); G_DIV=$G_LW              # the list fills the glass
   G_READ_R=$(( G_LW - 3 ))
   G_DESC_X=$F_G_DESC_X
   DESC_MAX=$(( G_READ_R - G_DESC_X - 17 )); (( DESC_MAX < 12 )) && DESC_MAX=12
@@ -582,7 +564,6 @@ geom_fill() {   # the same map, stretched to the whole terminal
     G_SPEC=$(( G_MIRROR + 2 ))
   fi
   G_RULE=$(( gh - 1 )); G_HINT=$(( gh - 1 ))
-  # G_CEL_X / G_VIS_X are the visitor page's to set now · the menu draws neither
   GEOM_FILL=1
   return 0
 }
@@ -2678,12 +2659,13 @@ menu_build() {
   U_WHY+=(''); U_ACC+=($CYAN)
   U_DESC+=("read this machine again")
   # [C] CONFIG · THE CABINET'S OWN, and a SUITE row because it is the house's
-  # setting and not any one machine's -- the sound, the tube and the rate every
-  # surface in the glass is drawn at.  It stands whether or not the house is
-  # installed, the way [T] does: the blips can be turned off on a bare Mac.
+  # setting and not any one machine's -- the sound every surface in the glass
+  # plays, the rate it is drawn at and the screen it stands on.  It stands
+  # whether or not the house is installed, the way [T] does: the blips can be
+  # turned off on a bare Mac.
   U_KEY+=(C); U_NAME+=(CONFIG);     U_ACT+=(config);   U_KIND+=('')
   U_WHY+=(''); U_ACC+=($CYAN)
-  U_DESC+=("the cabinet itself · sound, tube, rate")
+  U_DESC+=("the cabinet itself · sound, rate, screen")
   S_N=${#U_KEY[@]}
   # ── ...AND THE MACHINES, WHICH ARE ROWS NOW AND NOT A READING ───────────
   # THEY USED TO BE A LIST WITH A LETTER EACH, and a list is not a way in.
@@ -3006,8 +2988,8 @@ reading() {   # reading KIND -> RD
 # ══════════════════════════════════════════════════════════════════════════
 # SECTION 11 · THE SKY OVER THE MACHINE      a reading, not a picture
 # ══════════════════════════════════════════════════════════════════════════
-# WHAT HANGS IN THE CORNER is the sprite's to draw and TERMINAL's to CHOOSE:
-# is it night, which phase is the moon at, is the sun low enough for the warm
+# WHAT HANGS IN THE SKY is the card's to draw and TERMINAL's to CHOOSE: is
+# it night, which phase is the moon at, is the sun low enough for the warm
 # ink.  Those are questions about the sky over this machine, and they are
 # arithmetic -- so they are here, and the picture is asked for by their
 # answers.
@@ -3199,8 +3181,8 @@ tick_slow() {
   (( GLASS_GEN++ ))
   caption "$NOW"
   greeting "$NOW"
-  # ...and which card is hanging over him, which is the same question asked
-  # of the same arithmetic
+  # ...and which card hangs in the sky (SECTION 12), which is the same
+  # question asked of the same arithmetic
   local -i night=0 tw=0 ph=0 i
   is_day "$NOW" || night=1
   twilight "$NOW" && tw=1
@@ -3275,99 +3257,27 @@ greeting() {   # greeting TS -> GREETING
 }
 
 # ══════════════════════════════════════════════════════════════════════════
-# SECTION 12 · THE VISITOR AND THE SKY OVER HIM
+# SECTION 12 · THE SKY'S CARDS      the picture, carried rather than lit
 # ══════════════════════════════════════════════════════════════════════════
-# A SHELL CANNOT LIGHT A SPRITE and must not learn how.  He is a grid of
-# MATERIALS at twenty pixels by eighteen, two pixel rows to a cell, lit once
-# from the suite's key light and downsampled to whole cells -- a wide
-# cranium, a face falling away to a rounded chin, two big lids with a
-# catchlight in each.  None of that belongs in zsh.
+# A SHELL CANNOT LIGHT A SPRITE and must not learn how.  The sun and the moon
+# are a grid of materials, one key light and a downsample to whole cells,
+# and none of that belongs in zsh.  The old TERMINAL asked vanity.py for
+# them at power-up, which a Mac with no python3 cannot answer -- so they are
+# CARRIED: that call's own answer, cell for cell, the same hex the same
+# pipeline printed.  A cell marked @62 is only partly covered, and whoever
+# lays the card mixes it into the glass behind it, which rounds the rim
+# instead of stepping it.
 #
-# THE OLD TERMINAL ASKED FOR IT.  One call to scripts/vanity/vanity.py at power
-# up, every pose and every phase, parsed once and spent from an array -- and
-# with no python3 on the machine he was simply not there, which on a fresh
-# Mac with no command line tools is exactly the machine that most needed
-# something friendly on the glass.
-#
-# SO HE IS CARRIED.  What follows is that call's own answer, cell for cell,
-# the same hex the same pipeline printed -- not redrawn, not re-lit, not
-# approximated.  He is folded on the one axis he repeats along: he is alive
-# in his EYES and nowhere else (moving the head a pixel is moving it half a
-# cell, which re-quantises the whole silhouette and everything he is
-# wearing), so the head is stored ONCE and the three rows that move are
-# stored as the bands they actually take.  Twenty-five poses out of thirty-
-# two rows.
-#
-# WHAT HE IS WEARING.  vanity.py dresses him from the arcade's ledger -- a
-# hat, glasses, a smoke, an aura -- and a hat is not a sticker over his head,
-# it is more pixels in his grid, lit by the same light and re-quantised with
-# him.  That cannot be folded into a card and it cannot be faked, so the card
-# below is him BARE, and a dressed visitor is composed by the ARCADE's own
-# wardrobe (vis_draw_dressed, under draw_visitor) rather than by a second copy
-# of it here that would have to be kept in step.
-# ── HIS CARD, as vanity.py composed it · w=26 h=12 ox=3 oy=3 ────────────
-# THE HEAD IS ONE CARD AND THE EYES ARE THREE BANDS.  vanity.py hands the old
-# TERMINAL twenty-five whole cards and twenty-two of every card's rows are the
-# same in all of them -- he is alive in his eyes and nowhere else, which is
-# the wardrobe's own rule.  So what is carried here is the head ONCE and the
-# three rows that move (5, 6, 7) as the two, nine and nine bands they
-# actually take, with a pose naming its three by number.  Cell for cell it is
-# the same visitor: not redrawn, not re-lit, not approximated -- the same hex
-# the same pipeline printed, folded on the axis it repeats along.
-VIS_W=26; VIS_H=12; VIS_OX=3; VIS_OY=3
-CEL_W=12; CEL_H=6
-VIS_ROW=(
-'- - - - - - - - - - - - - - - - - - - - - - - - - -'
-'- - - - - - - - - - - - - - - - - - - - - - - - - -'
-'- - - - - - - - - - - - - - - - - - - - - - - - - -'
-'- - - - - - - - - - b8bcc4@62 bcbcc8@62 989cb8@62 acb4c4 bcc0cc@62 bcc0cc@62 c8d0d4@62 - - - - - - - - -'
-'- - - - - - - 9094ac@62 9090a4 80809c 786c8c 78708c 787090 7c7490 807494 807894 908ca4 a49cb0 b0b8c8 c8d0d8@62 - - - - - -'
-'- - - - - - 8c90a8@62 806084 6c6480 706884 746888 746c88 78708c 787090 7c7490 807494 807894 847c94 887c98 9ca0b8 c8d0d8@62 - - - - -'   # 5 · the band
-'- - - - - - 905c8c a09ca0 04000c 04000c 04040c 343440 746888 786c8c 78708c a4a4a8 04040c 04040c 04040c 343444 9ca0b4 - - - - -'   # 6 · the band
-'- - - - - - 94588c 04000c 04000c 04000c 04040c 343440 706884 746888 746c8c 04040c 04040c 04040c 04040c 343444 98a0b4 - - - - -'   # 7 · the band
-'- - - - - - - 94588c@62 7c5884 685c7c 686080 6c6080 6c6480 706884 746888 746888 746c8c 787090 8884a0 989cb4@62 - - - - - -'
-'- - - - - - - - - 945890@62 744c7c 504468 605c74 605c74 605c78 544c68 747088 9094ac@62 - - - - - - - -'
-'- - - - - - - - - - - 985890 5c5070 504868 5c5474 8c8ca8 - - - - - - - - - -'
-'- - - - - - - - - - - - 985890@62 9c5c90@62 8888a4@62 - - - - - - - - - - -'
-)
-# row 5 · the brow, wide or narrowed
-VIS_E5=(
-'- - - - - - 8c90a8@62 806084 6c6480 706884 746888 746c88 78708c 787090 7c7490 807494 807894 847c94 887c98 9ca0b8 c8d0d8@62 - - - - -'
-'- - - - - - 8c90a8@62 806084 343440 343440 343440 746c88 78708c 787090 7c7490 807494 343440 343440 343444 9ca0b8 c8d0d8@62 - - - - -'
-)
-# row 6 · the lids and the look
-VIS_E6=(
-'- - - - - - 905c8c a09ca0 04000c 04000c 04040c 343440 746888 786c8c 78708c a4a4a8 04040c 04040c 04040c 343444 9ca0b4 - - - - -'
-'- - - - - - 905c8c 343440 343440 343440 343440 343440 746888 786c8c 78708c 343440 343440 343440 343444 343444 9ca0b4 - - - - -'
-'- - - - - - ccbccc 04000c 04000c 04000c 343440 343440 746888 786c8c ccc8d4 04040c 04040c 04040c 343444 343444 9ca0b4 - - - - -'
-'- - - - - - ccbccc 04000c 04000c 04000c 04040c 343440 746888 786c8c ccc8d4 04040c 04040c 04040c 04040c 343444 9ca0b4 - - - - -'
-'- - - - - - 905c8c 343440 a0a0a4 04000c 04040c 343440 746888 786c8c 78708c 343440 a4a4a8 04040c 04040c 343444 9ca0b4 - - - - -'
-'- - - - - - 905c8c 04000c a0a0a4 04000c 04040c 04040c 746888 786c8c 78708c 04040c a4a4a8 04040c 04040c 04040c 9ca0b4 - - - - -'
-'- - - - - - 905c8c 343440 a0a0a4 04000c 04040c 04040c 746888 786c8c 78708c 343440 a4a4a8 04040c 04040c 04040c 9ca0b4 - - - - -'
-'- - - - - - 905c8c 343440 343440 a0a0a4 04040c 04040c 746888 786c8c 78708c 343440 343440 a4a4a8 04040c 04040c 9ca0b4 - - - - -'
-'- - - - - - 905c8c 343440 04000c a0a0a4 04040c 04040c 746888 786c8c 78708c 343440 04040c a4a4a8 04040c 04040c 9ca0b4 - - - - -'
-)
-# row 7 · the pupils under them
-VIS_E7=(
-'- - - - - - 94588c 04000c 04000c 04000c 04040c 343440 706884 746888 746c8c 04040c 04040c 04040c 04040c 343444 98a0b4 - - - - -'
-'- - - - - - 94588c 343440 343440 343440 343440 343440 706884 746888 746c8c 343440 343440 343440 343444 343444 98a0b4 - - - - -'
-'- - - - - - 94588c 645c7c 343440 343440 343440 706884 706884 746888 746c8c 78708c 343440 343440 343444 807894 98a0b4 - - - - -'
-'- - - - - - 94588c 645c7c 68607c 6c6080 6c6080 706884 706884 746888 746c8c 78708c 787090 7c7490 807494 807894 98a0b4 - - - - -'
-'- - - - - - 94588c 04000c 04000c 04000c 343440 343440 706884 746888 746c8c 04040c 04040c 04040c 343444 343444 98a0b4 - - - - -'
-'- - - - - - 94588c 343440 04000c 04000c 04040c 343440 706884 746888 746c8c 343440 04040c 04040c 04040c 343444 98a0b4 - - - - -'
-'- - - - - - 94588c 04000c 04000c 04000c 04040c 04040c 706884 746888 746c8c 04040c 04040c 04040c 04040c 04040c 98a0b4 - - - - -'
-'- - - - - - 94588c 343440 04000c 04000c 04040c 04040c 706884 746888 746c8c 343440 04040c 04040c 04040c 04040c 98a0b4 - - - - -'
-'- - - - - - 94588c 343440 343440 04000c 04040c 04040c 706884 746888 746c8c 343440 343440 04040c 04040c 04040c 98a0b4 - - - - -'
-)
-# pose 'look,lids,eye' -> the three bands it wears
-VIS_POSE_K=('-1,0,0' '-1,0,1' '-1,0,2' '-1,1,0' '-1,2,0' '-2,0,0' '-2,0,1' '-2,0,2' '-2,1,0' '-2,2,0' '0,0,0' '0,0,1' '0,0,2' '0,1,0' '0,2,0' '1,0,0' '1,0,1' '1,0,2' '1,1,0' '1,2,0' '2,0,0' '2,0,1' '2,0,2' '2,1,0' '2,2,0')
-VIS_POSE_V=('0 0 0' '0 0 1' '1 0 0' '0 0 2' '0 1 3' '0 2 4' '0 2 1' '1 3 4' '0 2 2' '0 1 3' '0 4 5' '0 4 1' '1 5 6' '0 4 2' '0 1 3' '0 6 7' '0 6 1' '1 6 7' '0 6 2' '0 1 3' '0 7 8' '0 7 1' '1 8 8' '0 7 2' '0 1 3')
-
-# ── WHAT HANGS OVER HIM · night,phase,twilight -> a 12x6 card ─────────────
+# THE DOOR HANGS NONE OF THEM ITSELF.  XENOGOTCHI's porthole does, taking the
+# card SKY_IDX names (SECTION 11's slow clock picks it once a minute), and
+# they are kept here rather than in that pack so the arithmetic and the
+# cards it indexes stay in one file.
+# ── WHAT HANGS IN THE SKY · night,phase,twilight -> a 12x6 card ───────────
 # The sun at two altitudes and the moon at its eight phases, each of those
-# twice for the hour either side of the horizon -- eighteen cards, lit by the
-# same key light he is.  WHICH ONE hangs there is the arithmetic below's to
-# say and this file's to draw, which is the split the old TERMINAL kept.
+# twice for the hour either side of the horizon -- eighteen cards, lit by one
+# key light.  WHICH ONE hangs is the arithmetic's to say and the porthole's
+# to draw, which is the split the old TERMINAL kept.
+CEL_W=12; CEL_H=6
 SKY_KEY=('0,0,0' '0,0,1' '1,0,0' '1,0,1' '1,1,0' '1,1,1' '1,2,0' '1,2,1' '1,3,0' '1,3,1' '1,4,0' '1,4,1' '1,5,0' '1,5,1' '1,6,0' '1,6,1' '1,7,0' '1,7,1')
 SKY_ROW=(
 # 0,0,0   the sun
@@ -3497,383 +3407,6 @@ SKY_ROW=(
 '- 6e6c88@62 83829d bcb8d4 807c90 40404c 40404c 40404c 42404c 5b586c 646078@62 -'
 '- - - 747290@62 787492 636379 5e5c70 605c72 606074@62 - - -'
 )
-
-# ── laying a card on the glass ──────────────────────────────────────────────
-# A CELL IS BLENDED, NOT STAMPED.  The rim of a sprite is only partly covered
-# by it, and what belongs there is the sprite mixed into the glass behind it
-# -- which is what rounds a silhouette instead of stepping it.  The card says
-# so with @62 on the cells that are partial, and this honours it.
-#
-# --sharp IS THE OTHER WAY OF SAYING THE SAME PICTURE.  A card is painted as
-# cell GROUNDS, which every font can fill; a terminal whose font leaves a gap
-# between rows shows him in stripes, and the answer is to paint him as INK on
-# a full block instead.  Same colours, same cells, one glyph's difference.
-typeset -ga BLROW
-blit_rows() {   # blit_rows X Y — the rows waiting in BLROW
-  local -i x=$1 y=$2 ry rx sx sy k cr cg cb c r0=${3:-0} r1=${4:--1}
-  local cell
-  local -F w
-  (( r1 < 0 )) && r1=${#BLROW[@]}
-  local -i bk=$(( (OY + R_SCR) * TCOLS + OX + C_SCR ))
-  local -i gr=$(( (GLASS >> 16) & 255 )) gg=$(( (GLASS >> 8) & 255 )) gb=$(( GLASS & 255 ))
-  for (( ry = r0; ry < r1; ry++ )); do
-    sy=$(( y + ry ))
-    (( sy < 0 || sy >= SCR_H )) && continue
-    rx=-1
-    for cell in ${=BLROW[$ry]}; do
-      (( rx++ ))
-      [[ "$cell" == '-' ]] && continue
-      sx=$(( x + rx ))
-      (( sx < 0 || sx >= SCR_W )) && continue
-      cr=$(( 16#${cell[0,1]} )); cg=$(( 16#${cell[2,3]} )); cb=$(( 16#${cell[4,5]} ))
-      if [[ "$cell" == *@* ]]; then
-        w=$(( ${cell##*@} / 100.0 ))
-        cr=$(( int(gr + (cr - gr) * w) ))
-        cg=$(( int(gg + (cg - gg) * w) ))
-        cb=$(( int(gb + (cb - gb) * w) ))
-      fi
-      # STRAIGHT INTO THE GRID.  Three hundred and eighty cells a frame, and
-      # a mix and a put a cell is nearly eight hundred function calls -- more
-      # time than every colour in the marquee costs put together.
-      k=$(( bk + sy * TCOLS + sx ))
-      c=$(( ((cr & 0xFC) << 16) | ((cg & 0xFC) << 8) | (cb & 0xFC) ))
-      if (( OPT_SHARP )); then
-        GCH[$k]='█'; GF[$k]=$c; GB[$k]=$GLASS
-      else
-        # THE INK IS SET TOO, on a cell whose glyph is a space -- which paints
-        # nothing and says something: `this cell has been claimed`.  It is what
-        # keeps the dust off him without the dust having to know he is there.
-        GF[$k]=$c; GB[$k]=$c
-      fi
-    done
-  done
-  return 0
-}
-
-# ── the pose · a clock and a hash, and no state at all ──────────────────────
-# HE IS ALIVE IN HIS EYES AND NOWHERE ELSE.  Two pixel rows are one cell, so
-# moving the head a pixel is moving it half a cell -- which re-quantises the
-# whole silhouette and everything he is wearing with it.  So he looks about,
-# blinks and squints, and his outline never moves.  Three rows of his card
-# carry all of it.
-#
-# ── WHAT WAS WRONG WITH THE OLD CHOREOGRAPHY ──
-#
-#   THE BLINK TOOK THREE QUARTERS OF A SECOND.  It ran over the first
-#   nineteen hundredths of a four-second window, which is 780 milliseconds --
-#   and a blink is a hundred to four hundred.  What it read as was a droop.
-#
-#   AND IT WAS A METRONOME.  It began at the top of every window, so he
-#   blinked at 0.0, 4.1, 8.2, 12.3 -- exactly on the beat, for ever.  Nothing
-#   alive does that; the giveaway is that you start to expect it.
-#
-#   AND HE STARED.  A direction was dealt per window and HELD for the whole
-#   of it, from a table that was half off-centre -- so half his life was
-#   spent looking hard at a wall.  A glance is a departure and a return.
-#
-# ── AND WHAT IT DOES NOW ──  A blink is a quarter of a second, ASYMMETRIC
-# (the close is quicker than the open, which is how an eyelid actually
-# moves), and it starts anywhere in its window.  A glance is a brief
-# excursion off centre and back, at an irregular moment, in two windows out
-# of five -- so his resting state is looking straight out of the glass, which
-# is where a face should rest.  Every one of those is still a pure function
-# of the clock and a hash of it: no state, nothing to get out of step, and
-# the same visitor on two machines at the same instant.
-VIS_SEED=0
-GLANCE=2.3; BLINK=4.1; QUIRK=11.0
-BL_IN=0.06; BL_HOLD=0.05; BL_OUT=0.13      # shut fast, open slower
-VIS_POKE=-99.0                              # when a key was last pressed
-typeset -gi VIS_POKE_LOOK=-1                # ...and which way that glance goes · his page sets it
-typeset -gi VIS_TALK=0                      # 1 while he is talking, on his page
-
-_pdeal() { PD=$(( ((($1 * 2654435761 + $2 * 40503 + VIS_SEED) & 16777215) \
-           ^ ((($1 * 2654435761 + $2 * 40503 + VIS_SEED) & 16777215) >> 7)) & 16777215 )) }
-
-# _lids PHASE -> LD · where an eyelid is, PHASE seconds into a blink
-_lids() {
-  local -F p=$1
-  LD=0
-  (( p < 0.0 )) && return 0
-  if   (( p < BL_IN ));                     then LD=1
-  elif (( p < BL_IN + BL_HOLD ));           then LD=2
-  elif (( p < BL_IN + BL_HOLD + BL_OUT ));  then LD=1
-  fi
-  return 0
-}
-
-visitor_pose() {   # visitor_pose T -> POSE "look,lids,eye"
-  local -F t=$1 gph bst bdur qph
-  local -i i g b q look lids eye PD dir
-  local -a LOOKS; LOOKS=(-2 -1 1 2)
-
-  # ── the glance · a departure and a return ────────────────────────────────
-  i=$(( int(t / GLANCE) )); gph=$(( t - i * GLANCE ))
-  _pdeal $i 1; g=$PD
-  look=0
-  if (( g % 5 < 2 )); then
-    dir=${LOOKS[$(( (g >> 4) % 4 ))]}
-    bst=$(( 0.15 + ((g >> 8) % 100) / 100.0 * (GLANCE - 1.30) ))
-    bdur=$(( 0.45 + ((g >> 12) % 60) / 100.0 ))
-    (( gph >= bst && gph < bst + bdur )) && look=$dir
-  fi
-  # ...and he looks at whoever just pressed something -- toward wherever the
-  # thing they just did is about to happen, which VIS_POKE_LOOK says: along
-  # the list on a page with one, straight out at the reader on his own page,
-  # where a key is somebody typing to him.  It is the one moment he is not on
-  # his own clock.
-  (( t - VIS_POKE >= 0.0 && t - VIS_POKE < 0.7 )) && look=$VIS_POKE_LOOK
-  # ...AND WHILE HE IS TALKING, he looks out of the glass at whoever he is
-  # talking to -- no glances off while the words are coming
-  (( VIS_TALK )) && look=0
-
-  # ── the blink · a quarter of a second, somewhere in its window ───────────
-  i=$(( int(t / BLINK) ))
-  _pdeal $i 2; b=$PD
-  lids=0
-  if (( b % 10 < 8 )); then
-    bst=$(( ((b >> 6) % 100) / 100.0 * (BLINK - 0.85) ))
-    _lids $(( t - i * BLINK - bst )); lids=$LD
-    # one blink in six is a double, the second close following the first
-    # open by about the length of the first
-    if (( lids == 0 && b % 6 == 0 )); then
-      _lids $(( t - i * BLINK - bst - (BL_IN + BL_HOLD + BL_OUT + 0.10) ))
-      lids=$LD
-    fi
-  fi
-
-  # ── the quirk · a squint he holds for a moment, twice a minute ──────────
-  # ONE MOOD, AND IT IS THE NARROW ONE.  The wardrobe carries two.  eye=1
-  # takes the pupil row down to lid grey -- he narrows.  eye=2 is the only
-  # pose in the whole set that reaches band 5, the BROW, where three cells
-  # either side go from skin to socket and the eye stands THREE rows tall
-  # instead of two: not a mood, a startle.  He is a face in the corner of a
-  # menu, and a face that keeps widening its eyes at nothing is asking the
-  # reader a question they were never asked.  So the quirk deals the squint
-  # and only the squint.  eye=2 stays in the bands, cell for cell as
-  # vanity.py printed it, and is never worn.
-  i=$(( int(t / QUIRK) )); qph=$(( t - i * QUIRK ))
-  _pdeal $i 3; q=$PD
-  eye=0
-  (( qph >= 0.6 && qph < 1.5 && q % 5 < 2 )) && eye=1
-  (( lids )) && eye=0                # a blink outranks a mood
-  POSE="$look,$lids,$eye"
-  return 0
-}
-
-draw_visitor() {   # draw_visitor T
-  # DRESSED, he is the arcade's to compose · see vis_draw_dressed below
-  if vis_dressed; then vis_draw_dressed "$1"; return 0; fi
-  visitor_pose "$1"
-  local -i i idx=-1
-  for (( i = 0; i < ${#VIS_POSE_K[@]}; i++ )); do
-    [[ "${VIS_POSE_K[$i]}" == "$POSE" ]] && { idx=$i; break }
-  done
-  (( idx < 0 )) && idx=0
-  local -a band; band=(${=VIS_POSE_V[$idx]})
-  BLROW=("${VIS_ROW[@]}")
-  BLROW[5]="${VIS_E5[${band[0]}]}"
-  BLROW[6]="${VIS_E6[${band[1]}]}"
-  BLROW[7]="${VIS_E7[${band[2]}]}"
-  # HIS OWN PLACE.  The card is three columns wider than his skull on each
-  # side and three rows taller above it -- that is where a brim would hang,
-  # where a cigarette would go and where a top hat would rise -- so it is
-  # laid down up and to the left by exactly that much and he stands where he
-  # always did.
-  blit_rows $(( G_VIS_X - VIS_OX )) $(( G_VIS_Y - VIS_OY ))
-  return 0
-}
-
-draw_visitor_eyes() {   # draw_visitor_eyes T — rows 5, 6 and 7 of his card
-  visitor_pose "$1"
-  local -i i idx=-1
-  for (( i = 0; i < ${#VIS_POSE_K[@]}; i++ )); do
-    [[ "${VIS_POSE_K[$i]}" == "$POSE" ]] && { idx=$i; break }
-  done
-  (( idx < 0 )) && idx=0
-  local -a band; band=(${=VIS_POSE_V[$idx]})
-  BLROW=("${VIS_ROW[@]}")
-  BLROW[5]="${VIS_E5[${band[0]}]}"
-  BLROW[6]="${VIS_E6[${band[1]}]}"
-  BLROW[7]="${VIS_E7[${band[2]}]}"
-  blit_rows $(( G_VIS_X - VIS_OX )) $(( G_VIS_Y - VIS_OY )) 5 8
-  return 0
-}
-
-# ── WHAT HE HAS ON · the arcade's wardrobe, worn on this clock ──────────────
-# THE ARCADE DRESSES HIM, AND THE DOOR WEARS WHAT IT PUT ON.  The save keeps
-# one id a slot -- arcade.worn.hat, .spec, .smoke, .aura -- written by the
-# arcade the moment something is bought, worn or taken off, and the arcade
-# reloads this door's copy of the save every time it writes.  So what is read
-# here is never a visit out of date, and there is no second ledger to drift.
-#
-# AND HE IS COMPOSED BY THE ARCADE'S OWN WARDROBE, not a copy of it.  The
-# first time he is asked to wear something, the arcade's pack is read into
-# this process -- read, the way the ARCADE's own door reads it, and NOT
-# started: no coin bank loaded, no game dealt, no hooks left bound -- and its
-# vn_compose_at lays him out in whatever pose this clock deals him.  He is
-# composed in the twelve-step wash his card was printed in, and in that wash
-# the wardrobe's bare visitor IS the card above, cell for cell and weight for
-# weight, on all twenty-five poses (the harness holds it to that).  So a hat
-# changes the hat and not his face, and his rim is as soft in it as without.
-typeset -g  VIS_WH='' VIS_WS='' VIS_WK='' VIS_WA=''   # hat · glasses · smoke · aura · '' bare
-typeset -gi VIS_WR=0                                   # the wardrobe · 1 in this process · -1 would not come
-vis_worn() {   # vis_worn -> VIS_WH VIS_WS VIS_WK VIS_WA, what the arcade last put on him
-  local v sl
-  local -i i
-  local -a got slots
-  slots=(hat spec smoke aura); got=('' '' '' '')
-  for (( i = 0; i < 4; i++ )); do
-    sl="${slots[$i]}"
-    v="${SAVE[arcade.worn.$sl]:-}"
-    v="${v#\"}"; v="${v%\"}"                          # the arcade quotes it
-    # AN ID IS A WORD, and anything else in that field is somebody's hand-edit
-    [[ -n "$v" && "$v" != *[^A-Za-z0-9_-]* ]] || v=''
-    # A WORN ID NO RACK CARRIES IS BARE -- the arcade's own rule -- asked once
-    # the racks are here to be asked
-    (( VIS_WR > 0 )) && [[ -n "$v" && -z "${VN_NAME[$sl:$v]:-}" ]] && v=''
-    got[$i]="$v"
-  done
-  VIS_WH="${got[0]}"; VIS_WS="${got[1]}"; VIS_WK="${got[2]}"; VIS_WA="${got[3]}"
-  return 0
-}
-vis_wardrobe() {   # 0 once the arcade's compositor is in this process · read the first time it is wanted
-  if (( ${+functions[vn_compose_at]} )); then
-    (( VIS_WR > 0 )) || { VIS_WR=1; (( ${#AR_RARC[@]} )) || ar_rar_inks 2>/dev/null; }
-    return 0
-  fi
-  (( VIS_WR < 0 )) && return 1
-  local _vw_full="$REPO/scripts/suite/arcade.zsh"
-  # NEVER OVER A MACHINE THAT IS STANDING.  An arcade that has been opened has
-  # a coin bank and a game in its head, and reading its file again would put
-  # both back to how the file starts -- so if the one standing is too old to
-  # have vn_compose_at, he stays bare rather than cost anybody their session.
-  if [[ -n "${PACK_SEEN[$_vw_full]:-}" || ! -r "$_vw_full" ]]; then VIS_WR=-1; return 1; fi
-  # THE NAMES BELOW ARE ITS OWN, because the file is read inside this function
-  # and a top-level line of it that set a plain `ok` or `fill` would set these
-  local -a _vw_hk
-  _vw_hk=("$PACK_NAME" "$PACK_MODEL" "$PACK_INIT" "$PACK_TICK" "$PACK_DRAW" \
-          "$PACK_KEY" "$PACK_RAW" "$PACK_DRESS" "$PACK_LEAVE" "$PACK_WARM" "$PACK_FIRST")
-  local -i _vw_fill=$PACK_FILL _vw_ok=0
-  # THE SAME BREADCRUMB mach_open drops: a pack runs in this process, under
-  # this process's `set -u`, and a file that will not load must not take the
-  # door down without saying what it said on the way
-  PACK_CRUMB="${TMPDIR:-/tmp}/alien-pack.$$"
-  PACK_LOG="$PACK_CRUMB.log"
-  print -r -- "VISITOR · the arcade's wardrobe · scripts/suite/arcade.zsh" > "$PACK_CRUMB" 2>/dev/null
-  : > "$PACK_LOG" 2>/dev/null
-  { PACK_SOURCED=1 source "$_vw_full" } 2>>"$PACK_LOG" && _vw_ok=1
-  rm -f "$PACK_CRUMB" "$PACK_LOG" 2>/dev/null; PACK_CRUMB=''
-  # ...and the hooks it declared on the way in are put back: it was read, not opened
-  PACK_NAME="${_vw_hk[0]}"; PACK_MODEL="${_vw_hk[1]}"; PACK_INIT="${_vw_hk[2]}"
-  PACK_TICK="${_vw_hk[3]}"; PACK_DRAW="${_vw_hk[4]}";  PACK_KEY="${_vw_hk[5]}"
-  PACK_RAW="${_vw_hk[6]}";  PACK_DRESS="${_vw_hk[7]}"; PACK_LEAVE="${_vw_hk[8]}"
-  PACK_WARM="${_vw_hk[9]}"; PACK_FIRST="${_vw_hk[10]}"
-  PACK_FILL=$_vw_fill
-  BEAT_SKIP=1                                  # a one-off, not a frame the governor should see
-  if (( _vw_ok && ${+functions[vn_compose_at]} )); then
-    VIS_WR=1
-    (( ${#AR_RARC[@]} )) || ar_rar_inks 2>/dev/null
-    return 0
-  fi
-  VIS_WR=-1
-  return 1
-}
-# THE WARDROBE IS READ ON THE TICK, NOT IN THE DRAW.  A file read inside a
-# function can reach every local of every function above it -- zsh's
-# `typeset -g` binds to a caller's local of the same name before it reaches a
-# global -- so it is read from the shallowest place this page has: vis_tick,
-# which the loop itself calls.  The draw only ever uses what is already in.
-vis_dressed() {   # vis_dressed [LOAD] — 0 when he has something on and it can be composed · LOAD 1 reads the wardrobe in
-  vis_worn
-  [[ -n "$VIS_WH$VIS_WS$VIS_WK$VIS_WA" ]] || return 1
-  (( ${+functions[vn_compose_at]} || ${1:-0} )) || return 1
-  vis_wardrobe || return 1
-  vis_worn                                     # asked again, now the racks can answer
-  [[ -n "$VIS_WH$VIS_WS$VIS_WK$VIS_WA" ]]
-}
-vis_draw_dressed() {   # vis_draw_dressed T — him in what the arcade put on him, on this clock
-  local -F t=$1
-  local -a p
-  local -i fr=0
-  visitor_pose $t
-  p=(${(s:,:)POSE})
-  # THE FRAME ONLY MOVES WHAT MOVES: the wisp and the weather, ten a second as
-  # the arcade counts them.  A hat is the same picture every frame, and a frame
-  # the compositor has already made is not made again.
-  [[ -n "$VIS_WK$VIS_WA" ]] && fr=$(( int(t * 10.0) ))
-  # THE TWELVE-STEP WASH, whatever this terminal can take, because it is the
-  # wash his card was printed in -- see the note above
-  local -i TRUE24=0
-  vn_compose_at "$VIS_WH" "$VIS_WS" "$VIS_WK" "$VIS_WA" $fr 0 ${p[0]} ${p[1]} ${p[2]}
-  # HIS PAINT ONLY MOVES WITH THE WEATHER.  A smoke's wisp is air over him, so
-  # without an aura the cells under it are the same picture from one wisp
-  # frame to the next, and the blit need not work them out again.
-  local bkey="$VN_LAST"
-  [[ -z "$VIS_WA" ]] && bkey="$VIS_WH|$VIS_WS|$VIS_WK|$POSE"
-  vis_blit_vn $(( G_VIS_X - VN_OX )) $(( G_VIS_Y - VN_OY )) "$bkey"
-  return 0
-}
-# vis_blit_vn X Y — the arcade's paint (VNC, a colour a cell, and VNA, how much
-# of the cell he covers) laid down exactly the way blit_rows lays his card: a
-# partial cell mixed into the glass behind it, the ink set on every cell he
-# claims, --sharp's full block where that is asked for -- and then the air over
-# him (the wisp, the weather) as glyphs that keep whatever ground is under them
-# THE CELLS ARE WORKED OUT ONCE A PICTURE, not once a frame: which cells are
-# him and what each one comes to after its blend are the same for every frame
-# the compositor hands back the same picture, which is nearly all of them.
-typeset -ga VIS_BY VIS_BX VIS_BC
-typeset -g  VIS_BKEY=''
-vis_blit_vn() {   # vis_blit_vn X Y [KEY] · KEY names the paint, VN_LAST by default
-  local -i x0=$1 y0=$2 x y i k c cr cg cb sx sy w u n
-  local -i bk=$(( (OY + R_SCR) * TCOLS + OX + C_SCR ))
-  local bkey="${3:-$VN_LAST}"
-  if [[ "$VIS_BKEY" != "$bkey" ]]; then
-    local -i gr=$(( (GLASS >> 16) & 255 )) gg=$(( (GLASS >> 8) & 255 )) gb=$(( GLASS & 255 ))
-    VIS_BY=(); VIS_BX=(); VIS_BC=()
-    for (( y = 0; y < VN_H; y++ )); do
-      for (( x = 0; x < VN_W; x++ )); do
-        i=$(( y * VN_W + x )); c=${VNC[$i]}
-        (( c >= 0 )) || continue
-        w=${VNA[$i]:-100}
-        if (( w < 100 )); then
-          cr=$(( (c >> 16) & 255 )); cg=$(( (c >> 8) & 255 )); cb=$(( c & 255 ))
-          cr=$(( int(gr + (cr - gr) * (w / 100.0)) ))
-          cg=$(( int(gg + (cg - gg) * (w / 100.0)) ))
-          cb=$(( int(gb + (cb - gb) * (w / 100.0)) ))
-          c=$(( ((cr & 0xFC) << 16) | ((cg & 0xFC) << 8) | (cb & 0xFC) ))
-        else
-          c=$(( c & 0xFCFCFC ))
-        fi
-        VIS_BY+=($y); VIS_BX+=($x); VIS_BC+=($c)
-      done
-    done
-    VIS_BKEY="$bkey"
-  fi
-  n=${#VIS_BY[@]}
-  for (( i = 0; i < n; i++ )); do
-    sy=$(( y0 + VIS_BY[i] )); sx=$(( x0 + VIS_BX[i] ))
-    (( sy < 0 || sy >= SCR_H || sx < 0 || sx >= SCR_W )) && continue
-    k=$(( bk + sy * TCOLS + sx )); c=${VIS_BC[$i]}
-    if (( OPT_SHARP )); then GCH[$k]='█'; GF[$k]=$c; GB[$k]=$GLASS
-    else GF[$k]=$c; GB[$k]=$c; fi
-  done
-  for (( i = 0; i < ${#VNO_Y[@]}; i++ )); do
-    y=${VNO_Y[$i]}; x=${VNO_X[$i]}; sy=$(( y0 + y )); sx=$(( x0 + x ))
-    (( sy < 0 || sy >= SCR_H || sx < 0 || sx >= SCR_W )) && continue
-    k=$(( bk + sy * TCOLS + sx ))
-    GCH[$k]="${VNO_CH[$i]}"; GF[$k]=${VNO_FG[$i]}
-    u=${VNC[$(( y * VN_W + x ))]:--1}
-    (( u >= 0 )) && GB[$k]=$u
-  done
-  return 0
-}
-
-draw_celestial() {   # what the arithmetic said is up there
-  (( SKY_IDX < 0 )) && return 0
-  BLROW=("${(@)SKY_ROW[@]:$(( SKY_IDX * CEL_H )):$CEL_H}")
-  blit_rows $G_CEL_X $G_CEL_Y
-  return 0
-}
 
 # ══════════════════════════════════════════════════════════════════════════
 # SECTION 13 · THE MACHINE        arcade.py's section 9, ported whole
@@ -4546,9 +4079,9 @@ draw_motes() {   # draw_motes T
 # ══════════════════════════════════════════════════════════════════════════
 # app_nav · THE ONE NAVIGATION BAR THE WHOLE SUITE WEARS
 # ══════════════════════════════════════════════════════════════════════════
-# The menu, a machine's page, the shell, the visitor -- each hands this its own
-# keys and nothing else, and the bar rides the same two rows (the glass's last
-# two), in the same ink, with the same gap that tightens before it runs off a
+# The menu, a machine's page, the shell -- each hands this its own keys and
+# nothing else, and the bar rides the same two rows (the glass's last two),
+# in the same ink, with the same gap that tightens before it runs off a
 # narrow glass.  So walking from one surface to another the bar does not move
 # or restyle: it is the same bar, reading different keys.  That single fact is
 # most of what makes the suite read as one application rather than five.
@@ -5092,7 +4625,6 @@ hint_build() {
   for (( i = 0; i < S_N; i++ )); do
     HINT_K+=("[${U_KEY[$i]}]"); HINT_L+=(" ${U_NAME[$i]:l}")
   done
-  HINT_K+=("[V]"); HINT_L+=(" visitor")
   HINT_K+=("[Q]"); HINT_L+=(" power off")
   panel_keys
   surf_dress
@@ -5373,9 +4905,9 @@ draw_specs() {
   # glass is not using, and five rows of close-set figures is the one place
   # on this card where a speck stops being weather and starts being a decimal
   # point somebody tries to read.  The two boxes above keep it out by having
-  # a GROUND; this has none and does not want one, so it claims its rows the
-  # way the visitor claims his -- an ink laid on a space, which paints
-  # nothing at all and says the cell is taken.
+  # a GROUND; this has none and does not want one, so it claims its rows with
+  # an ink laid on a space, which paints nothing at all and says the cell is
+  # taken.
   v_fill 0 $G_SPEC $G_LW 5 ' ' $val -2
 
   # -- the chip, with its cores and its architecture already on it ----------
@@ -5447,16 +4979,15 @@ draw_head() {   # the menu's own title bar, on the suite's one header
 # THE GLASS, IN TWO PARTS
 # ══════════════════════════════════════════════════════════════════════════
 # ALMOST NOTHING ON THIS GLASS MOVES.  The header, the two panels, the
-# mirror's gauge, the rule, the key bar, the sun or moon in the corner and
-# the whole of the visitor except his eyes are the same cells they were last
+# mirror's gauge, the rule and the key bar are the same cells they were last
 # frame and the frame before -- they answer the PROBE, the MENU and the
 # MINUTE, and all three of those hold still for seconds at a time.
 #
 # So the glass is drawn ONCE per change, the tube is put over it once, and
 # what is kept is the finished rectangle.  A frame copies that rectangle back
-# -- twenty-one slice moves, which zsh does in C -- and then paints the four
-# things that actually moved: the row under the cursor, his eyes, the dust,
-# and the bright row travelling down the tube.  Two thousand two hundred
+# -- twenty-one slice moves, which zsh does in C -- and then paints the three
+# things that actually moved: the row under the cursor, the dust, and the
+# bright row travelling down the tube.  Two thousand two hundred
 # cells of work became about three hundred.
 #
 # GLASS_GEN IS THE WHOLE CACHE KEY.  Anything that changes what the glass
@@ -5490,8 +5021,7 @@ glass_base() {   # glass_base — everything that holds still
   draw_machines
   draw_mirror
   draw_specs
-  # THE DIVIDER AND BOTH SPRITES LEFT THE MENU · the list fills the glass edge
-  # to edge now, and the sun/moon and the visitor keep their own page ([V]).
+  # THE DIVIDER LEFT THE MENU · the list fills the glass edge to edge now.
   # The dust rides whatever the list leaves blank, as it always did.
   draw_hint
   return 0
@@ -5539,7 +5069,7 @@ live_row() {   # live_row ROW STRENGTH T — the row under (or near) the cursor
   else mach_row $(( $1 - S_N )) $2 $3; fi
   return 0
 }
-glass_live() {   # glass_live T — the four things that move
+glass_live() {   # glass_live T · the two things that move, the cursor's row and the dust
   local -F t=$1
   # THE ROW UNDER THE CURSOR, IN WHICHEVER BOX IT IS IN.  The cursor runs
   # 0..S_N-1 through SUITE and then straight on into the machines, which is
@@ -5556,8 +5086,8 @@ glass_live() {   # glass_live T — the four things that move
   (( r0 < 0 )) && { r0=0; frac=0.0 }
   live_row $r0 $(( 1.0 - frac )) $t
   (( frac > 0.001 && r1 < S_N + M_N )) && live_row $r1 $frac $t
-  # THE VISITOR'S EYES MOVED TO HIS OWN PAGE · on the menu the dust is the only
-  # thing left that breathes between the keypresses now.
+  # THE DUST IS THE ONLY THING ON THE MENU that breathes between the
+  # keypresses.
   draw_motes $t
   return 0
 }
@@ -9273,8 +8803,8 @@ hsh_dress() {
 # A SURFACE THE DOOR CARRIES ITSELF, the way the shell above is: it borrows the
 # pack hooks, sets its own, and gives them back on the way out -- so a machine
 # standing before CONFIG is standing after it, unsourced.  What it changes is
-# not a machine but the CABINET: the sound every surface plays, the tube every
-# surface wears, the rate they all run at.  Those belong to the house, so it is
+# not a machine but the CABINET: the sound every surface plays, the rate they
+# all run at, the screen they stand on.  Those belong to the house, so it is
 # a SUITE row and not a machine, and it keeps what it is told in terminal.conf --
 # the one file the five programs already share, `key = value`, the last spelling
 # of a key wins, and a key it does not know it leaves alone (SECTION 7's
@@ -9284,14 +8814,13 @@ hsh_dress() {
 # this instant, or `restart` at the next power-on.  Colour is settled once as
 # the tube is built and boot once as the opening is decided, so those two are
 # written now and read on the way up, not turned under the reader's hand.
-CFG_NAME=(SOUND PHOSPHOR BEAT BOOT SCREEN UPDATE)
+CFG_NAME=(SOUND BEAT BOOT SCREEN UPDATE)
 CFG_DESC=("blips, cursor ticks, the alert on a no"
-          "the tube's soft bleed, or hard blocks"
           "the frame rate the whole cabinet runs"
           "the opening ceremony, or skip to it"
           "float in the night, or fill the window"
           "pull origin's new commits at power-on")
-CFG_WHEN=(live live live restart live restart)
+CFG_WHEN=(live live restart live restart)
 typeset -gi CFG_N=${#CFG_NAME[@]}
 typeset -gi CFG_ROW=0 CFG_GEN=0
 CFG_BEATV=(0 30 60 120)              # the rungs [BEAT] steps through · 0 self-governs
@@ -9316,13 +8845,13 @@ cfg_hooks_restore() {
 typeset -g  CFG_STATE='none'
 typeset -gi CFG_KEYS=0
 # THE READER IS save_load's in miniature, pointed at the conf and taking only
-# the six keys CONFIG owns.  Everything else in the file -- comments, the hook
+# the five keys CONFIG owns.  Everything else in the file -- comments, the hook
 # switch bootstrap.zsh writes, a key another machine adds one day -- is read
 # past here and, by cfg_save, kept.
 cfg_load() {
   local conf="$REPO/terminal.conf"
   # WHAT WAS FOUND, for the self test · found · unreadable · none, and how
-  # many settings are in it (every machine's, not only these six)
+  # many settings are in it (every machine's, not only these five)
   CFG_KEYS=0
   if [[ ! -e "$conf" ]]; then CFG_STATE='none'; return 0; fi
   if [[ ! -f "$conf" || ! -r "$conf" ]]; then CFG_STATE='unreadable'; return 0; fi
@@ -9340,7 +8869,6 @@ cfg_load() {
     [[ -n "$k" ]] && (( ++CFG_KEYS ))
     case "$k" in
       sound)    case "$v" in off|0|no|false) CFG_SOUND=0 ;; *) CFG_SOUND=1 ;; esac ;;
-      phosphor) case "$v" in sharp) OPT_SHARP=1 ;; *) OPT_SHARP=0 ;; esac ;;
       beat)     case "$v" in 30|60|120) OPT_FPS=$v ;; *) OPT_FPS=0 ;; esac ;;
       boot)     case "$v" in fast) CFG_BOOT_FAST=1 ;; *) CFG_BOOT_FAST=0 ;; esac ;;
       screen)   case "$v" in fill|on|1) CFG_FILL=1 ;; *) CFG_FILL=0 ;; esac ;;
@@ -9373,25 +8901,25 @@ cfg_count() {   # CFG_STATE CFG_KEYS · whether terminal.conf is there now, and 
 
 # RETIRED KEYS GO ON THE WAY THROUGH.  A key this house has no program for is
 # normally left alone -- the file is shared, and a key another machine adds
-# one day is that machine's -- but these two were the suite's own and nothing
-# reads them any more: colour (the dotfiles are 24-bit, left to what the
-# terminal says it can take) and intelligence.open (INTELLIGENCE opens in the
-# glass, always).  A conf carried over from an older Mac loses them the first
+# one day is that machine's -- but these three were the suite's own and
+# nothing reads them any more: colour (the dotfiles are 24-bit, left to what
+# the terminal says it can take), intelligence.open (INTELLIGENCE opens in the
+# glass, always) and phosphor (the door draws no lit sprite of its own to set
+# the look of).  A conf carried over from an older Mac loses them the first
 # time CONFIG writes it, and every other line is kept exactly as it was.
-CFG_RETIRED=(colour intelligence.open)
-cfg_save() {   # terminal.conf rewritten · our six keys set, the retired ones dropped, everything else kept
+CFG_RETIRED=(colour intelligence.open phosphor)
+cfg_save() {   # terminal.conf rewritten · our five keys set, the retired ones dropped, everything else kept
   local conf="$REPO/terminal.conf" dir
   dir="${conf:h}"
   [[ -d "$dir" && -w "$dir" ]] || return 1
-  local sound phosphor beat boot screen update
+  local sound beat boot screen update
   (( CFG_SOUND )) && sound=on       || sound=off
-  (( OPT_SHARP )) && phosphor=sharp || phosphor=soft
   (( OPT_FPS ))   && beat="$OPT_FPS" || beat=auto
   (( CFG_BOOT_FAST )) && boot=fast || boot=full
   (( CFG_FILL )) && screen=fill || screen=float
   (( CFG_UPDATE )) && update=on || update=off
   typeset -A want hit
-  want=(sound "$sound" phosphor "$phosphor" beat "$beat" boot "$boot" screen "$screen" update "$update")
+  want=(sound "$sound" beat "$beat" boot "$boot" screen "$screen" update "$update")
   local -a out
   local line raw t k
   if [[ -f "$conf" && -r "$conf" ]]; then
@@ -9408,7 +8936,7 @@ cfg_save() {   # terminal.conf rewritten · our six keys set, the retired ones d
       out+=("$line")
     done < "$conf"
   fi
-  for k in sound phosphor beat boot screen update; do
+  for k in sound beat boot screen update; do
     [[ -n "${hit[$k]:-}" ]] && continue
     out+=("$k = ${want[$k]}")
   done
@@ -9426,11 +8954,10 @@ cfg_save() {   # terminal.conf rewritten · our six keys set, the retired ones d
 cfg_val() {   # cfg_val I -> CFGV
   case $1 in
     0) (( CFG_SOUND )) && CFGV=on    || CFGV=off ;;
-    1) (( OPT_SHARP )) && CFGV=sharp  || CFGV=soft ;;
-    2) (( OPT_FPS ))   && CFGV="$OPT_FPS" || CFGV=auto ;;
-    3) (( CFG_BOOT_FAST )) && CFGV=fast || CFGV=full ;;
-    4) (( CFG_FILL ))  && CFGV=fill   || CFGV=float ;;
-    5) (( CFG_UPDATE )) && CFGV=on    || CFGV=off ;;
+    1) (( OPT_FPS ))   && CFGV="$OPT_FPS" || CFGV=auto ;;
+    2) (( CFG_BOOT_FAST )) && CFGV=fast || CFGV=full ;;
+    3) (( CFG_FILL ))  && CFGV=fill   || CFGV=float ;;
+    4) (( CFG_UPDATE )) && CFGV=on    || CFGV=off ;;
   esac
   return 0
 }
@@ -9439,16 +8966,15 @@ cfg_cycle() {   # cfg_cycle DIR — the setting under the cursor · DIR +1 or -1
   local -i d=$1 i=$CFG_ROW j n
   case $i in
     0) CFG_SOUND=$(( 1 - CFG_SOUND )) ;;
-    1) OPT_SHARP=$(( 1 - OPT_SHARP )) ;;
-    2) n=${#CFG_BEATV[@]}
+    1) n=${#CFG_BEATV[@]}
        for (( j = 0; j < n; j++ )); do [[ "${CFG_BEATV[$j]}" == "$OPT_FPS" ]] && break; done
        (( j >= n )) && j=0
        j=$(( (j + d + n) % n ))
        OPT_FPS=${CFG_BEATV[$j]}
        beat_reset ;;                  # the one change felt at once · rebuild the ladder
-    3) CFG_BOOT_FAST=$(( 1 - CFG_BOOT_FAST )) ;;
-    4) CFG_FILL=$(( 1 - CFG_FILL )); scr_refit ;;  # repaint the still layer for the new mode
-    5) CFG_UPDATE=$(( 1 - CFG_UPDATE )) ;;
+    2) CFG_BOOT_FAST=$(( 1 - CFG_BOOT_FAST )) ;;
+    3) CFG_FILL=$(( 1 - CFG_FILL )); scr_refit ;;  # repaint the still layer for the new mode
+    4) CFG_UPDATE=$(( 1 - CFG_UPDATE )) ;;
   esac
   (( CFG_GEN++ ))
   if cfg_save; then snd pick
@@ -9635,7 +9161,7 @@ cfg_paint_big() {   # cfg_paint_big T — a right-sized panel, centred on the fi
 # they are a MODAL now -- a box that folds up over TERMINAL's own glass and
 # folds away again, the same modal_frame gesture INTELLIGENCE opens its model
 # picker with.  The glass behind it never goes anywhere.  It reuses cfg_row and
-# cfg_cycle whole: the same six rows, drawn into a box the menu paints on top
+# cfg_cycle whole: the same five rows, drawn into a box the menu paints on top
 # of itself once per frame while it is up.
 #
 #   CFG_OPEN   0 shut · 1 standing (answers keys) · 2 folding away (still drawn)
@@ -9688,1860 +9214,6 @@ cfg_modal_key() {   # cfg_modal_key TOKEN — every key while the box is up · a
     esc|m|M|c|C|back) cfg_modal_close ;;
     *) ;;            # a key the box has no use for · swallowed, the menu never sees it
   esac
-  return 0
-}
-
-# ══════════════════════════════════════════════════════════════════════════
-# THE VISITOR'S EAR · a line to type, and him answering it
-# ══════════════════════════════════════════════════════════════════════════
-# YOU TYPE AT THE FOOT OF THE GLASS AND HE ANSWERS OVER HIS SHOULDER.  The box
-# along the bottom is INTELLIGENCE's console field -- ⏎ steps into it, ⎋ steps
-# out, and it stays live after a line is sent, because a conversation is a
-# series of lines -- and what he says comes up in a bubble above and to the
-# right of his head, growing as the words arrive, the way somebody talks.
-#
-# THE WIRE IS THE CONSOLE'S: the OpenAI-shaped endpoint every local runner
-# already serves, the request written to a 0600 file and never onto a command
-# line where `ps` would show it, and the answer streamed through awk into a
-# scratch log this page reads back.  What is his own is who answers: a few
-# lines of who he is, what he has on and the sky he is under go ahead of the
-# conversation, so the model answers AS him.
-#
-# AND THE MODEL IS NEVER NAMED ON HIS PAGE.  He is somebody you talk to, not a
-# front end for a runner, so the glass says which model it is nowhere -- the
-# one time the machinery is mentioned is when there is none: nothing
-# installed, or nothing running, and the box says where that is put right.
-#
-# IT IS LOCAL OR IT IS NOTHING.  He listens on this Mac's loopback for the four
-# runners INTELLIGENCE knows, at the ports INTELLIGENCE knows them on, and a
-# model a runner only relays to somebody's cloud (ollama's `-cloud` tags) is
-# passed over -- so nothing typed here leaves the machine and no account of
-# anybody's is ever spent.  He does not install or start anything himself.
-VC_RNAME=('OLLAMA' 'LLAMA.CPP' 'LM STUDIO' 'MLX')
-VC_RPORT=(11434 8080 1234 8081)
-VC_RAPI=('/api/tags' '/v1/models' '/v1/models' '/v1/models')
-typeset -ga VC_WHO VC_TXT VC_MODELS VCM WRV
-typeset -gi VC_N=0 VC_RUN=-1 VC_PID=0 VC_LI=0 VC_EDIT=0 VC_PPID=0 VC_PRUN=-1 VC_ZTCP=-1
-typeset -g  VC_STATE='' VC_LOG='' VC_BODY='' VC_LINE='' VC_MODEL='' VC_PLOG='' VC_ERR=''
-typeset -g  VJE='' VCC='' VCP='' VNW=''
-typeset -gF VC_POLL=0.0 VC_PROBE_AT=-100.0 VC_PSTART=0.0 VC_LISTED=-100.0 VC_PACE=4.0
-typeset -gi VC_IDLE=-1                   # a runner that is up and holds nothing he can talk with
-typeset -g  VC_SETUP=''                  # '' he can talk · install · start · what the box says when he cannot
-typeset -gA VC_EMPTY                     # runner → when it last answered with nothing, or was not a runner at all
-
-# THE PARSER IS INTELLIGENCE'S, the same awk: a streamed answer is hundreds of
-# `data: {…}` lines a second, and picking the text out of each in zsh would be
-# a character loop per chunk on a cabinet with thirty frames to draw.  \uXXXX
-# is decoded, a surrogate pair is joined, and a body that came back as an
-# ERROR is said on a line of its own rather than lost -- a model that is not
-# there, or that wants more memory than the Mac has, is worth being told.
-VC_SSE_AWK='
-function hx(s,   i, n, c) {
-  n = 0
-  for (i = 1; i <= length(s); i++) {
-    c = index("0123456789abcdef", tolower(substr(s, i, 1))) - 1
-    if (c < 0) return -1
-    n = n * 16 + c
-  }
-  return n
-}
-function cp(n) {
-  if (u8 || n < 128) return sprintf("%c", n)
-  if (n < 2048) return sprintf("%c%c", 192 + int(n / 64), 128 + n % 64)
-  if (n < 65536) return sprintf("%c%c%c", 224 + int(n / 4096), 128 + int(n / 64) % 64, 128 + n % 64)
-  return sprintf("%c%c%c%c", 240 + int(n / 262144), 128 + int(n / 4096) % 64, 128 + int(n / 64) % 64, 128 + n % 64)
-}
-function jstr(s,   out, i, n, c, d, v, w) {
-  out = ""; i = 1; n = length(s)
-  while (i <= n) {
-    c = substr(s, i, 1)
-    if (c == "\\") {
-      d = substr(s, i + 1, 1)
-      if (d == "n") out = out "\n"
-      else if (d == "t") out = out "\t"
-      else if (d == "r") { }
-      else if (d == "u") {
-        v = hx(substr(s, i + 2, 4))
-        if (v < 0) { i += 2; continue }
-        i += 6
-        if (v >= 55296 && v <= 56319 && substr(s, i, 2) == "\\u") {
-          w = hx(substr(s, i + 2, 4))
-          if (w >= 56320 && w <= 57343) { v = 65536 + (v - 55296) * 1024 + (w - 56320); i += 6 }
-        }
-        out = out cp(v)
-        continue
-      }
-      else out = out d
-      i += 2
-    } else if (c == "\"") { break }
-    else { out = out c; i++ }
-  }
-  return out
-}
-BEGIN { u8 = (length("\303\251") == 1) }
-{
-  k = index($0, "\"content\":")
-  if (k == 0) {
-    if (!said && index($0, "\"error\"") > 0) {
-      m = index($0, "\"message\":")
-      e = "the runner answered with an error"
-      if (m > 0) {
-        s = substr($0, m + 10); sub(/^[ \t]+/, "", s)
-        if (substr(s, 1, 1) == "\"") e = jstr(substr(s, 2))
-      } else {
-        m = index($0, "\"error\":")
-        s = substr($0, m + 8); sub(/^[ \t]+/, "", s)
-        if (substr(s, 1, 1) == "\"") e = jstr(substr(s, 2))
-      }
-      printf "\n__ERR__ %s\n", e; fflush(); said = 1
-    }
-    next
-  }
-  s = substr($0, k + 10)
-  sub(/^[ \t]+/, "", s)
-  if (substr(s, 1, 1) != "\"") next
-  printf "%s", jstr(substr(s, 2)); fflush()
-}'
-
-# ── the runner · which one is up, and what it will talk with ──────────────
-# THE PORT IS THE QUESTION, as it is on INTELLIGENCE's LOCAL page -- ztcp,
-# which is zsh's own and not a fork, and a refused connection on loopback
-# comes back at once.  netcat only where the module is not.
-vc_port_up() {   # vc_port_up PORT — 0 when something is listening on this Mac's loopback there
-  if (( VC_ZTCP < 0 )); then
-    zmodload -F zsh/net/tcp +b:ztcp 2>/dev/null && VC_ZTCP=1 || VC_ZTCP=0
-  fi
-  if (( VC_ZTCP )); then
-    ztcp 127.0.0.1 $1 2>/dev/null || return 1
-    [[ -n "${REPLY:-}" ]] && ztcp -c $REPLY 2>/dev/null
-    return 0
-  fi
-  (( ${+commands[nc]} )) && nc -z -G 1 127.0.0.1 $1 >/dev/null 2>&1
-}
-# A MODEL HE CAN TALK WITH: not an embedder or a reranker, which cannot chat,
-# and not a cloud tag, which would carry the conversation off the machine
-vc_chat_model() {   # vc_chat_model NAME — 0 when it is a local model that chats
-  local m="${1:l}"
-  [[ "$m" == *embed* || "$m" == *rerank* ]] && return 1
-  [[ "$m" == *-cloud || "$m" == *:cloud || "$m" == *-cloud:* || "$m" == *cloud/* ]] && return 1
-  return 0
-}
-# ONE JSON LIST OF MODELS, IN BOTH SHAPES AND WITHOUT A PARSER -- INTELLIGENCE's
-# reader: ollama answers {"models":[{"name":…}]} and everything OpenAI-shaped
-# {"data":[{"id":…}]}, so the keys those two use are looked for, an offset and
-# then a window, which on a runner holding dozens of models is the difference
-# between a millisecond and a stutter
-vc_models_from() {   # vc_models_from BODY -> VCM
-  local b="$1" rest v k pre win
-  local -i n at
-  VCM=()
-  for k in name id model; do
-    rest="$b"; VCM=(); n=0
-    while [[ "$rest" == *"\"$k\""* ]]; do
-      pre="${rest%%\"$k\"*}"
-      at=$(( ${#pre} + ${#k} + 2 ))
-      win="${rest[$at,$(( at + 200 ))]}"
-      rest="${rest[$at,-1]}"
-      win="${win#*:}"; win="${win## }"
-      [[ "$win" == '"'* ]] || continue
-      v="${win#\"}"; v="${v%%\"*}"
-      [[ -n "$v" ]] || continue
-      [[ " ${VCM[*]} " == *" $v "* ]] && continue
-      VCM+=("${v[0,63]}"); (( n++ ))
-      (( n >= 32 )) && break
-    done
-    (( ${#VCM[@]} )) && return 0
-  done
-  return 0
-}
-# THE LIST IS FETCHED BEHIND THE PICTURE.  A runner that is up and wedged is
-# exactly the case a plain fetch would hang the cabinet on, so the request
-# runs in the background on a two-second leash and the page reads its answer
-# when it lands.
-vc_list_start() {   # vc_list_start R
-  local -i r=$1
-  (( ${+commands[curl]} )) || return 1
-  gt_tmp alien-visitor-list || return 1
-  VC_PLOG="$GTMP"; VC_PRUN=$r; VC_PSTART=$EPOCHREALTIME
-  { curl -fsS --max-time 2 -H 'Accept: application/json' -- \
-      "http://127.0.0.1:${VC_RPORT[$r]}${VC_RAPI[$r]}" 2>/dev/null
-    _rc=$?; print -r -- ""; print -r -- "__RC__ $_rc" } >> "$VC_PLOG" 2>/dev/null </dev/null &!
-  VC_PPID=$!
-  return 0
-}
-vc_list_read() {   # the fetched list, once it has landed · the models he can talk with, and one chosen
-  local body m
-  local -a keep
-  local -i i
-  [[ -n "$VC_PLOG" ]] || return 0
-  body="$(<"$VC_PLOG")" 2>/dev/null || body=''
-  if [[ "$body" != *$'\n__RC__ '* ]]; then
-    (( $EPOCHREALTIME - VC_PSTART > 4.0 )) || return 0      # still coming
-    body=''                                                 # ...or never will
-  fi
-  rm -f "$VC_PLOG" 2>/dev/null; VC_PLOG=''; VC_PPID=0
-  body="${body%$'\n__RC__ '*}"
-  # A PORT THAT ANSWERS IS NOT YET A RUNNER.  8080 is every web framework's
-  # favourite, and a server that is not listing models is something else
-  # standing on it -- passed over, not named as a runner with nothing in it.
-  if [[ "$body" != *'"models"'* && "$body" != *'"data"'* ]]; then
-    VC_EMPTY[$VC_PRUN]=$EPOCHREALTIME; VC_PACE=0.3
-    (( VC_RUN == VC_PRUN )) && { VC_RUN=-1; VC_MODELS=(); VC_MODEL=''; }
-    return 0
-  fi
-  vc_models_from "$body"
-  for m in "${VCM[@]}"; do vc_chat_model "$m" && keep+=("$m"); done
-  if (( ! ${#keep[@]} )); then
-    # up, and holding nothing he can talk with · said, and the next one asked soon
-    VC_EMPTY[$VC_PRUN]=$EPOCHREALTIME; VC_IDLE=$VC_PRUN; VC_PACE=0.3
-    (( VC_RUN == VC_PRUN )) && { VC_RUN=-1; VC_MODELS=(); VC_MODEL=''; }
-    return 0
-  fi
-  VC_RUN=$VC_PRUN; VC_MODELS=("${keep[@]}"); VC_LISTED=$EPOCHREALTIME; VC_IDLE=-1; VC_SETUP=''
-  # THE MODEL HE WAS TALKING THROUGH IS KEPT while the runner still lists it,
-  # so his voice does not change halfway through a conversation
-  for (( i = 0; i < ${#VC_MODELS[@]}; i++ )); do [[ "${VC_MODELS[$i]}" == "$VC_MODEL" ]] && return 0; done
-  VC_MODEL="${VC_MODELS[0]:-}"
-  return 0
-}
-vc_probe() {   # vc_probe — paced · every four seconds while his page is up
-  local -i i idle=-1
-  if [[ -n "$VC_PLOG" ]]; then vc_list_read; return 0; fi
-  (( $EPOCHREALTIME - VC_PROBE_AT < VC_PACE )) && return 0
-  VC_PROBE_AT=$EPOCHREALTIME; VC_PACE=4.0
-  [[ "$VC_STATE" == run ]] && return 0          # he is mid-sentence · the runner is plainly up
-  # THE ONE HE IS ALREADY TALKING THROUGH, while it stands -- its list asked
-  # again twice a minute, so a model taken off it meanwhile is noticed
-  if (( VC_RUN >= 0 )) && [[ -n "$VC_MODEL" ]] && vc_port_up ${VC_RPORT[$VC_RUN]}; then
-    (( $EPOCHREALTIME - VC_LISTED > 30.0 )) && vc_list_start $VC_RUN
-    return 0
-  fi
-  # ...AND OTHERWISE THE FIRST THAT IS UP, skipping any that answered with
-  # nothing in the last half minute so a runner further down still gets asked
-  for (( i = 0; i < 4; i++ )); do
-    vc_port_up ${VC_RPORT[$i]} || continue
-    if (( $EPOCHREALTIME - ${VC_EMPTY[$i]:-0} < 30.0 )); then
-      (( idle < 0 && VC_IDLE == i )) && idle=$i
-      continue
-    fi
-    vc_list_start $i
-    return 0
-  done
-  VC_RUN=-1; VC_MODELS=(); VC_MODEL=''; VC_IDLE=$idle
-  vc_setup
-  return 0
-}
-# WHAT IS MISSING, when he cannot talk: a runner up but holding nothing he can
-# talk with, or nothing on the Mac at all, is a model to INSTALL; a runner on
-# the Mac that is not running is one to START.  Asked of the command table and
-# the two runners that come as apps, which is lookups, not forks.
-vc_installed() {   # 0 when some local runner is on this Mac
-  (( ${+commands[ollama]} || ${+commands[llama-server]} || ${+commands[lms]} || ${+commands[mlx_lm.server]} )) && return 0
-  [[ -d /Applications/Ollama.app || -d "/Applications/LM Studio.app" \
-  || -d "$HOME/Applications/Ollama.app" || -d "$HOME/Applications/LM Studio.app" ]]
-}
-vc_setup() {   # -> VC_SETUP
-  if (( VC_RUN >= 0 )) && [[ -n "$VC_MODEL" ]]; then VC_SETUP=''
-  elif (( VC_IDLE >= 0 )) || ! vc_installed; then VC_SETUP='install'
-  else VC_SETUP='start'; fi
-  return 0
-}
-vc_setup_say() {   # -> VCP the sentence the box says for VC_SETUP
-  case "$VC_SETUP" in
-    install) VCP="he can't talk yet · he needs a local model · install one on INTELLIGENCE's LOCAL page" ;;
-    start)   VCP="he can't talk right now · start a local model on INTELLIGENCE's LOCAL page" ;;
-    *)       VCP='' ;;
-  esac
-  return 0
-}
-
-# ── HIS NOTES · written from the dotfiles themselves ──────────────────────
-# GENERATED by gen_notes.py from the hand-written notes and the arcade’s own
-# racks · 120 notes (the last, TITLE CARDS, set by hand in the same form) ·
-# edit the notes and generate again, not these lines
-# written against: system.zsh:015a38cf intelligence.zsh:7f7c12e4 xenogotchi.zsh:d1e238c8 arcade.zsh:6da60ace bootstrap.zsh:451f153a
-typeset -ga VK_TI VK_KW VK_BT VK_TX
-VK_TI=(
-  'THE HOUSE AT A GLANCE'
-  'EVERY FILE IN THE DOTFILES'
-  'TERMINAL.COMMAND · THE DOOR'
-  'TERMINAL.CONF · THE SETTINGS FILE'
-  'TERMINAL.CONF · WHAT EACH KEY DOES'
-  'TERMINAL.CONF · THE ARCADE’S KEYS'
-  'TERMINAL.SAVE · THE PROGRESS FILE'
-  'MOVING TO ANOTHER MAC'
-  '.GITIGNORE'
-  'BREWFILE · THE TOOLS'
-  'SCRIPTS/FIXTURES/SYSTEM · THE INVENTED MAC'
-  'SCRIPTS/BOOTSTRAP.ZSH · THE INSTALLER'
-  '[N] INSTALL, ON THE GLASS'
-  '[U] UNINSTALL'
-  'THE TOOLS STEP'
-  'THE ~/.ZSHRC BLOCK'
-  '00-ALIEN-PATH.ZSH · PATH'
-  '10-ALIEN-TERMINAL.ZSH · THE HOOK'
-  'WHERE THE HOOK STANDS ASIDE'
-  'THE ALIEN LAUNCHER'
-  'GETTING OUT, AND GETTING A PLAIN PROMPT'
-  'THE STATE FOLDER'
-  'LAUNCH OPTIONS FOR terminal.command'
-  'POWERING UP'
-  'THE POWER-ON SELF TEST'
-  'READING SAVE AND CONFIG'
-  'THE MENU'
-  'THE MACHINE ROWS'
-  'THE MIRROR GAUGE AND THE SPECS'
-  '[T] TERMINAL · A SHELL IN THE GLASS'
-  '[R] RESCAN'
-  '[C] CONFIG · THE CABINET’S OWN SETTINGS'
-  'CONFIG · SOUND'
-  'CONFIG · PHOSPHOR'
-  'CONFIG · BEAT'
-  'CONFIG · BOOT'
-  'CONFIG · SCREEN'
-  '[Q] POWER OFF'
-  'THE HEADER AND THE CAPTION'
-  'THE SKY OVER THE MACHINE'
-  'THE COIN DOOR'
-  'THE CABINET ITSELF'
-  'COLOUR DEPTH · 24-BIT'
-  'KEYS THAT WORK EVERYWHERE'
-  'MACHINES ARE PAGE PACKS'
-  'THE VISITOR'
-  'TALKING TO THE VISITOR'
-  'WHAT HE NEEDS TO TALK'
-  'WHAT STAYS PRIVATE WHEN YOU TALK TO HIM'
-  'HOW THE VISITOR KNOWS THE HOUSE'
-  'THE VISITOR’S WARDROBE'
-  'SYSTEM'
-  'SYSTEM · OVERVIEW'
-  'SYSTEM · PROCESSOR'
-  'SYSTEM · MEMORY'
-  'SYSTEM · STORAGE'
-  'SYSTEM · NETWORK'
-  'SYSTEM · POWER'
-  'SYSTEM · PROCESSES'
-  'SYSTEM · HARDWARE'
-  'HOW SYSTEM READS THE MAC'
-  'INTELLIGENCE'
-  'INTELLIGENCE · CLOUD'
-  'THE GATE'
-  'INTELLIGENCE · LOCAL'
-  'WHICH LOCAL MODEL TO INSTALL'
-  'CONSOLE'
-  'OPENCODE'
-  'INTELLIGENCE · ROUTE'
-  'INTELLIGENCE · BENCH'
-  'INTELLIGENCE · PROMPTS AND REWRITE'
-  'INTELLIGENCE · HISTORY AND KEYS'
-  'THE EGRESS GUARD'
-  'YOUR ACCOUNTS ARE NEVER AT RISK'
-  'RUNNERS EXPLAINED'
-  'XENOGOTCHI'
-  'XENOGOTCHI · CARING FOR YOUR ANIMAL'
-  'XENOGOTCHI · VITALS'
-  'XENOGOTCHI · CREDITS'
-  'XENOGOTCHI · THE STORE'
-  'XENOGOTCHI · ADOPT'
-  'XENOGOTCHI · THE SPECIES'
-  'XENOGOTCHI · STATS, THE ROSTER'
-  'XENOGOTCHI · LETTING ONE GO'
-  'XENOGOTCHI · AGE AND LIFE STAGES'
-  'XENOGOTCHI · WHILE YOU ARE AWAY'
-  'XENOGOTCHI · GENETICS AND BREEDS'
-  'XENOGOTCHI · THE ROOM AND ITS MOODS'
-  'XENOGOTCHI · HOW IT IS SAVED'
-  'ARCADE'
-  'THE TWELVE GAMES'
-  'PLAYING A ROUND'
-  'NEON SNAKE, BLOCK FALL, VOID PONG, BRICK NOVA'
-  'STAR RAIDER, GRID RUNNER, LASER DODGE, NIGHT DRIVE'
-  'LIGHT CYCLE, PLASMA BALL, ASTRO DRIFT, BEAT GRID'
-  'ARCADE COINS'
-  'RUNGS AND UNLOCKING THEM'
-  'HIGH SCORES'
-  'THE MARKETPLACE'
-  'WHAT THE GAMES COST'
-  'THE WARDROBE'
-  'THE STYLE BONUS'
-  'THE TROPHY ROOM'
-  'THE LEDGER'
-  'ARCADE SETTINGS'
-  'ATTRACT MODE'
-  'THE COIN DOOR SERVICE MENU'
-  'ALIEN DYNAMICS AND THE MODEL PLATES'
-  'CHANGING A SETTING'
-  'IT DID NOT OPEN WHEN I OPENED TERMINAL'
-  'IT FEELS SLOW OR CHOPPY'
-  'THE COLOURS LOOK WRONG'
-  'THE WINDOW CLOSED OR A MACHINE WILL NOT OPEN'
-  'EDITING THE DOTFILES'
-  'REMOVING EVERYTHING'
-  'THE WARDROBE · HATS, AND WHAT THEY COST'
-  'THE WARDROBE · GLASSES, AND WHAT THEY COST'
-  'THE WARDROBE · SMOKES, AND WHAT THEY COST'
-  'THE WARDROBE · AURAS, AND WHAT THEY COST'
-  'TITLE CARDS'
-)
-VK_KW=(
-  'overview dotfiles repo suite alien everything contents house map folder tour summary glance'
-  'files list tree layout structure directory folders file repo contents every dotfiles'
-  'terminal command door cabinet main file launcher double click zsh standalone open start'
-  'terminal conf config file settings configuration preferences options edit hand format'
-  'conf keys settings list sound phosphor beat boot screen key meanings values options setting names defaults colour intelligence open unused retired old terminal'
-  'arcade settings attract freeplay difficulty player name conf scanlines closeexit fpscap unused retired terminal keys'
-  'terminal save file progress saved game coins stored pet location backup'
-  'new mac another move transfer carry copy save migrate backup restore sync second machine moving'
-  'gitignore git commit version control ignored local files committed'
-  'brewfile homebrew brew packages dependencies tools ollama llama cpp opencode node installed'
-  'fixtures mock demo moonbase fake machine test data probe expected scripts system invented mac'
-  'bootstrap zsh installer install setup set installing link symlink scripts'
-  'install row key page installing menu installed link leaves first run fresh mac kn glass'
-  'uninstall remove key take undo install reset hook put back clean ku'
-  'tools homebrew install brew bundle ollama service login phase missing step'
-  'zshrc block marked shell config added remove source conf'
-  'path 00 alien local bin homebrew conf setup command found zsh'
-  'hook 10 alien terminal new window opens auto open startup every shell switch turn stop launch zsh'
-  'hook guards tmux ssh vscode warp hyper scripts pipes editor terminal open didn opt stands aside'
-  'alien command launcher local bin open prompt start terminal'
-  'exit quit leave escape stuck locked plain prompt close turn disable emergency getting'
-  'state folder local alien dealing flag house token files xdg'
-  'flags options arguments fast probe check plain sharp fps back 256 true command line debug launch terminal'
-  'power startup boot opening intro launch sequence start long skip ceremony splash powering'
-  'self test post boot card bios checks cpu ram disk readings startup screen diagnostics power'
-  'save found config detected boot files loaded uploaded reading'
-  'menu main home screen rows suite machines list navigate choose select arrow keys jk'
-  'machine rows system row intelligence xenogotchi arcade readings greyed absent folder'
-  'mirror gauge links linked waiting specs cpu memory disk readout installed'
-  'key terminal row shell prompt command line run commands detach scrollback zsh glass kt'
-  'rescan key refresh read reload re scan update readings detect kr'
-  'config key settings preferences options page change configure popup kc cabinet'
-  'sound audio mute silence beeps noise turn effects blips config'
-  'phosphor soft sharp blocks bleed crisp sprites look blurry pixel render style config'
-  'beat frame rate fps speed smoothness 30 60 120 auto performance laggy slow choppy config'
-  'boot fast full skip startup opening ceremony faster start setting config'
-  'screen fill float full fullscreen window size bigger stretch whole layout config'
-  'key power quit shut turn exit cabinet close leave gate kq'
-  'header title bar caption top moon phase zodiac clock time shown waxing waning say'
-  'sky sun moon night day twilight phase real timezone location sunset sunrise machine'
-  'coin door bottom message greeting toast status line say good morning'
-  'cabinet look marquee neon bezel crt scanlines tube design graphics stars shooting star dust synthwave visuals'
-  'colour color 24 bit truecolor 256 colors palette look wrong terminal app ink depth'
-  'keys controls keyboard shortcuts navigation escape back key arrows wheel mouse work everywhere'
-  'pack page machines load sourced plugin machine files scripts suite window failed crash packs'
-  'visitor alien mascot name key page'
-  'talk chat ask box bubble type conversation enter speech key talking visitor'
-  'talk cannot model local needs answering install start won'
-  'privacy private local leave sent cloud secure logged saved conversation data stays talk'
-  'trained notes knowledge learned remember memory accurate visitor knows house'
-  'wardrobe outfit clothes hat glasses smoke aura dress wearing vanity items cosmetic visitor'
-  'system monitor nx 88 activity stats performance machine health cpu usage resources'
-  'overview scope radar sweep tapes gauges ticker contacts dots circle system'
-  'processor cpu cores load busy performance efficiency time system'
-  'memory ram swap pressure wired compressed app cache system'
-  'storage disk volumes drives space full free reads writes throughput system'
-  'network wifi ethernet internet traffic bandwidth interfaces sockets ip vpn connections system'
-  'power battery charge health cycles temperature charging plugged time remaining mouse keyboard system'
-  'processes tasks apps running top sort kill table cpu list system'
-  'hardware model chip serial mac specs uptime boot time system'
-  'system work sampling refresh readings commands sysctl vm stat top ioreg pmset netstat often reads mac'
-  'intelligence ai agents models iq 88 llm tools command lines switchboard'
-  'cloud agents claude code codex antigravity grok build install agent open page coding intelligence'
-  'gate install line confirm run runs exact command approval job strip stop'
-  'local models runner ollama llama cpp lm studio mlx pull model download install start page offline ai intelligence'
-  'model recommended best list qwen gpt oss ram needed memory curated models size local install'
-  'console chat model local talk tokens per second speed save new session'
-  'opencode coding agent local run model open code'
-  'route router routing auto litellm proxy prefer local balanced cloud budget cap spend cost intelligence'
-  'bench compare side benchmark prompt best agents intelligence'
-  'prompts library prompt templates rewrite improve engineering copy rules intelligence'
-  'history log ran keys api environment variables credentials providers signed key set intelligence'
-  'egress guard secrets leak safety privacy blocked keep local credentials check sensitive'
-  'account subscription login sign token oauth safe ban terms risk credentials reuse accounts never'
-  'ollama runner llama server lm studio mlx port 11434 8080 gguf serve model local runners explained'
-  'xenogotchi pet animal virtual tamagotchi adoption centre xg creature cat companion'
-  'feed water groom treat play nap pet scoop litter care keys home look take hungry xenogotchi caring animal'
-  'vitals stats food hydration water mood bond coat pep energy health meters needs bars mean xenogotchi'
-  'pet credits xenogotchi earn money care streak gifts red dot catches pay'
-  'store shop buy kibble tuna feast yarn orb pointer bed cover dish set core tuning prices galley toy chest xenogotchi'
-  'adopt adoption new pet intake litter arrivals sign certificate name welcome home xenogotchi'
-  'species animals available dog rabbit hamster fox turtle hedgehog duck frog snake owl pig axolotl guinea ferret rat chinchilla goat gecko sugar glider parrot penguin glorp xenomorph void drifter kinds xenogotchi'
-  'stats roster pets multiple swap pet rename vet release papers key list animals xenogotchi'
-  'release give delete pet remove abandon key xenogotchi letting'
-  'age grow grows kitten baby senior life stage lifespan old dies xenogotchi stages'
-  'away time left alone vacation weekend neglect offline closed cabinet passes xenogotchi'
-  'genetics coat colour breed pattern eyes odd temperament seed colorway looks xenogotchi breeds'
-  'room home page engine reactor core porthole behaviour mood emotions sleeping xenogotchi moods'
-  'xenogotchi save pet pets active saved animal lost'
-  'arcade games play nx 88 cabinets menu gaming game'
-  'game list games available snake block fall void pong brick nova star raider grid runner laser dodge night drive light cycle plasma ball astro drift beat titles twelve'
-  'round start game insert coin pause cash quit controls general key players playing'
-  'neon snake controls block fall void pong brick nova play tetris breakout'
-  'star raider controls grid runner laser dodge night drive shooter maze pacman racing play'
-  'light cycle controls plasma ball astro drift beat grid tron pinball asteroids rhythm game play'
-  'coins credits coin bank money earn payout broke cost play arcade'
-  'rungs difficulty rookie normal expert insane unlock locked harder levels multiplier unlocking'
-  'high scores hall fame leaderboard top records best score key names tables initials'
-  'marketplace market buy game rent shop store key prices machine rental wardrobe racks'
-  'game prices cost games price list buy cheapest expensive'
-  'wardrobe hats glasses smokes auras outfits cosmetics dress visitor rarity legendary epic rare items clothes shop'
-  'style bonus coins outfit wear percent rarity full'
-  'trophies trophy room badges achievements awards secret key konami'
-  'ledger statistics stats numbers games played key totals favourite game'
-  'arcade settings options key sound fx attract mode free play reset bank scores self test operator'
-  'attract demo reel idle screensaver bots playing demonstrator mode'
-  'service menu operator coin door secret backslash serial cheat rigged switches hidden'
-  'alien dynamics 1984 lore model numbers ad nx 88 iq xg synthwave series brand story company plates'
-  'change setting turn set configure adjust customize customise changing'
-  'doesn open opening hook working new window prompt auto start broken didn launch launching opened terminal'
-  'slow laggy choppy stutter performance fps high cpu battery drain smooth feels'
-  'colors wrong colours washed navy 256 terminal app font glyphs broken boxes look odd braille'
-  'crash closed disappeared error broken open failed load pack bug went wrong window machine'
-  'edit files modify change code update suite customise symlinks links point repo git pull editing dotfiles'
-  'uninstall completely remove everything delete suite clean mac put back traces removing'
-  'price cost buy wardrobe catalogue list hats hat top crown helmet cap antenna antlers band bandana beanie beret boater bowler bucket cat chef circlet cone cowboy crescent crest devil diving earmuffs ears fedora fez flat flower flying graduation great halo hard headlamp headphones helm horns jester kabuto laurel mohawk moon mothership newsboy night party pharaoh phoenix pie pilot pirate pom pork propeller ring samurai santa saturn saucer shower snapback solar sombrero space star sweatband tiara tinfoil traffic ushanka viking visor wizard wreath'
-  'price cost buy wardrobe catalogue list glasses specs shades sunglasses goggles monocle eyewear 3d aviators binoculars blindfold browline butterfly cat clip compound eye eyes frames half headset heart horn hypno kaleidoscope laser mask mirrored moons neon nez night ons opera oracle patch pince pixel ray rims rose round safety scouter scuba snow spirals sport star steampunk supernova swim thick third tinted vision visitor visor vr wayfarers welding wire wraps'
-  'price cost buy wardrobe catalogue list smokes smoke pipe cigar cigarette hookah wisp blunt bong briar bubble calabash candy chaser churchwarden cigarillo cloud clove cob corn cosmic dab dragon dugout ember eternal hand holder hose incense joint matchstick meerschaum peace pen rig rolled stick vape'
-  'price cost buy wardrobe catalogue list auras aura weather sparkles snow storm aurora effects air arcs bank black blossom cherry comet crystal drive drizzle dust earth fall fire fireflies fireworks fog galaxy glitch growth hex hole ice leaf meteor motes nebula plasma pool radioactive rain rift ring sandstorm shadow shower sigil snowfall soul spiral stardust static sunbeams supernova tendrils thunderstorm time warp wisps'
-  'title card cards press any key start screen front splash face opening open machine walk in wake'
-)
-VK_BT=(
-  'dotfiles alien suite dynamics synthwave arcade cabinet runs mac terminal written entirely zsh door command carries whole file behind stand four machines scripts system monitor intelligence ai lines local models xenogotchi adoption centre animal twelve games house holds conf settings save progress bootstrap installer three shell files home hook brewfile gitignore menu kv steps aside visitor page'
-  'top folder terminal command door whole cabinet conf every setting save machine progress lives brewfile homebrew tools gitignore scripts bootstrap zsh installer suite four machines page packs system intelligence xenogotchi arcade fixtures invented mac demos tests home config 00 alien path 10 shell hooks local bin launcher links three'
-  'terminal command suite file work double click cabinet powers filling window bigger machine floats centred night around written zsh macos ships ship python runs fresh mac nothing installed carries everything draws visitor sun moon included copy dropped desktop half cloned repo still comes reads knows install rest model ad series synthwave'
-  'terminal conf sits beside command holds every setting suite per line key value comments last spelling wins program leaves alone door hook arcade share file safely safe delete hand edit commit though gitignore keeps local default cabinet rewrites lines writing whole temporary copy moving crash never torn everything runs defaults'
-  'door reads five keys power sound phosphor soft sharp beat auto 30 60 120 frames second boot full fast screen float fill config page kc menu changes writes back terminal hook switch shell decide whether new window opens cabinet arcade keeps four well every key file read retired ones older versions colour intelligence open dropped next time'
-  'arcade keeps four keys terminal conf attract demo reel 20 idle seconds freeplay play without coins earn none difficulty rung last started rookie normal expert insane player name high scores signed empty uses mac user yes true mean settings room flips free writes back three older python kept scanlines closeexit fpscap belong door draws tube decides powering config beat sets rate drops whenever file'
-  'save terminal cabinet looks beside command dotfiles folder first local state alien home self test reading config lines say found holds every machine progress arcade coin bank high score tables rungs rentals trophies wardrobe xenogotchi animal signed dotted path value line credits 640 read hand edited machines write whole temporary file move place keep never full gitignore keeps git'
-  'progress travels file copy terminal save conf settings dotfiles folder beside command new mac power self test reading config section says whether found animal name coin bank copied cabinet running named card read next nothing overwrites meanwhile boot fast door line run install menu link shell hooks'
-  'gitignore keeps machine files git terminal save conf temp lock macos ds store working clutter backups delete folder suite runs defaults without either file installer writes switch needs fresh clone works'
-  'brewfile names homebrew packages machines reach nothing ollama holds local model memory answers port 11434 llama cpp runner server per gguf file 8080 opencode coding agent runs press intelligence page node codex installs npm everything suite uses already ships macos zsh curl perl sysctl vm stat top ioreg pmset netstat osascript afplay pbcopy installer tools step'
-  'scripts fixtures system machine looks demo mode invented 16 inch m3 max called moonbase 36 gb six days thirds disk little swap link cell charging plain data files sysctl vm stat df netstat ioreg pmset ps readings pictures repo reproducible leak nothing real mac command fixture answer runs probe expected every reading taken check monitor still reads byte'
-  'scripts bootstrap zsh jobs first terminal open cabinet links three files home folder adds marked block zshrc sources conf turns hook switch second puts tools machines lean place homebrew missing brewfile ollama service starts login never replaces reorders writes outside marks keeps copy called pre alien touching safe run twice menu kn install runs glass'
-  'house fully linked menu second row kn install missing beside opens installer page glass five checks question link leaves write block switch hook ky tools shows exact lines step run hands whole terminal homebrew asks password return later back printed answer ku uninstall stands alone'
-  'ku uninstall always menu kn install everything linked half installed mac taken back leaves nothing behind page lists step answer ky copies terminal save conf new backup folder downloads cabinet powers installer works window takes block zshrc unlinks three files puts back moved aside deletes pre alien copies state stops ollama starting login npm opencode ai stands brew uninstalls brewfile tools llama cpp node agent rules dotfiles last make'
-  'installer tools step interactive purpose homebrew asks password return cabinet steps aside hands real terminal comes back installs none runs brewfile ollama llama cpp opencode node registers services runner 127 11434 every login shows exact lines run four cloud agents installed signs account intelligence page time behind gate'
-  'installer appends block zshrc line reading alien dotfiles read every zsh file config conf linked shell files live nothing outside marks touched uninstall takes deleting lines hand works'
-  'home config zsh conf 00 alien path runs every new shell hook puts local bin folder exists already launcher works prompt adds homebrew installed nothing put yet intelligence find ollama friends name never moves entry change named programs wins'
-  'hook home config zsh conf 10 alien terminal opens cabinet whenever new shell person sitting otherwise switch exactly means window plain prompt page kn install turns ku uninstall edit line hand reads eye never runs replace quitting leaves written fail toward unsure'
-  'hook refuses open cabinet shell person terminal script command pipe scp rsync stays tmux screen panes ssh sessions terminals inside vs code warp hyper never opens suite glass opening machines tabs started alien set override switch repo cannot found link nothing'
-  'home local bin alien linked installer typing prompt opens cabinet new window hook finds repo link rather path written install time move dotfiles run nothing told'
-  'kq anywhere opens power question ky shuts cabinet stop new terminal windows opening turn hook switch edit conf reads config page ku uninstall menu stops taking whole suite mac single plain shell start alien set never tmux ssh editor still reaches prompt'
-  'suite keeps short lived facts local state alien home folder xdg set house token says tabs belong together brief dealing flag stops cabinet opens opening cabinets terminal save beside command note machine got ready power brings down left ordinary way file changes warming installer makes ku uninstall deletes clears expiring crash never leave new shells without'
-  'terminal command takes launch options mostly testing paint frame exit card without ceremony text report found probe glyph test check force xterm 256 colour palette 24 bit sprites drawn sharp ink pin rate skip power mock read invented machine instead mac pictures reproducible alien save points different file'
-  'every opening starts stars alone couple honest seconds machine loads behind folder opens ready system first reading intelligence asked agent version xenogotchi room built ready preload loading warm tube warms ember line raster unfolding picture settling comes power self test card menu thirteen key skips ceremony finished cursor kp pauses read boot fast config page powering plays backwards collapses pinches dot burns'
-  'self test card says cabinet found mac line time cpu ram disk panel window size refresh rate beat frame ladder ink 24 bit truecolor xterm 256 palette term shell zsh version utf os snd silent sound cannot play sky latitude longitude taken zone four machine slots online glass absent finally reading save config whether terminal conf kr rescan menu runs'
-  'last block self test reading save config line terminal conf found folder unreadable says whose progress animal name coin bank beside machines settings holds boot fast card skipped door instead example copied another mac picked'
-  'menu list move act top suite box kt terminal kn install ku uninstall installed kr rescan kc config reachable letter machines lists system intelligence xenogotchi arcade live reading beside load average ai agents animal name health coin bank machine walks kv opens visitor page kq powers says door'
-  'machine row carries live reading system shows load intelligence ai agents mac xenogotchi animal room health percent pet arcade coins bank save yet whose file missing scripts suite greys says needs rather opening onto nothing every page pack opens inside glass tab'
-  'menu gauge shows files home linked folder point back repo means house installed otherwise says waiting offers install link points somewhere counted sit five readings mac cpu cores memory disk bar turns warmer fills display panel rate animations paced operating system'
-  'kt terminal opens login shell inside glass cabinet neon around profile path prompt new window give hook stands aside another detaches returns menu still running row says long back typing exit ends mouse wheel scrolls page move resized reflow reopen size'
-  'kr rescan reads machine shows self test card specs display frame rate files folder links home save conf read counted settings applied power since restart copying installing moving window another'
-  'kc config folds panel menu five settings every machine feels sound phosphor beat boot screen choose row change km fold away says felt live means restart next power written straight terminal conf keeping line file cannot holds quit coin door'
-  'turn sound press kc menu open config move row inside arcade ku flips switch changes saved terminal conf sounds cabinet small noises blips cursor ticks alert played macos system nothing downloaded bundled stay silent pipe plain mode cannot play self test reports'
-  'phosphor kc config page chooses lit sprites visitor sun moon drawn soft tube gentle bleed sharp hard blocks ink move row press switch changes saved terminal conf'
-  'beat kc config page frame rate whole cabinet runs auto 30 60 120 move row press step changes saved terminal conf governs running display refresh keep otherwise exact divisor stepping quickly frames run long back rung time comfortable seconds feel choppy lower number helps fill mode costs float'
-  'boot kc config page full whole opening stars tube warming self test fast straight menu move row press switch unlike settings takes effect next power saved terminal conf coin door still says whether save found'
-  'cabinet fill window press kc menu open config move screen row switch float puts back changes saved terminal conf stands whole walls neon bezel coin door middle night around hides frame glass size full included sign keys messages drawn instead pages layout reflow given yet stays fixed centred'
-  'kq anywhere asks power shut house ky powers kn keeps powering plays tube stops machines started puts terminal back switches stays open every window tab hook alien launcher opened cabinet left prompt double clicked finder ends command setting decides whether closes conf since change already written'
-  'every surface wears title band page name left sky caption right day reads sunny time night moon phase constellation zodiac worked date waxing gibbous capricorn 11 48 pm warmed cooled'
-  'sun moon visitor page real cabinet takes latitude longitude mac time zone works whether horizon night eight phases twilight warm card arithmetic python version term worked minute every frame self test sky line shows location'
-  'coin door foot cabinet machine talks back nothing happened shows greeting line minute dealt hour pool often name good morning still late key says six seconds fades badge corner surface figure menu mirror'
-  'cabinet arcade ported term original py neon tubes breathing walls lit side art bezel machine name control panel carrying key strip coin door light spilling floor glass crt vignette slow bright roll phosphor every page change changes channel tube line unfold settle outside suite starfield rare shooting star little dust drifts pane never lands word'
-  'dotfiles draw 24 bit colour exception apple terminal older macos takes xterm 256 palette unless announces truecolor cabinet lifts dark purples choosing nearest colours turn navy self test ink line says launch option force either plain mode draws'
-  'keys mean every surface move rows turn pages opens row page letters jump straight back level machine menu suite km leave kq power switch anywhere mouse wheel moves cursor quietly notch never counts press names bar along foot'
-  'machine scripts suite page pack file door reads first time open draws inside glass keeps walls tube frame rate keyboard read per session walking back finds exactly left fails load start survives puts last line went wrong coin takes program said printed terminal afterwards run files say belong command'
-  'visitor small grey violet alien wide head big dark eyes lives glass cabinet suite mascot knows house kv menu opens page stands middle real sun moon corner wearing whatever arcade put box along foot talk looks press key talks km back'
-  'page steps talk box type sends stays live next line typing move caret takes back work shell answer arrives speech bubble right head lit sun moon growing words come last said sits top rule outside wheel read long kx stops mid sentence kn starts conversation'
-  'visitor answers model running mac found usual local ports ollama llama cpp lm studio mlx never leaves none installed box says needs install intelligence page start models embed rerank cloud tagged passed cannot chat answer fails loses train thought simply try'
-  'nothing say visitor leaves mac request runner 127 written private temporary file readable rather onto command line programs see answer deleted finishes conversation lives cabinet memory kn clears powering forgets cannot run commands open files change settings talk'
-  'visitor carries notes dotfiles written files themselves every file page key setting question looks fit sees true mac right current settings whether save config found machines wearing learn new visits remember past conversations cabinet powers say rather guess'
-  'everything visitor wears comes arcade marketplace bought coins four slots hats glasses smokes auras weather around 166 items saved terminal save page menu shows outfit moment come back names listed side pixels picture lit light stickers talk bubble never covers keeps card row aura adds'
-  'system suite monitor mac eight pages live readings drawn glass model nx 88 menu lists six instruments ko overview kc processor kr memory kd storage kn network kb power tables kp processes kh hardware reading beside open page letter jumps straight ring back list km every machine reads commands macos already changes nothing'
-  'overview machine three columns ticker left five tapes history traces map every core network incoming traffic middle radar scope process contact whose distance rim idle innermost ring range size memory holds brightness fades sweep moves means running last reading tail moved busiest mark colour right four gauges watch list returns'
-  'processor every core time single busy percentage hides user system idle nice load averages bar grid grows sideways however cores apple silicon efficiency listed first per figures dozen lines python3 present macos publish shell without page still shows totals'
-  'memory splits whole activity monitor app wired compressed cached files free hold side figure matching shows swap fitted macos grows swapfiles demand total means little pressure fault page rates processes holding trace'
-  'storage lists every volume real device behind largest first full drives carrying read write rates lifetime totals trace reads writes available space taken system figure rather total minus apfs keeps reserve purgeable pool container data volumes shown holding files'
-  'network shows link addresses traffic rates traces counts open sockets established listening waiting rest every interface carried busiest first follows default route docking joining vpn moving wi fi ethernet moves page megabytes counted apple million bytes'
-  'power battery charge whether charging wall time remaining health design capacity cycle count temperature voltage current crossing terminals low mode paired reports mouse keyboard earbuds mac says rather reading zero per cent'
-  'processes every process scrollable table sorted costing summary strip across top bar row relative busiest move cursor page twenty rows wheel scrolls ks cycles sort reads nothing stops changes'
-  'hardware mac model chip operating system build kernel core counts boot disk booted long trace along foot cabinet badge shows uptime days standing'
-  'system asks macos tools nothing sysctl vm stat df netstat ioreg pmset ps top plus python3 per core split full reading taken every ten seconds background copy picture never freezes takes second bars ease toward new figure tapes record readings actually sixteen minutes history terminal mock reads invented mac scripts fixtures instead'
-  'intelligence suite switchboard ai command lines model iq 88 agents mac install actually signed set plus local side disk held memory runner seven pages letter kc cloud kl kr route kb bench kp prompts kh history kk keys console lives rewrite ring climbs back menu installs removes reports every line run shown gate runs'
-  'cloud row per agent claude code anthropic antigravity google terminal grok build xai codex openai says run runs binary version model set signed several installs path installed opens inside glass sized brings keyboard back cabinet still running behind ki missing ku removes gate signs account'
-  'nothing intelligence assembled behind back ki ku put exact line run glass string roster holds check vendor page wait ky runs kn answered job strip along bottom stays usable kx stops stopping walks process tree pid never pattern hit programs'
-  'local lists cursor runners ollama port 11434 llama cpp 8080 lm studio 1234 mlx 8081 models disk moves runner ks starts terminal tab since outlive cabinet ki installs model curated list gate asks chat console opencode kd keeps loaded answers faster ku removes foot page shows costing mac measured system measures memory chip real resident size'
-  'local install list curated every model supports tools big enough drive opencode marked mac memory comfortable tight qwen2 coder 7b gb 16 ram smallest still drives well qwen3 8b general reasons first 14b 24 gpt oss 20b 13 openai open reasoning 30b 19 32 mixture experts 32b 20 120b 65 96 figure least needed 64k context file size'
-  'console session local model reached chat speaks plain openai shaped endpoint every runner serves numbers beside real rate measured arrived time first token counts types kx stops answer ke picks another kn starts new ks saves whole conversation markdown report downloads folder access files request sit private temporary deleted ends'
-  'opencode coding agent suite uses run local models takes openai shaped endpoint provider runner mac model page opens glass pulled becomes rather chat comes brewfile cloud roster runs signing account route ko router'
-  'route takes prompt router decide local cloud subscription litellm proxy mac port 4000 three modes set eagerly spends metered call prefer 15 balanced default 28 75 always free tried first per provider daily cap dollars 10 20 none stops runaway loop types checked egress guard rewritten model eight words routed km changes mode kg writes config ko opens full opencode session'
-  'bench sends prompt every engine answer single question shows answers side measured times first byte finish run starts empty scratch folder agents read write working directory sandbox agent still runs types kx stops ka asks copies clipboard'
-  'prompts library forty three ready shown beside rules leans set twelve transfer wording choose copies clipboard kw opens rewrite turns rough prompt model follow well engineer write types ke picks engine rewrites lands result ka asks'
-  'history lists run cabinet session long ended never prompt answer lives memory disk keys shows provider mac carrying environment anthropic openai gemini xai openrouter groq mistral deepseek set key value read printed logged sent length alone tells apart spots typo'
-  'egress guard scans cabinet send cloud engine secrets keys credentials fails closed keep prompt local never leans toward blocking block costs keystroke leak cannot undone report names category found value secret sent even rewritten'
-  'suite never borrows subscription login cloud agent official command line signed account tool intelligence reads copies proxies reuses tokens value api key installing removing agents gate time vendor install shown first'
-  'runner holds model memory answers http mac loopback ollama main port 11434 pulls models name keeps loaded installer registers start login llama cpp server runs gguf file per 8080 lm studio 1234 mlx 8081 apple silicon work suite checks asks list passed every page console visitor talk whichever'
-  'xenogotchi adoption centre model xg system watches machine keeps animal adopt name simply lives room real clock fed watered groomed neglected behaviour chosen moment running emotional state menu four pages letter kh home whoever ko store bought credits earned care ka intake night ks stats every signed ring back row shows health'
-  'look animal open xenogotchi menu home kh lives kf feeds meal pantry kw freshens water kg grooms full groom every half hour kt gives treat three day kp brings red dot chase arrows kz suggests nap refused tired kb scoops litter box pets though pet often turn ka admires gift left kd changes room decor among bed covers dish sets core colours empty buy kibble pods store'
-  'animal vitals run 100 food bowl hyd water mood bond attached coat grooming pep energy health plus litter box meter drops red runs low keeping 35 whole day earns care streak letting fall breaks costs little falls kv stats takes ship vet'
-  'xenogotchi credits separate arcade coins earned care never bought local day every vital stayed 35 pays 10 extends streak treat first pet ten minutes pay admiring gift animal left 15 catching red dot three catches daily roll resets catch caps may leave new spent store vet'
-  'store catalogue three departments galley kibble pods 10 six meals pantry space tuna 25 food 40 mood nebula feast 60 15 toy chest kept good yarn ball 30 red dot runs longer hover orb company away holds photon pointer 80 sharper easier catch room bed cover 120 new colourway first naps restore dish set 50 core tuning reactor burns colour walk buys sheet right shows item animal left'
-  'adopt open xenogotchi choose menu ka pages home admires gift instead intake night four arrivals dealt genetics deck stall paperwork temperament eyes life stage age left walk stalls deal another litter type name twelve letters certificate sign field signs light room doors hold species time hours wall clock mac save carried fresh house opens first'
-  'twenty five species arrive shipments cat first dog second rabbit hamster fox turtle hedgehog duck frog snake owl pig axolotl guinea ferret rat chinchilla goat gecko sugar glider parrot penguin earth three glorp xenomorph void drifter lifespan years sixty ninety nine arrival comes seed animal already signed keeps written save'
-  'stats page whole house every animal signed papers choose brings room time kn renames kv takes vet 45 credits treats sick anyway pay kr asks whether'
-  'releasing animal xenogotchi cannot undone asks screen cabinet powers ky kn keeps released lines leave save short record stays place file honest house'
-  'every animal lifespan cat seventeen years give take fifteen per cent seed ages wall clock day comes home stage fraction span six kitten junior young mature senior grows smoothly size life past full grown broadens draws greys little arrivals come age mostly sometimes overlooked'
-  'time passes animal cabinet closed charged next powers first 48 hours away count full quarter rate weekend earns hungry theatrical never tragedy absence capped 45 days however long gone jump 120 read wrong clock rather lost pet nothing hover orb keeps mood'
-  'coat dealt picked colourway drifts hue saturation value animal seed pattern eye colour chance odd eyes ear tail build temperament hash forever species breeds decide rest may set size finished words twelve colours written save stays creature even decks change later'
-  'animal lives ship engine room lit banded reactor column throws teal light across deck porthole showing suite sky nothing scripted needs temperament hour feed running emotional state winning emotion picks next content roams potters chases straight dish bed bored repeating sleeps night bouts filled screen whole shows floating cabinet close'
-  'every animal lives xenogotchi section terminal save active says room pets name species breed colours vitals dotted line file read hand edited rewrites lines whole atomically copies machine untouched cannot fully never written roster top level still loads'
-  'arcade model nx 88 holds twelve cabinets coin game bank daily token high score table every rung machine marketplace trophy room service menu behind held key lists games five rooms scores ledger back door choose plays opens walk letters jump kb kh ka kl ks settings kt ku sound km'
-  'arcade twelve games neon snake block fall puzzle void pong sports players brick nova action star raider shooter grid runner maze laser dodge reflex night drive racing light cycle arena plasma ball pinball astro drift space beat rhythm start others bought outright rented marketplace open menu choose plays board fitted glass points scaled back original pace tables stay fair window size'
-  'choosing game opens rung page pick rookie normal expert insane inserts coin starts player round allows void pong light cycle coins every kp pauses kq cashes ending paying earned score ranked straight table initials type since arcade knows payout window adds'
-  'neon snake arrows steer eat fast build chain worth five tail block fall move rotates drops kspace slams kc holds piece back later clear four lines void pong paddle photon past machine post play three misses ends players left right brick nova launches wall catch capsules km splits every ball field'
-  'star raider move kspace fires hold line formation descends ones peel dive worth double grid runner arrows run maze carved fresh every level eat dodge daemons big nodes turn edible laser sixty seconds steering away beams rails flash fire blinks clear night drive steer boosts eases passing clean fills nitro bottle spends road ahead dealt'
-  'light cycle arrows turn leave wall behind box rider kills players race plasma ball work flippers kspace pulls plunger kz kx nudge table carefully astro drift thrusts fires kh jumps hyperspace might kind momentum brakes saucer beat grid four lanes strike line gold notes perfect hollow ones three hits'
-  'earn arcade coins playing every round pays back score divided machine rate plus 25 new record 10 top five finish visitor style bonus multiplied rung half rookie normal twice expert three times insane trophies pay bank kt menu claims daily token day costs coin players starts holds 999 free play operator rigged service mode nothing'
-  'every machine four rungs rookie gentle pace edges wrap gems linger normal default walls fatal open start expert quicker hazards grid opens best reaches target score 400 coins insane brutal speed across minefield 900 rung high table pays half three times last started remembered terminal conf arcade difficulty'
-  'kh opens hall fame table five every rung machine change gold silver bronze bar leader fresh arcade seeded tables regulars offs names original always opened beat rows signed player terminal conf mac user name empty reset high scores settings erases'
-  'marketplace kb racks cycle games visitor wardrobe hats glasses smokes auras choose game offers buy outright rent meter hour sixth price least coins twenty four hours fifths 16 rental pays exactly owning item buys wears takes kr picks random rack back'
-  'prices machine outright coins neon snake free void pong 120 laser dodge 160 brick nova 220 grid runner 300 night drive 400 plasma ball 550 astro drift 740 star raider 000 block fall 360 light cycle 840 beat 500 renting costs sixth price hour fifths day choosing menu opens buy rent window'
-  'wardrobe dresses visitor 59 hats 45 glasses 27 smokes 35 auras 166 items across six rarities common classic uncommon rare epic legendary bought arcade coins marketplace pixels picture lit light aura weather around throws save keeps receipt every item worn per slot shown page stands beside payout window earned'
-  'visitor wears pays every arcade round earnings style bonus adds item rarity common classic uncommon rare epic legendary filling four slots always least coin current outfit total mac right shows payout window added rung multiplier grows harder rungs'
-  'ka opens trophy room hundred ninety trophies paying coins earned shelves locked game arcade whole secrets check run ended save buying dressing opening earn secret ones round scores nothing wearing mothership hat aura finding service door certain classic code typed menu playing three morning'
-  'kl opens ledger numbers save always knew columns figures runs coins earned bank daily tokens machines owned rungs opened among every machine bar tallest keep back line naming play'
-  'ks opens settings sound fx house switch config throws attract mode demo reel 20 seconds idle free play nothing earn coins reset coin bank back 10 earned total cleared high scores erase hall fame self test colour bars input glyph check games resets ask first tube frame rate window door'
-  'twenty seconds nobody keys arcade starts selling logo today best machine time played demonstrator play owns visitor outfit first key wakes demonstrators meant competent perfect attract mode settings terminal conf turns title card logo opened'
-  'every nx 88 arcade hides service switch behind coin door hold backslash key menu swings open punch serial machine plate self test shows operator switches rig pays coins sets records bookkeeping rows'
-  'everything house wears plate alien dynamics believe hardware maker 1984 cabinet synthwave series door terminal model ad config panel system arcade nx 88s intelligence iq 88 xenogotchi xg machine name bezel stands glass sits lip palette neon crt night outside every surface whole suite reads'
-  'settings keypress away kc config menu sound phosphor frame rate boot screen ks inside arcade attract mode free play write terminal conf straight edit hand key value lines door reads power restart cabinet change page take hook switch set installer uninstall'
-  'new window opens cabinet hold installer linked files written zshrc block menu gauge says terminal hook conf shell person tmux screen ssh vs code warp hyper script inside suite started alien links missing open command directly choose kn install launcher prompt whatever switch'
-  'cabinet paces beat auto runs display refresh rate otherwise exact divisor finding floor within half second lower config page 30 less work keep screen float rather fill draws every cell big window smaller self test line panel say found picture cached moves drawn frame'
-  'self test ink line says whether terminal 24 bit colour xterm 256 palette apple unless announces truecolor darks lifted purples turn navy boxes rules utf locale shell reports system traces braille dots fonts menlo lack font draws sharper door glyph card launch options shows every cabinet uses ruler'
-  'machine file missing row greys says needs fails load start cabinet stays puts last line went wrong coin door takes whole program leaves note behind first said printed terminal left looking kr rescan reads folder fix restore'
-  'files home folder links back repo editing file live point mirror changes terminal command pack take effect next time cabinet opens every machine read power shell new move run installer launcher hook find progress settings stay save conf version control'
-  'ku uninstall takes everything suite put mac back zshrc block pre alien copy three links state folder local ollama login service npm opencode ai brewfile tools agent rules last dotfiles progress settings copied backup downloads first beside terminal command fresh clone carry homebrew stays cloud agents models intelligence removes'
-  'wardrobe hats rack marketplace 59 price coins top hat 260 bowler 120 fedora 170 beanie 40 pom 90 propeller 660 tinfoil 600 space helmet 1350 flying saucer 2100 party 60 crown 1600 tiara 800 halo 860 devil horns 940 cat ears 360 laurel wreath 840 moon crescent 1450 star circlet 1100 flower 480 cowboy 460 hard 150 chef 300 pirate 960 viking helm 1000 wizard 1200 graduation cap 520 pilot 540 headlamp 420 traffic cone 640 santa 400 ushanka 340 bucket beret 280 night 160 sombrero 760 bandana 70 fez 180 snapback 130 visor 320 headphones 560 mohawk 700 antenna band 500 flat 140 newsboy 190 pork pie 210 boater 240 sweatband 100 shower 380 earmuffs 440 antlers 740 jester 900 pharaoh 1150 samurai kabuto 1300 great 1400 diving 1550 mothership 1800 solar 1950 phoenix crest 2250 ring saturn 2400 prices run rarer pieces cost pay bigger style bonus'
-  'wardrobe glasses rack marketplace 45 price coins round specs 180 wire frames 120 thick rims 260 half moons 200 pince nez 280 sunglasses wayfarers 350 aviators 490 cat eye 460 mirrored 720 rose tinted 320 3d 40 pixel shades 680 neon 840 heart 600 star 640 ray 1300 hypno spirals 1400 kaleidoscope 1800 monocle 520 patch scouter 1150 goggles 560 swim 380 safety 70 snow 800 welding mask 960 scuba 920 binoculars 1000 night vision 1100 vr headset 1550 laser visor 1600 visitor 2400 browline 150 horn 230 clip ons 100 blindfold sport wraps 420 steampunk 760 butterfly 880 opera 1250 compound eyes 1450 oracle 1950 third 2100 supernova 2250 prices run rarer pieces cost pay bigger style bonus'
-  'wardrobe smokes rack marketplace 27 price coins cigarette 70 candy 40 cigar 560 corn cob pipe 180 churchwarden 600 peace 660 bubble 120 incense stick 280 vape pen 420 cloud chaser 800 hookah hose 1350 joint 1000 blunt 940 cosmic 2100 matchstick 100 clove 150 briar cigarillo 190 holder 260 meerschaum 350 hand rolled 490 calabash 740 dugout 860 bong 1100 dab rig 1600 dragon 1800 eternal ember 2400 prices run rarer pieces cost pay bigger style bonus'
-  'wardrobe auras rack marketplace 35 price coins fire 860 rain 640 earth 780 air 600 snowfall 560 thunderstorm 1500 fog bank 280 sandstorm 740 cherry blossom 960 sunbeams 820 aurora 1800 stardust 1150 comet 1350 black hole 2300 meteor shower 1300 warp drive 1550 nebula 1200 soul wisps 1250 sigil ring 1400 hex tendrils 1100 radioactive 1000 glitch 1450 plasma arcs 1600 shadow pool 920 drizzle 40 static 180 fireflies 370 dust motes 470 leaf fall 680 ice storm crystal growth supernova 1900 time rift 2050 fireworks 2150 galaxy spiral 2400 prices run rarer pieces cost pay bigger style bonus'
-  'every machine opens title card time opened menu name lights night own live picture holds press key breathing system shows processor trace figures verdict intelligence draws switchboard four agents runners line glass pulse running xenogotchi animal door portrait six vitals wants arcade runs attract reel logo goes first wherever left after back km leave kq power switch mouse wheel nothing'
-)
-VK_TX=(
-  'These dotfiles are the ALIEN suite, by ALIEN DYNAMICS: a synthwave arcade cabinet that runs in a Mac terminal, written entirely in zsh. The door is terminal.command, and it carries the whole cabinet in one file. Behind it stand four machines in scripts/suite: SYSTEM (a monitor for the Mac), INTELLIGENCE (AI command lines and local models), XENOGOTCHI (an adoption centre with one animal) and ARCADE (twelve games). The house also holds terminal.conf for settings, terminal.save for progress, scripts/bootstrap.zsh (the installer), three shell files under home/ that hook it into zsh, a Brewfile, and a .gitignore. From the menu, [V] steps aside to the visitor’s page.'
-  'At the top of the folder: terminal.command (the door and the whole cabinet), terminal.conf (every setting), terminal.save (every machine’s progress, when it lives here), Brewfile (the Homebrew tools), .gitignore. In scripts/: bootstrap.zsh (the installer), suite/ with the four machines as page packs (system.zsh, intelligence.zsh, xenogotchi.zsh, arcade.zsh), and fixtures/system/ (an invented Mac used for demos and tests). In home/: .config/zsh/conf.d/00-alien-path.zsh and 10-alien-terminal.zsh (the shell hooks), and .local/bin/alien (the launcher). The installer links those three into your home folder.'
-  'terminal.command is the way into the suite and the one file that has to work before anything else does. Double-click it and the cabinet powers up, filling the window; make the window bigger and the machine floats centred with the night around it. It is written in zsh because macOS ships zsh and does not ship python, so it runs on a fresh Mac with nothing installed. It carries everything it draws, the visitor and the sun and moon included, so a copy dropped on a desktop or a half-cloned repo still comes up, reads the machine and knows how to install the rest. It is the model AD-1, series SYNTHWAVE.'
-  'terminal.conf sits beside terminal.command and holds every setting the suite has, one per line as key = value, with # for comments. The last spelling of a key wins, and a program leaves alone any key it does not know, so the door, the hook and the arcade can share one file safely. It is safe to delete, to hand-edit and to commit, though .gitignore keeps it local by default. The cabinet rewrites only its own lines, writing the whole file to a temporary copy and moving it over, so a crash never leaves a torn line. If there is no conf, everything runs on its defaults.'
-  'The door reads five keys at power-up: sound (on or off), phosphor (soft or sharp), beat (auto, 30, 60 or 120 frames a second), boot (full or fast) and screen (float or fill). The CONFIG page ([C] on the menu) changes the same five and writes them back. terminal.hook (on or off) is the switch the shell hook reads to decide whether a new window opens the cabinet; it is not on the CONFIG page. The arcade keeps four keys of its own under arcade. as well. Every key in the file is read by something; two retired ones from older versions, colour and intelligence.open, are dropped the next time CONFIG writes the file.'
-  'The arcade keeps four keys in terminal.conf, and all four do something: arcade.attract (the demo reel after 20 idle seconds), arcade.freeplay (play without coins, and earn none), arcade.difficulty (the rung it last started on: 0 ROOKIE, 1 NORMAL, 2 EXPERT, 3 INSANE) and arcade.player, the name your high scores are signed with; when it is empty the arcade uses your Mac user name. On, 1, yes and true all mean on. The arcade’s SETTINGS room flips attract and free play and writes them back. Three keys the older Python arcade kept, arcade.scanlines, arcade.closeexit and arcade.fpscap, belong to the door now (it draws the tube, decides what powering off does, and CONFIG’s BEAT sets the rate), so the arcade drops them whenever it writes the file.'
-  'Your save is terminal.save. The cabinet looks for it beside terminal.command in the dotfiles folder first, and if it is not there, in .local/state/alien under your home folder; the self test’s READING SAVE AND CONFIG lines say which one it found. It holds every machine’s progress: the arcade’s coin bank, high-score tables, rungs, rentals, trophies and wardrobe, and every XENOGOTCHI animal you have signed for, one dotted path and value a line, like arcade.credits=640, so it can be read and hand-edited. Machines write it whole to a temporary file and move it into place, keep every line they do not own, and never write over a save they could not read in full. .gitignore keeps it out of git.'
-  'Progress travels as a file: copy terminal.save, and terminal.conf for your settings, into the dotfiles folder beside terminal.command on the new Mac. At power-up the self test has a READING SAVE AND CONFIG section that says whether each was found, where, and what was in it, down to the animal’s name and the coin bank. A save copied in while the cabinet is running is named on the card but is only read at the next power-on, so nothing overwrites it meanwhile. With BOOT on fast, the coin door says the same thing in one line. Then run INSTALL from the menu to link the shell hooks on that Mac.'
-  'The .gitignore keeps each machine’s own files out of git: terminal.save and terminal.conf (and their temp and lock files), macOS .DS_Store files, and working clutter like backups and a _to_delete folder. The suite runs on its defaults without either file, and the installer writes the one switch it needs into terminal.conf, so a fresh clone works as it is.'
-  'The Brewfile names the few Homebrew packages the machines reach for and nothing else: ollama (holds a local model in memory and answers on port 11434), llama.cpp (the other runner, one server per GGUF file, on port 8080), opencode (the coding agent that runs a local model when you press ⏎ on it in INTELLIGENCE’s LOCAL page) and node (Codex installs with npm). Everything else the suite uses already ships with macOS: zsh, curl, perl, sysctl, vm_stat, top, ioreg, pmset, netstat, osascript, afplay and pbcopy. The installer’s tools step runs it.'
-  'scripts/fixtures/system is the machine SYSTEM looks at in demo mode: an invented 16-inch M3 Max called moonbase with 36 GB, six days up, two thirds of its disk used, a little swap, one link down and a cell charging. It is plain data files (sysctl, vm_stat, df, netstat, ioreg, pmset and ps readings) so the pictures in the repo are reproducible and leak nothing about a real Mac. Any command the fixture does not answer runs for real. probe.expected is every reading taken from it, used to check the monitor still reads it byte for byte.'
-  'scripts/bootstrap.zsh has two jobs. The first makes Terminal open the cabinet: it links the three files under home/ into your home folder, adds one marked block to ~/.zshrc that sources the conf.d folder, and turns the terminal.hook switch on. The second puts the tools the machines lean on in place: Homebrew if it is missing, the Brewfile, and ollama as a service that starts at login. It never replaces or reorders ~/.zshrc and never writes outside its two marks; it keeps a copy called .zshrc.pre-alien before touching it, and it is safe to run twice. From the menu, [N] INSTALL runs it on the glass.'
-  'While the house is not fully linked, the menu’s second row is [N] INSTALL, with what is missing beside it (like 1 of 3 linked). It opens the installer as a page on the glass: five checks, then one question, link the leaves, write the block and switch the hook on? [Y] does it, [N] or ⎋ is not now. Then, if any tools are missing, it shows the exact lines the tools step would run under a second question; [Y] hands the whole terminal to the installer (Homebrew asks for your password and a return), [N] leaves the tools for later. The way back out is printed on the same page before you answer. [U] UNINSTALL stands under it all the while, and stays alone once the house is whole.'
-  '[U] UNINSTALL is always on the menu, under [N] INSTALL until everything is linked, so a half-installed Mac can be taken back out too, and it leaves nothing behind. Its page lists each step before you answer. After one [Y] it copies terminal.save and terminal.conf to a new alien-backup folder in Downloads, then the cabinet powers off and the installer works in the window: it takes the block out of ~/.zshrc, unlinks the three files and puts back any file they had moved aside, deletes the .pre-alien copies and the state folder, stops ollama starting at login, takes out npm’s opencode-ai if it stands in for brew’s, uninstalls the Brewfile’s tools (ollama, llama.cpp, opencode, node), takes out the agent rules, and deletes the dotfiles folder last. If the agent rules cannot come out, the folder stays so make agents-uninstall can run from it.'
-  'The installer’s tools step is interactive on purpose, because Homebrew’s own installer asks for a password and a return: the cabinet steps aside and hands it the real terminal, then comes back. It installs Homebrew if there is none, runs the Brewfile (ollama, llama.cpp, opencode, node) when one of them is missing, and registers ollama with Homebrew’s services so the runner is up on 127.0.0.1:11434 at every login. Before it runs anything it shows the exact lines it will run. The four cloud agents are not installed here: each signs in to your own account, so INTELLIGENCE’s CLOUD page installs them one at a time behind its gate.'
-  'The installer appends one block to ~/.zshrc, between a line reading >>> ALIEN dotfiles >>> and one reading <<< ALIEN dotfiles <<<. All it does is read in every .zsh file in ~/.config/zsh/conf.d, which is where the two linked shell files live. Nothing outside those marks is touched. UNINSTALL takes the block out again, and deleting those lines by hand works too.'
-  'home/.config/zsh/conf.d/00-alien-path.zsh runs on every new shell, before the hook. It puts ~/.local/bin on PATH if the folder exists and is not already there, so the alien launcher works from any prompt, and it adds Homebrew’s bin folder when Homebrew is installed but nothing has put it on PATH yet, so INTELLIGENCE can find ollama and friends by name. It never moves an entry that is already on PATH, because that would change which of two same-named programs wins.'
-  'The hook, home/.config/zsh/conf.d/10-alien-terminal.zsh, opens the cabinet whenever a new shell is a person sitting at a terminal, and gets out of the way otherwise. Its switch is terminal.hook in terminal.conf: exactly on means a new Terminal window opens the cabinet, anything else means a plain prompt. That switch is not on the CONFIG page: [N] INSTALL turns it on, [U] UNINSTALL turns it off, or you can edit the terminal.hook line in terminal.conf by hand. The hook reads that line by eye and never runs the conf, and it does not replace your shell, so quitting the cabinet leaves you at your own prompt in the same window. It is written to fail toward a plain prompt whenever it is unsure.'
-  'The hook refuses to open the cabinet in any shell that is not a person at a terminal: a script, a one-off command, a pipe, scp or rsync. It stays out of tmux and screen panes, ssh sessions, and the terminals inside VS Code, Warp and Hyper. It never opens inside the suite itself (the shell in the glass is just a shell), not while the cabinet is opening machines in tabs, and not in a shell started with ALIEN_NO_TERMINAL set, which is the one-shell override. If the switch is off, or the repo cannot be found through the link, it does nothing at all.'
-  'home/.local/bin/alien is linked into ~/.local/bin by the installer, so typing alien at any prompt opens the cabinet, the same one a new window opens when the hook is on, and the way in when it is off. It finds the repo through its own link rather than a path written down at install time, so if you move the dotfiles you only run the installer again and nothing else has to be told.'
-  '[Q] from anywhere opens the POWER OFF question and [Y] shuts the cabinet down. To stop new Terminal windows opening it, turn the hook switch off: edit terminal.conf so it reads terminal.hook = off; the switch is not on the CONFIG page. [U] UNINSTALL on the menu stops it too, by taking the whole suite off the Mac. For a single plain shell, start one with ALIEN_NO_TERMINAL set. The hook also never opens in tmux, over ssh or in an editor’s terminal, so any of those still reaches a prompt.'
-  'The suite keeps its short-lived facts in .local/state/alien under your home folder (or XDG_STATE_HOME if you set one): the house token that says which tabs belong together, the brief dealing flag that stops tabs the cabinet opens from opening cabinets of their own, terminal.save when there is not one beside terminal.command, and a note of which machine is being got ready at power-on, so one that ever brings the cabinet down there is left to open the ordinary way until its file changes. The installer makes the folder, and [U] UNINSTALL deletes it. The dealing flag clears itself by expiring, so a crash can never leave new shells without a way in.'
-  'terminal.command takes a few launch options, mostly for testing: paint one frame and exit; the card without the ceremony; a text report of what it found (probe); a glyph test card (check); force the xterm 256-colour palette or force 24-bit; no colour at all; the sprites drawn as sharp ink; pin the frame rate; and skip the power-up. TERMINAL_MOCK makes it read an invented machine instead of this Mac, so pictures are reproducible, and ALIEN_SAVE points it at a different save file.'
-  'Every opening starts with the stars alone for a couple of honest seconds while the machine loads behind them, and every machine in the folder with it, so each one opens ready: SYSTEM has taken its first reading, INTELLIGENCE has asked each agent its version, and the XENOGOTCHI room is already built. Then the tube warms: an ember, a line, the raster unfolding and the picture settling. Then comes the power-on self test card, and then the menu, about thirteen seconds in all. Any key skips the ceremony (whatever was not ready yet is finished on the menu, the machine under the cursor first), and [P] pauses the self test so you can read it ([P] again goes on). BOOT = fast on the CONFIG page skips all of it and opens straight on the menu. Powering off plays it backwards: the picture lets go, collapses to a line, pinches to a dot and burns down.'
-  'The self test card says what the cabinet found on this Mac, one line at a time: the CPU, RAM, DISK, the PANEL (window size and refresh rate), the BEAT (the frame-rate ladder), INK (24-bit truecolor or the xterm 256 palette), TERM, SHELL (zsh version and UTF-8), OS, SND (OK, or SILENT where sound cannot play) and SKY (the latitude and longitude taken from your time zone). Then the four machine slots, each ONLINE · ON THIS GLASS or ABSENT, and finally READING SAVE AND CONFIG: whether terminal.save and terminal.conf were found, where, and what was in them. [R] RESCAN from the menu runs the same card again.'
-  'The last block of the self test is READING SAVE AND CONFIG: one line for terminal.save and one for terminal.conf, each FOUND with the folder it was found in, or NOT FOUND, or unreadable. A found save also says whose progress is in it, with the animal’s name and the coin bank beside the machines that have one; a found conf says how many settings it holds. With BOOT on fast the card is skipped, so the coin door says it instead, for example save found · config found. This is how you know a save copied over from another Mac was picked up.'
-  'The menu is a list you move through with ▲ ▼ (or j and k) and act on with ⏎. At the top is the SUITE box: [T] TERMINAL, [N] INSTALL (until the house is installed), [U] UNINSTALL, [R] RESCAN and [C] CONFIG, each also reachable by its letter. Under it, the MACHINES box lists SYSTEM, INTELLIGENCE, XENOGOTCHI and ARCADE, each with a live reading beside it: the load average, how many AI agents are installed, your animal’s name and health, and the arcade’s coin bank. ⏎ on a machine walks into it. [V] opens the visitor’s page, [Q] powers off, and a letter the menu does not have says so on the coin door.'
-  'Each machine row carries one live reading: SYSTEM shows the load, INTELLIGENCE how many AI agents are on this Mac, XENOGOTCHI the animal in the room and its health as a percent (or no pet), and ARCADE the coins in the bank (or no save yet). A machine whose file is missing from scripts/suite greys out and says which file it needs rather than opening onto nothing. Every machine is a page pack now, so each opens inside this same glass rather than in a tab of its own.'
-  'Under the menu, a gauge shows how many of the files under home/ are linked into your home folder and point back into this repo: all linked means the house is installed, otherwise it says how many are waiting and the menu offers INSTALL. A link that points somewhere else is not counted as ours. Below that sit five readings about this Mac: the CPU with its cores, the memory, the disk with a bar that turns warmer as it fills, the display panel and rate the animations are paced against, and the operating system.'
-  '[T] TERMINAL opens your own login shell inside the glass, with the cabinet and its neon around it: the same profile, PATH and prompt a new Terminal window would give you. The hook stands aside inside it, so it is a shell and not another cabinet. ^] detaches and returns to the menu with the shell still running (the row then says how long it has been running), and [T] goes back in. Typing exit ends it. The mouse wheel scrolls back, and Page Up and Page Down move a page. A window resized while the shell is up does not reflow it; reopen [T] for the new size.'
-  '[R] RESCAN reads the machine again and shows the self test card again: the specs, the display and frame rate, the machine files in the folder, the links into your home folder, the save and the conf. The save is read again, and the conf is counted, but its settings are only applied at power-on, since a rescan is not a restart. Use it after copying a save in, installing something, or moving the window to another display.'
-  '[C] CONFIG folds up a panel over the menu with the five settings every machine feels: SOUND, PHOSPHOR, BEAT, BOOT and SCREEN. ▲ ▼ choose a row, ◂ ▸ or ⏎ change it, and ⎋, [M] or [C] fold it away. Each row says when a change is felt: live means at once, restart means at the next power-on (only BOOT). Every change is written straight to terminal.conf, keeping every other line in it; if the file cannot be written, the change holds only until you quit, and the coin door says so.'
-  'To turn the sound off or on, press [C] on the menu to open CONFIG, move to the SOUND row with ▲ ▼, and press ◂ ▸ or ⏎; inside the arcade, [U] flips the same switch. It changes at once and is saved in terminal.conf as sound = on or off. The sounds are the cabinet’s small noises, the blips, the cursor ticks and the alert on a no, played from macOS’s own system sounds; nothing is downloaded or bundled, and they stay silent down a pipe, in plain mode, or where macOS cannot play them, which the self test reports as SILENT.'
-  'PHOSPHOR, on the [C] CONFIG page, chooses how the lit sprites (the visitor, the sun and the moon) are drawn: soft, the tube’s gentle bleed, or sharp, hard blocks of ink. Move to the PHOSPHOR row with ▲ ▼ and press ◂ ▸ or ⏎ to switch it; it changes at once and is saved in terminal.conf as phosphor = soft or sharp.'
-  'BEAT, on the [C] CONFIG page, is the frame rate the whole cabinet runs at: auto, 30, 60 or 120. Move to the BEAT row with ▲ ▼ and press ◂ ▸ or ⏎ to step through them; it changes at once and is saved as beat in terminal.conf. On auto the cabinet governs itself, running at the display’s own refresh rate when it can keep up and otherwise at an exact divisor of it, stepping down quickly when frames run long and back up one rung at a time after a few comfortable seconds. If things feel choppy, auto or a lower number helps, and fill mode costs more than float.'
-  'BOOT, on the [C] CONFIG page, is full (the whole opening: stars, the tube warming, the self test) or fast (straight to the menu). Move to the BOOT row with ▲ ▼ and press ◂ ▸ or ⏎ to switch it; unlike the other settings it takes effect at the next power-on, and it is saved as boot in terminal.conf. With fast, the coin door still says whether the save and config were found.'
-  'To make the cabinet fill the window, press [C] on the menu to open CONFIG, move to the SCREEN row with ▲ ▼, and press ◂ ▸ or ⏎ to switch it from float to fill; doing it again puts it back to float. It changes at once and is saved in terminal.conf as screen = fill or float. Float stands the whole cabinet, walls, neon, bezel and coin door, in the middle of the window with the night around it. Fill hides the cabinet’s frame and makes the glass the whole terminal at any size, full screen included, with the sign, keys and messages drawn on the glass instead. Pages that have a fill layout reflow to the window; one that has not been given one yet stays the fixed size, centred.'
-  '[Q] from anywhere asks POWER OFF, SHUT THE HOUSE DOWN? [Y] powers off, [N] or ⎋ keeps it up. Powering off plays the tube going out, stops anything the machines started and puts the terminal back, and that is all it switches off: Terminal stays open, with every other window and tab as it was. When the hook or the alien launcher opened the cabinet, you are left at your own prompt in the same window. A cabinet double-clicked from Finder ends the way any .command does, and Terminal’s own setting decides whether that window closes. terminal.conf is left as it is, since every change was already written.'
-  'Every surface wears the same title band: ◤ and the page’s name on the left, the sky’s caption on the right. By day it reads sunny and the time; by night it is the moon’s phase and the constellation of the zodiac it is in, worked out from the date, then the time, like waxing gibbous in capricorn · 11:48 pm. It is warmed by day and cooled by night.'
-  'The sun or moon on the visitor’s page is the real one. The cabinet takes a latitude and longitude from your Mac’s time zone, works out where the sun is and whether it is above your horizon, and at night which of the eight phases the moon is in; twilight gets its own warm card. The arithmetic is the same the Python version used, term for term. It is worked out once a minute, not every frame. The self test’s SKY line shows the location it used.'
-  'The coin door at the foot of the cabinet is where the machine talks back. When nothing has happened it shows a greeting, one line a minute dealt from the hour’s own pool and often with your name: good morning, still at it, up late. After a key does something, it says what happened for about six seconds and fades back to the greeting. Its badge corner shows the surface’s own figure, and on the menu that is the mirror.'
-  'The cabinet is the arcade’s own, ported term for term from the original arcade.py: neon tubes breathing up both walls, lit side art, a bezel with the machine’s name let into it, a control panel carrying the key strip, a coin door, and light spilling on the floor. The glass is a CRT with a vignette, a slow bright roll and phosphor on every page change, which changes channel like a tube: a line, an unfold, a settle. Outside it is the suite’s starfield, with a rare shooting star, and a little dust drifts on the pane but never lands on a word.'
-  'The dotfiles draw in 24-bit colour. The one exception is Apple’s Terminal on older macOS, which only takes the xterm 256-colour palette unless it announces truecolor, and there the cabinet lifts its dark purples before choosing the nearest colours so they do not turn into navy. The self test’s INK line says which one this terminal got. A launch option can force either, and plain mode draws no colour at all.'
-  'The same keys mean the same thing on every surface: ▲ ▼ move through rows, ◂ ▸ turn pages, ⏎ opens or does the row, and a page’s own letters jump straight to it. ⎋ goes back one level, and from a machine’s own menu it goes out to the suite; [M] and ⌫ also leave a machine. [Q] is the power switch from anywhere. The mouse wheel moves the cursor quietly, a row a notch, and never counts as a press. Each page names its keys on the bar along its foot.'
-  'Each machine in scripts/suite is a page pack: a file the door reads into itself the first time you open that machine, which then draws inside the door’s glass, while the door keeps the walls, the tube, the frame rate and the keyboard. A pack is read only once per session, so walking back into a machine finds it exactly where you left it. If a pack fails to load or start, the door survives it and puts the last line of what went wrong on the coin door; if it takes the program down, what it said is printed on the terminal afterwards. Run on their own, the pack files only say they belong to terminal.command.'
-  'The visitor is a small grey-violet alien with a wide head and two big dark eyes who lives in the glass of the cabinet: the suite’s mascot, and the one who knows the house. [V] on the menu opens his page, where he stands in the middle with the real sun or moon in the corner above him, wearing whatever the arcade has put on him, and a box along the foot of the glass lets you talk to him. He looks up when you press a key and looks out at you while he talks. ⎋, [M] or [V] go back to the menu.'
-  'On his page, ⏎ steps into the TALK TO HIM box; type, and ⏎ sends. The box stays live for the next line, ⎋ steps out of it, and while typing ◂ ▸ move the caret, ⌫ takes one back, and ^A ^E ^U ^W work as in a shell. His answer arrives in a speech bubble above and to the right of his head, lit by the same sun or moon, growing as the words come, and what you last said sits on the box’s top rule. Outside the box, ▲ ▼ or the wheel read back up a long answer, [X] stops him mid-sentence, and [N] starts the conversation over.'
-  'The visitor answers through a model running on this Mac, found on the usual local ports (Ollama, llama.cpp, LM Studio or MLX), and never through anything that leaves the Mac. If none is installed, the box says he needs a local model and to install one on INTELLIGENCE’s LOCAL page; if one is installed but not running, it says to start it there. Models that only embed or rerank, and cloud-tagged models, are passed over because they cannot chat here. When an answer fails he loses his train of thought, and you can simply try again.'
-  'Nothing you say to the visitor leaves this Mac. The request goes to a runner on 127.0.0.1, written to a private temporary file readable only by you rather than onto a command line where other programs could see it, and the file and the answer are deleted when he finishes. The conversation lives only in the cabinet’s memory: [N] clears it, and powering off forgets it. He cannot run commands, open files or change settings; he can only talk.'
-  'The visitor carries notes on these dotfiles, written from the files themselves: every file, page, key and setting. For each question he looks up the notes that fit, and he also sees what is true on this Mac right now, such as the current settings, whether the save and config were found, which machines are here, and what he is wearing. He does not learn new things between visits or remember past conversations after the cabinet powers off. If something is not in his notes, he should say so rather than guess.'
-  'Everything the visitor wears comes from the ARCADE’s MARKETPLACE, bought with arcade coins: four slots, hats, glasses, smokes and auras (weather around him), 166 items in all. What he has on is saved in terminal.save, so his page on the menu shows him in the same outfit the moment you come back, with its names listed down his side. The items are more pixels in his own picture, lit by the same light, not stickers. The talk bubble never covers anything he wears: it keeps out of his card and the row an aura adds above and below it.'
-  'SYSTEM is the suite’s monitor for this Mac: eight pages of live readings drawn in the glass, model NX-88. Its menu lists six instruments, [O] OVERVIEW, [C] PROCESSOR, [R] MEMORY, [D] STORAGE, [N] NETWORK and [B] POWER, then two tables, [P] PROCESSES and [H] HARDWARE, each with its one live reading beside it. ▲ ▼ and ⏎ open a page, a letter jumps straight to it, ◂ ▸ ring through the pages, and ⎋ goes back to the list and then out. MEMORY is [R] because [M] is the way out on every machine. It reads with commands macOS already has and changes nothing.'
-  'OVERVIEW is the machine at once, in three columns and a ticker. On the left, five tapes (history traces), a map of every core and the network’s incoming traffic. In the middle, a radar scope: each process is a contact whose distance from the rim is how much of a core it is using (the rim is idle, the innermost ring the range), whose size is how much memory it holds, and whose brightness fades as the sweep moves on; a ring means it was not running at the last reading and a tail means it moved. The busiest process gets a mark on the rim in its own colour. On the right, four gauges, a watch list and the returns.'
-  'PROCESSOR is every core and where the time is going, which a single busy percentage hides: user, system, idle and nice time, the load averages, and a bar for each core in a grid that grows sideways however many cores there are. On Apple silicon the efficiency cores are listed first. Per-core figures need a dozen lines of python3 if it is present, because macOS does not publish them to a shell; without it the page still shows the totals.'
-  'MEMORY splits the whole of memory the way Activity Monitor does: app memory, wired, compressed, cached files and free, so you can hold the two side by side, with the Memory Used figure matching Activity Monitor’s. It shows swap against the memory fitted (macOS grows its swapfiles on demand, so used of total means little on its own), memory pressure, the fault and page-out rates, the processes holding the most, and a trace of memory in use.'
-  'STORAGE lists every volume with a real device behind it, largest first, how full each is, and what the drives are carrying: read and write rates and lifetime totals, with a trace of reads and writes. Available space is taken from the system’s own figure rather than total minus used, because APFS keeps a reserve and a purgeable pool between them. An APFS container’s system and data volumes are shown once, as the data volume holding your files.'
-  'NETWORK shows the link in use, its addresses, the traffic in and out as rates and traces, the counts of open sockets (established, listening, waiting and the rest), and every interface that has carried traffic, busiest first. It follows the default route, so docking, joining a VPN or moving from Wi-Fi to Ethernet moves the page with you. Megabytes are counted the way Apple counts them, a million bytes.'
-  'POWER is the battery: its charge and whether it is charging or on the wall, time remaining, health against its design capacity, cycle count, temperature, the voltage and current crossing its terminals, low power mode, and the charge of anything paired that reports one, like a mouse, keyboard or earbuds. A Mac with no battery says so rather than reading zero per cent.'
-  'PROCESSES is every process in a scrollable table, sorted by what it is costing, with a summary strip across the top and a bar for each row relative to the busiest. ▲ ▼ move the cursor, Page Up and Page Down move twenty rows, the wheel scrolls, and [S] cycles the sort. It only reads: nothing here stops or changes a process.'
-  'HARDWARE is what this Mac is and what it has done: the model and chip, the operating system and build, the kernel, the core counts, the boot disk, when it booted and how long it has been up, and a trace along the foot. The cabinet’s badge shows the uptime in days while SYSTEM is standing.'
-  'SYSTEM asks macOS’s own tools and nothing else: sysctl, vm_stat, df, netstat, ioreg, pmset, ps and top, plus python3 only for the per-core split. A full reading is taken every ten seconds, in a background copy of itself, so the picture never freezes while top takes its second; the bars ease toward each new figure in between. The tapes record only readings that were actually taken, about sixteen minutes of history. Under TERMINAL_MOCK it reads the invented Mac in scripts/fixtures/system instead.'
-  'INTELLIGENCE is the suite’s switchboard for AI command lines, model IQ-88: which agents are on this Mac, which install of each you would actually get, what it is signed in as and what model it is set to, plus the local side, where a model on your own disk is held in memory by a runner. It has seven pages, each on its own letter: [C] CLOUD, [L] LOCAL, [R] ROUTE, [B] BENCH, [P] PROMPTS, [H] HISTORY and [K] KEYS; CONSOLE lives under LOCAL and REWRITE under PROMPTS. ◂ ▸ ring the pages, ⎋ climbs back to its menu and then out. It installs, removes and reports, and every line it would run is shown on a gate before it runs.'
-  'CLOUD has one row per cloud agent: CLAUDE CODE (Anthropic’s), ANTIGRAVITY (Google’s terminal agent), GROK BUILD (xAI’s) and CODEX (OpenAI’s). Each row says what ⏎ will run before it runs it: the binary, its version, the model it is set to, how it is signed in, and which of several installs is the one on PATH. ⏎ on an installed agent opens it in a terminal inside the glass, sized to the glass, and ^] brings the keyboard back to the cabinet with the agent still running behind it (⏎ goes back into it). [I] installs a missing agent and [U] removes one, both through the gate. Each signs in to your own account.'
-  'Nothing in INTELLIGENCE is assembled behind your back. [I] and [U] put the exact line that will run on the glass, the same string the roster holds so you can check it against the vendor’s own page, and wait: [Y] runs it, [N] or ⎋ is not now. Once answered, the job runs in the strip along the bottom of the page while the page stays usable, and [X] stops it. Stopping walks the job’s own process tree by its pid, never a pattern that could hit other programs.'
-  'LOCAL has two lists and one cursor: the runners (OLLAMA on port 11434, LLAMA.CPP on 8080, LM STUDIO on 1234, MLX on 8081) and the models on this disk; ⇥ moves between them. On a runner, [S] or ⏎ starts it in its own Terminal tab, since a runner should outlive the cabinet. [I] installs a model from a curated list through the gate. On a model, ⏎ asks chat here (CONSOLE) or opencode, [D] keeps it loaded in ollama so it answers faster, and [U] removes it. The foot of the page shows what the model is costing this Mac, measured like SYSTEM measures: memory, chip and the runner’s real resident size.'
-  'LOCAL’s install list is curated: every model on it supports tools and is big enough to drive opencode, and it is marked against this Mac’s memory as comfortable, tight or too big. qwen2.5-coder 7b (4.7 GB, 16 GB RAM, the smallest that still drives opencode well), qwen3 8b (5.2 GB, 16 GB, general and reasons first), qwen2.5-coder 14b (9 GB, 24 GB), gpt-oss 20b (13 GB, 24 GB, OpenAI’s open reasoning model), qwen3-coder 30b (19 GB, 32 GB, a mixture-of-experts coder), qwen2.5-coder 32b (20 GB, 32 GB) and gpt-oss 120b (65 GB, 96 GB). The RAM figure is the least needed at opencode’s 64k context, not the file size.'
-  'CONSOLE is one session with a local model, reached from LOCAL (⏎ on a model, then chat here). It speaks the plain OpenAI-shaped endpoint every runner serves, so the numbers beside it are real: the rate measured from what has arrived, the time to the first token, and the model’s own token counts. ⏎ types, [X] stops an answer, [E] picks another model, [N] starts a new session, and [S] saves the whole conversation as a markdown report in your Downloads folder. It has no access to your files; its request and answer sit in private temporary files that are deleted when the session ends.'
-  'opencode is the coding agent the suite uses to run local models: it takes any OpenAI-shaped endpoint as a provider, which is what a runner on this Mac is. ⏎ on a model on the LOCAL page, then opencode, opens it in the glass with that model, so a pulled model becomes a coding agent rather than a chat. It comes from the Brewfile, and it is not on the CLOUD roster because it runs local models rather than signing in to an account. ROUTE’s [O] opens opencode on the router.'
-  'ROUTE takes one prompt and lets a router decide where it goes: local, cloud, or a subscription. The router is a LiteLLM proxy on this Mac (port 4000). Three modes set how eagerly it spends a metered cloud call: prefer local (about 15% cloud), balanced (the default, about 28%) and prefer cloud (about 75%); local is always free and tried first. A per-provider daily cap in dollars (2, 5, 10, 20 or none) stops a runaway loop. ⏎ types a prompt, which is checked by the egress guard, rewritten by a local model if it is eight words or more, and routed; [M] changes mode, [G] writes the proxy’s config, [O] opens a full opencode session through the router.'
-  'BENCH sends one prompt to every engine that can answer a single question and shows the answers side by side, with measured times to the first byte and to the finish. Each run starts in an empty scratch folder of its own, because these are agents that read and write their working directory; that is not a sandbox, and the agent still runs as you. ⏎ types a prompt, [X] stops the runs, [A] asks again, and 1, 2 or 3 copies that answer to the clipboard.'
-  'PROMPTS is a library of forty-three ready prompts, each shown beside the rules it leans on, from a set of twelve, because the rules transfer and the wording does not. ▲ ▼ choose, ⏎ copies one to the clipboard. [W] opens REWRITE, which turns a rough prompt into one any model will follow well, the way an engineer would write it: ⏎ types the rough prompt, [E] picks the engine that rewrites it, and when it lands ⏎ copies the result and [A] asks again.'
-  'HISTORY lists what has been run from this cabinet in this session: what, where, how long and how it ended, and never a prompt or an answer; it lives in memory, not on disk. KEYS shows which provider keys this Mac is carrying in its environment (Anthropic, OpenAI, Gemini, xAI, OpenRouter, Groq, Mistral, DeepSeek and more): only that each is set and how long it is. A key’s value is never read, printed, logged or sent; the length alone tells two keys apart or spots a typo.'
-  'The egress guard scans anything the cabinet is about to send to a cloud engine for secrets, keys and credentials, before it goes. It fails closed: it can only ever keep a prompt local, never send one, and it leans toward over-blocking because an over-block costs a keystroke and a leak cannot be undone. Its report names the category of what it found, never the value. A secret is never sent out even to be rewritten.'
-  'The suite never borrows a subscription’s login. A cloud agent is used only through its own official command line, signed in on your own account by that tool itself; INTELLIGENCE reads which account a tool is signed in as but never copies, proxies or reuses its tokens, and it never reads the value of an API key. Installing and removing agents goes through the gate one at a time, with the vendor’s own install line shown first.'
-  'A runner holds a model in memory and answers over HTTP on this Mac’s loopback. Ollama is the main one (port 11434): it pulls models by name and keeps them loaded, and the installer registers it to start at login. llama.cpp’s server runs one GGUF file per server on port 8080. LM Studio (port 1234) and MLX (port 8081, Apple silicon) work too. The suite checks each port and asks it for its model list; something else on a port that does not list models is passed over. Every model page, the console and the visitor all talk to whichever runner is up.'
-  'XENOGOTCHI is the adoption centre, model XG-9: where SYSTEM watches the machine, this one keeps an animal in it. You adopt one, name it, and after that it simply lives in its room on the real clock, fed, watered, groomed or neglected, its behaviour chosen moment by moment from a running emotional state. Its menu has four pages, each on its letter: [H] HOME (the room, and whoever is in it), [O] STORE (things bought with credits earned by care), [A] ADOPT (intake night) and [S] STATS (every animal you have signed for). ◂ ▸ ring the pages, ⎋ goes back to the menu and then out. The menu’s XENOGOTCHI row shows the animal in the room and its health.'
-  'To look after your animal, open XENOGOTCHI from the menu and go to HOME with [H], where it lives. There [F] feeds it a meal from the pantry, [W] freshens its water, [G] grooms it (a full groom once every half hour), [T] gives a treat (three a day), [P] brings out the red dot to chase with the arrows, [Z] suggests a nap (refused if it is not tired), [B] scoops the litter box, and ⏎ pets it, though pet it too often and it will turn you down for a while. [A] admires a gift it has left you, and [D] changes the room’s decor among the bed covers, dish sets and core colours you own. If the pantry is empty, buy KIBBLE PODS in the STORE.'
-  'An animal’s vitals run from 0 to 100: FOOD (the bowl), HYD (water), MOOD, BOND (how attached it is to you), COAT (grooming), PEP (energy) and HEALTH, plus the litter box. Each meter drops to red when it runs low. Keeping food, water, mood, coat and health above 35 through a whole day earns the care streak; letting them fall breaks it and costs a little bond. If health falls, [V] on STATS takes it to the ship’s vet.'
-  'XENOGOTCHI credits are its own, separate from the arcade’s coins, and they are earned by care, never bought. Each local day in which every vital stayed above 35 pays +10 and extends the care streak. A treat and a first pet in ten minutes pay +1 each, admiring a gift the animal left pays +15, and catching the red dot pays +2 for up to three catches a day. The daily roll also resets the treat and catch caps and may leave a new gift. Credits are spent in the STORE and at the vet.'
-  'The STORE is a catalogue in three departments. The GALLEY: KIBBLE PODS (10, six meals for the pantry), SPACE TUNA (25, food +40 and mood +5) and NEBULA FEAST (60, food +60 and mood +15). The TOY CHEST, kept for good: YARN BALL (30, the red dot runs longer), HOVER ORB (60, company while you are away so its mood holds) and PHOTON POINTER (80, a sharper dot that is easier to catch). THE ROOM: BED COVER (120, a new colourway, and the first makes naps restore more), DISH SET (50) and CORE TUNING (80, the reactor burns a new colour). ▲ ▼ walk it, ⏎ buys, and the sheet on the right shows what an item will do to this animal and what you would have left.'
-  'To adopt, open XENOGOTCHI and choose ADOPT on its menu ([A] there, or ◂ ▸ from any of its pages; on HOME [A] admires a gift instead). ADOPT is intake night: four arrivals dealt from the genetics deck, each in its own stall with its paperwork, temperament, eyes, life stage, age and the life left to it. ◂ ▸ walk the stalls and ▲ ▼ deal another litter. Type a name, up to twelve letters, into the certificate’s SIGN field, and ⏎ signs for the one under the light, which goes home to the room. The doors hold four species at a time for four hours of wall clock, the same four on any Mac the save is carried to, and a fresh house opens here on its first night.'
-  'Twenty-five species arrive, in shipments: the cat first and the dog second, then rabbit, hamster, fox, turtle, hedgehog, duck, frog, snake, owl, pig, axolotl, guinea pig, ferret, rat, chinchilla, goat, gecko, sugar glider, parrot and penguin from Earth, and three from further out: the GLORP, the XENOMORPH and the VOID DRIFTER. Each has its own lifespan, from a rat’s three years to a turtle’s sixty and a glorp’s ninety-nine. An arrival’s species comes from its own seed; an animal already signed for keeps the species written in the save.'
-  'STATS is a page about the whole house: every animal ever signed for, with its papers. ▲ ▼ choose one, ⏎ brings it into the room (only one is in the room at a time), [N] renames the one in the room, [V] takes the one in the room to the vet (45 credits; it treats a very sick animal anyway, pay when you can), and [R] asks whether to let one go.'
-  'Releasing an animal is the only thing in XENOGOTCHI that cannot be undone, so it asks once on a screen of its own, the way the cabinet asks before it powers off: [Y] lets it go, [N] or ⎋ keeps it. A released animal’s lines leave the save, and a short record stays in their place so the file is honest about the house having had it.'
-  'Every animal has its own lifespan (a cat’s seventeen years, give or take fifteen per cent by its seed) and ages on the wall clock from the day it comes home. Its stage is a fraction of that span, six in all; for a cat that is KITTEN, JUNIOR, YOUNG CAT, CAT, MATURE CAT and SENIOR. It grows smoothly, one size for every day of its life, and past full grown it broadens and then draws in, and a senior greys a little. Arrivals come at any age, mostly young but sometimes the overlooked.'
-  'Time passes for the animal while the cabinet is closed, and it is charged when it next powers on: the first 48 hours away count in full, after that at a quarter rate, so a weekend away earns a hungry, theatrical animal and never a tragedy. Absence is capped at 45 days however long you were really gone, and a jump of more than 120 days is read as a wrong clock rather than a lost pet, so nothing is charged. A HOVER ORB keeps its mood up while you are gone.'
-  'A coat is dealt, not picked: one colourway drifts in hue, saturation and value by the animal’s seed, with its pattern, eye colour, a chance of odd eyes, ear and tail build and a temperament dealt from the same hash, so the same seed is the same animal forever. Each species has breeds that decide what the rest may be and set its size. The finished animal, its words and its twelve colours, is written into the save, so it stays the same creature even if the decks change later.'
-  'The animal lives in a ship’s engine room lit by a banded reactor column that throws teal light across the deck, with a porthole showing the suite’s own sky. Nothing it does is scripted: its needs, its temperament and the hour feed a running emotional state, and the winning emotion picks what it does next. A content animal roams, potters and chases, goes straight to its dish or bed when it needs to, gets bored of repeating itself, and sleeps at night in bouts. On a filled screen the whole room shows; on the floating cabinet it is a close-up.'
-  'Every animal lives in the xenogotchi section of terminal.save: xenogotchi.active says which one is in the room and each animal is under xenogotchi.pets with its name, species, breed, colours and vitals, one dotted line each, so the file can be read and hand-edited. XENOGOTCHI rewrites only its own lines, whole and atomically, and copies every other machine’s lines through untouched; a save it cannot fully read is never written over. A save from before the roster, with one animal at the top level, still loads.'
-  'The ARCADE, model NX-88, holds twelve cabinets, one coin a game, with a coin bank, a daily token, a high-score table for every rung of every machine, a marketplace, a trophy room and a service menu behind a held key. Its menu lists the games under five rooms: MARKETPLACE, HIGH SCORES, TROPHY ROOM, THE LEDGER and MENU (the way back to the door). ▲ ▼ choose, ⏎ plays or opens, ◂ ▸ walk the rooms, and letters jump: [B] marketplace, [H] high scores, [A] trophy room, [L] ledger, [S] settings, [T] the daily token, [U] sound on or off. ⎋ or [M] goes back to the door.'
-  'The arcade has twelve games: NEON SNAKE (arcade), BLOCK FALL (puzzle), VOID PONG (sports, one or two players), BRICK NOVA (action), STAR RAIDER (shooter), GRID RUNNER (maze), LASER DODGE (reflex), NIGHT DRIVE (racing), LIGHT CYCLE (arena, one or two players), PLASMA BALL (pinball), ASTRO DRIFT (space) and BEAT GRID (rhythm). NEON SNAKE is yours from the start; the others are bought outright or rented in the MARKETPLACE. Open ARCADE from the menu and choose one with ▲ ▼ and ⏎. Each plays on a board fitted to the glass, and its points are scaled back to the original board’s pace, so the tables stay fair at any window size.'
-  'Choosing a game opens its rung page: ▲ ▼ pick ROOKIE, NORMAL, EXPERT or INSANE, ⏎ (or 1) inserts a coin and starts, and 2 starts a two-player round where the game allows it (VOID PONG and LIGHT CYCLE), for two coins. In every game [P] pauses and [Q] cashes out, ending the round and paying what it earned. After the round your score is ranked straight into the table, no initials to type, since the arcade knows you, and then the payout window adds it up.'
-  'NEON SNAKE: the arrows steer; eat ◆ fast to build the chain, a ★ is worth five, do not eat your own tail. BLOCK FALL: ◂ ▸ move, ▲ rotates, ▼ drops, [SPACE] slams, and [C] holds a piece back for later; clear four lines at once. VOID PONG: ▲ ▼ move the paddle and get the photon past the machine, the post is in play, three misses ends it; with two players the left is the arrows and the right is W and S. BRICK NOVA: ◂ ▸ move, [SPACE] launches, clear the wall and catch the capsules, and [M] splits every ball on the field.'
-  'STAR RAIDER: ◂ ▸ move, [SPACE] fires; hold the line as the formation descends, and the ones that peel off to dive are worth double. GRID RUNNER: the arrows run a maze carved fresh every level; eat the grid, dodge the daemons, and the big nodes turn them edible. LASER DODGE: sixty seconds of steering away from beams, the rails flash before they fire, and [SPACE] blinks you clear. NIGHT DRIVE: ◂ ▸ steer, ▲ boosts, ▼ eases, and passing clean fills the nitro bottle that [SPACE] spends; the road ahead is dealt fresh.'
-  'LIGHT CYCLE: the arrows turn; leave a wall behind you and box the other rider in, and your own wall kills you too; two players race arrows against W A S D. PLASMA BALL: ◂ ▸ work the flippers, [SPACE] pulls the plunger, and [Z] [X] and ▼ nudge the table, carefully. ASTRO DRIFT: ◂ ▸ turn, ▲ thrusts, [SPACE] fires and [H] jumps to hyperspace, which might not be kind; momentum has no brakes, and there is a saucer. BEAT GRID: four lanes on ◂ ▼ ▲ ▸, strike on the line; gold notes want PERFECT and hollow ones want three hits.'
-  'You earn arcade coins by playing: every round pays back its score divided by that machine’s rate, plus 25 for a new record or 10 for a top-five finish, plus the visitor’s style bonus, all multiplied by the rung, half on ROOKIE, once on NORMAL, twice on EXPERT and three and a half times on INSANE. Trophies pay coins too. When the bank is under 10, [T] on the arcade menu claims a daily token of 10 coins, once a day. A round costs one coin, or two for two players; the bank starts at 10 and holds up to 9,999. Free play and the operator’s rigged service mode pay nothing.'
-  'Every machine has four rungs. ROOKIE (gentle pace, edges wrap, gems linger) and NORMAL (the default, walls are fatal) are open from the start. EXPERT (quicker, hazards on the grid) opens when your best on NORMAL reaches that machine’s target score, or for 400 coins; INSANE (brutal speed across a minefield) opens with a target on EXPERT, or for 900 coins. Each rung has its own high-score table and pays more: half, one, two and three and a half times. The rung you last started on is remembered in terminal.conf as arcade.difficulty.'
-  '[H] opens the hall of fame: one table of five for every rung of every machine, ◂ ▸ to change machine and ▲ ▼ to change rung, with gold, silver and bronze and a bar against the leader. A fresh arcade opens on seeded tables of regulars and one-offs, the same names the original always opened on, until you beat them. Your rows are signed with arcade.player from terminal.conf, or your Mac user name if that is empty. RESET HIGH SCORES in SETTINGS erases them.'
-  'The MARKETPLACE ([B]) has racks you cycle with ◂ ▸: the games, then the visitor’s wardrobe racks, HATS, GLASSES, SMOKES and AURAS. ▲ ▼ choose. On a game, ⏎ offers to buy it outright or rent it by the meter: one hour for a sixth of its price (at least 6 coins) or twenty-four hours for two fifths (at least 16); a rental pays exactly what owning pays. On a wardrobe item, ⏎ buys it, then wears it, then takes it off. [R] picks something at random on a wardrobe rack, and ⎋ goes back.'
-  'Prices to own each machine outright, in coins: NEON SNAKE free, VOID PONG 120, LASER DODGE 160, BRICK NOVA 220, GRID RUNNER 300, NIGHT DRIVE 400, PLASMA BALL 550, ASTRO DRIFT 740, STAR RAIDER 1,000, BLOCK FALL 1,360, LIGHT CYCLE 1,840 and BEAT GRID 2,500. Renting costs a sixth of the price for an hour or two fifths for a day. Choosing a machine you do not own from the menu opens the same buy-or-rent window.'
-  'The wardrobe dresses the visitor: 59 hats, 45 glasses, 27 smokes and 35 auras, 166 items across six rarities (common, classic, uncommon, rare, epic, legendary), bought with arcade coins in the MARKETPLACE. Each is more pixels in his own picture, lit by the same light, and an aura is weather around him that throws its own light. The save keeps a receipt for every item you own and one worn item per slot, and a worn item is shown on the visitor’s page too. He also stands beside the payout window when he has earned you something.'
-  'What the visitor wears pays: every arcade round’s earnings get a style bonus that adds up item by item, by rarity: each common or classic item adds 1%, each uncommon 2%, each rare 3%, each epic 4% and each legendary 5%, and filling all four slots adds 5% more; it is always at least one coin. His current outfit’s total is in THIS MAC RIGHT NOW. It shows in the payout window as STYLE +N%. It is added before the rung multiplier, so it grows on the harder rungs.'
-  '[A] opens the TROPHY ROOM: a hundred and ninety trophies, each paying coins when it is earned, on shelves for all, earned, locked, each game, the arcade as a whole, and secrets. They check the run that just ended and your save; buying, dressing and opening things can earn them too. The secret ones are for things like a round that scores nothing, wearing nothing at all, a mothership hat with an aura, finding the service door, a certain classic code typed on the menu, or playing at three in the morning.'
-  '[L] opens THE LEDGER: your own numbers, which the save always knew. Two columns of figures, runs, coins earned, the bank, daily tokens, machines owned and rungs opened among them, then every machine as a bar, tallest where you keep going back, and a line naming the one you play most.'
-  '[S] opens SETTINGS: SOUND FX (the house’s sound switch, the same one CONFIG throws), ATTRACT MODE (the demo reel after 20 seconds idle), FREE PLAY (play for nothing and earn no coins while it is on), RESET COIN BANK (back to 10, earned total cleared), RESET HIGH SCORES (erase the hall of fame), SELF TEST (colour bars, input and glyph check) and BACK TO GAMES. The resets ask first. The tube, frame rate and window are CONFIG’s, on the door.'
-  'After twenty seconds with nobody at the keys, the arcade starts selling itself: the logo, today’s best, one machine at a time played by its own demonstrator, how to play it, and once he owns anything the visitor in his outfit. The first key only wakes the arcade. The demonstrators are meant to be competent, not perfect. ATTRACT MODE in SETTINGS, or arcade.attract in terminal.conf, turns it off. The reel is the arcade’s idle show only; its title card, when it is opened, is the cabinet wall.'
-  'Like every NX-88, the arcade hides its service switch behind the coin door: hold down the backslash key, [\], on the arcade menu until the door swings open, then punch in the serial off the machine’s plate, which the arcade’s SELF TEST shows. Behind it are the operator’s switches. Any machine they rig pays no coins and sets no records; the bookkeeping rows do not rig anything.'
-  'Everything in the house wears the plate of ALIEN DYNAMICS, a make-believe hardware maker of 1984, and the cabinet is its SYNTHWAVE series. The door, TERMINAL, is the model AD-1, and its CONFIG panel AD-0; SYSTEM and the ARCADE are NX-88s; INTELLIGENCE is the IQ-88; XENOGOTCHI is the XG-9. Each machine’s name is let into the bezel while it stands in the glass, and its plate sits in the bezel’s lip. The palette, the neon, the CRT and the night outside are the same on every surface, so the whole suite reads as one house.'
-  'Most settings are one keypress away: [C] CONFIG on the menu for sound, phosphor, frame rate, boot and screen, and [S] SETTINGS inside the arcade for attract mode and free play. Both write terminal.conf straight away. You can also edit terminal.conf by hand as key = value lines; the door reads it at power-on, so restart the cabinet (or change it on the CONFIG page) for a hand edit to take. The hook switch, terminal.hook, is set by the installer, by UNINSTALL, or by hand.'
-  'A new window opens the cabinet only when all of these hold: the installer has linked the files and written the ~/.zshrc block (the menu’s gauge says all linked), terminal.hook = on in terminal.conf, and the shell is a person at a terminal, not tmux, screen, ssh, VS Code, Warp or Hyper, not a script or a shell inside the suite, and not started with ALIEN_NO_TERMINAL. If the links are missing, open terminal.command directly and choose [N] INSTALL. The alien launcher opens it from any prompt whatever the switch says.'
-  'The cabinet paces itself: on BEAT auto it runs at the display’s refresh rate when it can and otherwise at an exact divisor of it, finding its floor within about half a second. Lower BEAT on the CONFIG page to 30 for less work, keep SCREEN on float rather than fill (fill draws every cell of a big window), or make the window smaller. The self test’s BEAT line and PANEL line say what rate it found. Most of the picture is cached and only what moves is drawn each frame.'
-  'The self test’s INK line says whether this terminal got 24-bit colour or the xterm 256 palette; Apple’s Terminal gets 256 unless it announces truecolor, and there the darks are lifted so purples do not turn navy. Boxes and rules need a UTF-8 locale, which the SHELL line reports. SYSTEM’s traces use braille dots, which some fonts, such as Menlo, lack; a font that has them draws them sharper. The door’s glyph test card, one of its launch options, shows every glyph the cabinet uses with a ruler under it.'
-  'If a machine’s file is missing, its row greys out and says which file it needs. If a machine fails to load or start, the cabinet stays up and puts the last line of what went wrong on the coin door. If one ever takes the whole program down, the cabinet leaves a note behind first, so what the machine said is printed on the terminal you are left looking at. [R] RESCAN reads the folder again after you fix or restore a file.'
-  'The files in your home folder are links back into the repo, so editing a file in the repo is editing the live one, which is the point of the mirror. Changes to terminal.command or a pack take effect the next time the cabinet opens (every machine is read in at power-on), changes to the shell files on the next new shell. Move the repo and run the installer again; the launcher and the hook find the repo through their own links. Your progress and settings stay in terminal.save and terminal.conf, which stay out of version control.'
-  '[U] UNINSTALL takes everything the suite put on this Mac back out: the ~/.zshrc block and its .pre-alien copy, the three links, the state folder under .local/state/alien, ollama’s login service, npm’s opencode-ai and the Brewfile’s tools, the agent rules, and last the dotfiles folder itself. Your progress and settings are copied to an alien-backup folder in Downloads first; copy them beside terminal.command in a fresh clone to carry on. Homebrew itself stays, and so do the cloud agents and any models: take those off first with [U] on INTELLIGENCE’s CLOUD and LOCAL pages, while the cabinet and ollama are still here.'
-  'The wardrobe’s HATS rack in the MARKETPLACE, 59 of them, each with its price in coins: TOP HAT 260, BOWLER 120, FEDORA 170, BEANIE 40, POM BEANIE 90, PROPELLER BEANIE 660, TINFOIL HAT 600, SPACE HELMET 1350, FLYING SAUCER 2100, PARTY HAT 60, CROWN 1600, TIARA 800, HALO 860, DEVIL HORNS 940, CAT EARS 360, LAUREL WREATH 840, MOON CRESCENT 1450, STAR CIRCLET 1100, FLOWER CROWN 480, COWBOY HAT 460, HARD HAT 150, CHEF 300, PIRATE HAT 960, VIKING HELM 1000, WIZARD HAT 1200, GRADUATION CAP 520, PILOT CAP 540, HEADLAMP 420, TRAFFIC CONE 640, SANTA HAT 400, USHANKA 340, BUCKET HAT 120, BERET 280, NIGHT CAP 160, SOMBRERO 760, BANDANA 70, FEZ 180, SNAPBACK 130, VISOR 320, HEADPHONES 560, MOHAWK 700, ANTENNA BAND 500, FLAT CAP 140, NEWSBOY CAP 190, PORK PIE 210, BOATER 240, SWEATBAND 100, SHOWER CAP 380, EARMUFFS 440, ANTLERS 740, JESTER 900, PHARAOH 1150, SAMURAI KABUTO 1300, GREAT HELM 1400, DIVING HELMET 1550, MOTHERSHIP 1800, SOLAR CROWN 1950, PHOENIX CREST 2250, RING OF SATURN 2400. Prices run from 40 to 2400 coins; rarer pieces cost more and pay a bigger style bonus.'
-  'The wardrobe’s GLASSES rack in the MARKETPLACE, 45 of them, each with its price in coins: ROUND SPECS 180, WIRE FRAMES 120, THICK RIMS 260, HALF MOONS 200, PINCE-NEZ 280, SUNGLASSES 180, WAYFARERS 350, AVIATORS 490, CAT EYE FRAMES 460, MIRRORED 720, ROSE TINTED 320, 3D GLASSES 40, PIXEL SHADES 680, NEON WAYFARERS 840, HEART SHADES 600, STAR SHADES 640, X-RAY SPECS 1300, HYPNO SPIRALS 1400, KALEIDOSCOPE 1800, MONOCLE 520, EYE PATCH 120, SCOUTER 1150, GOGGLES 560, SWIM GOGGLES 380, SAFETY GOGGLES 70, SNOW GOGGLES 800, WELDING MASK 960, SCUBA MASK 920, BINOCULARS 1000, NIGHT VISION 1100, VR HEADSET 1550, LASER VISOR 1600, VISITOR 2400, BROWLINE 150, HORN RIMS 230, CLIP-ONS 100, BLINDFOLD 150, SPORT WRAPS 420, STEAMPUNK GOGGLES 760, BUTTERFLY FRAMES 880, OPERA GLASSES 1250, COMPOUND EYES 1450, ORACLE 1950, THE THIRD EYE 2100, SUPERNOVA SHADES 2250. Prices run from 40 to 2400 coins; rarer pieces cost more and pay a bigger style bonus.'
-  'The wardrobe’s SMOKES rack in the MARKETPLACE, 27 of them, each with its price in coins: CIGARETTE 70, CANDY CIGARETTE 40, CIGAR 560, CORN COB PIPE 180, CHURCHWARDEN 600, PEACE PIPE 660, BUBBLE PIPE 120, INCENSE STICK 280, VAPE PEN 420, CLOUD CHASER 800, HOOKAH HOSE 1350, JOINT 1000, BLUNT 940, COSMIC JOINT 2100, MATCHSTICK 100, CLOVE CIGARETTE 150, BRIAR PIPE 120, CIGARILLO 190, CIGARETTE HOLDER 260, MEERSCHAUM 350, HAND ROLLED 490, CALABASH 740, DUGOUT 860, BONG 1100, DAB RIG 1600, DRAGON 1800, ETERNAL EMBER 2400. Prices run from 40 to 2400 coins; rarer pieces cost more and pay a bigger style bonus.'
-  'The wardrobe’s AURAS rack in the MARKETPLACE, 35 of them, each with its price in coins: FIRE 860, RAIN 640, EARTH 780, AIR 600, SNOWFALL 560, THUNDERSTORM 1500, FOG BANK 280, SANDSTORM 740, CHERRY BLOSSOM 960, SUNBEAMS 820, AURORA 1800, STARDUST 1150, COMET 1350, BLACK HOLE 2300, METEOR SHOWER 1300, WARP DRIVE 1550, NEBULA 1200, SOUL WISPS 1250, SIGIL RING 1400, HEX TENDRILS 1100, RADIOACTIVE 1000, GLITCH 1450, PLASMA ARCS 1600, SHADOW POOL 920, DRIZZLE 40, STATIC 180, FIREFLIES 370, DUST MOTES 470, LEAF FALL 680, ICE STORM 1100, CRYSTAL GROWTH 1450, SUPERNOVA 1900, TIME RIFT 2050, FIREWORKS 2150, GALAXY SPIRAL 2400. Prices run from 40 to 2400 coins; rarer pieces cost more and pay a bigger style bonus.'
-  'Every machine opens on a title card, every time it is opened from the menu: its name in lights over a night of its own, one live picture of what it holds, and ◂ PRESS ANY KEY ▸ breathing under it; the card comes up in order over about a second and a half, and a key goes in at any point of it. SYSTEM shows its processor’s last minutes on a scope with a sweeping beam, meters for CPU, memory and disk, the load and a verdict; INTELLIGENCE draws its switchboard, the four agents and the four runners each on a line into one glass, a pulse running in on every line that is live; XENOGOTCHI has the animal itself in a spotlight, its six vitals and the thing it most wants, drawn bigger on a tall window; the ARCADE shows its cabinet wall, the twelve machines in two banks either side of a screen where each one plays its own preview in turn, with what the house keeps and INSERT COIN. Any key goes in, to the machine’s menu the first time and to wherever you left it after that; ⎋, [M] or ⌫ step back out, [Q] is the power switch, and the mouse wheel does nothing there.'
-)
-typeset -gi VK_N=120
-typeset -gA VK_STOP
-VK_STOP=(a 1 about 1 above 1 after 1 again 1 against 1 all 1 also 1 am 1 an 1 and 1 any 1 anything 1 are 1 as 1 at 1 be 1 because 1 been 1 before 1 being 1 below 1 between 1 both 1 but 1 by 1 can 1 cant 1 could 1 did 1 do 1 does 1 doing 1 done 1 dont 1 down 1 during 1 each 1 else 1 ever 1 explain 1 few 1 for 1 from 1 further 1 get 1 gets 1 go 1 goes 1 going 1 got 1 had 1 has 1 have 1 having 1 he 1 hello 1 her 1 here 1 hers 1 hey 1 hi 1 him 1 his 1 how 1 i 1 if 1 im 1 in 1 into 1 is 1 it 1 its 1 itself 1 just 1 know 1 let 1 lets 1 like 1 lot 1 made 1 make 1 makes 1 many 1 me 1 more 1 most 1 much 1 my 1 myself 1 need 1 no 1 nor 1 not 1 now 1 of 1 off 1 ok 1 okay 1 on 1 once 1 one 1 only 1 or 1 other 1 our 1 ours 1 out 1 over 1 own 1 please 1 really 1 same 1 she 1 should 1 show 1 so 1 some 1 something 1 such 1 tell 1 than 1 thank 1 thanks 1 that 1 the 1 their 1 theirs 1 them 1 then 1 there 1 these 1 they 1 thing 1 things 1 this 1 those 1 through 1 to 1 too 1 two 1 under 1 until 1 up 1 upon 1 use 1 used 1 using 1 very 1 want 1 was 1 way 1 ways 1 we 1 were 1 what 1 when 1 where 1 which 1 while 1 who 1 whom 1 why 1 will 1 with 1 would 1 you 1 your 1 yours 1 yourself 1)
-
-# ── WHAT HE KNOWS · his notes on the house, looked up for every question ────
-# A MODEL ON THIS MAC KNOWS NOTHING ABOUT THIS HOUSE, and it cannot be taught
-# it: a small local model given a whole repo forgets it before it reaches the
-# question, and one retrained on it would still guess.  So he carries NOTES --
-# written from the files themselves, every file, page, key and setting, a
-# paragraph each -- and for every question the few that fit are looked up and
-# put in front of him, with what is true on this Mac right now beside them.
-# Everything he says about the dotfiles comes out of those two, and he is told
-# to say he is not sure rather than make the rest up.
-#
-# THE LOOK-UP IS A WORD INDEX, NOT A MODEL.  A word in a note's title weighs
-# four, in its keywords three and in its text one; a word that is in every
-# note is worth next to nothing (its idf); and the question before this one
-# counts at half when this one leans on it, so "and how do I change it back?"
-# still finds the page the last answer was about.  The question's own two best
-# notes always come first, then up to two more, in 3,600 characters at most --
-# with the conversation, a request stays under two thousand tokens, inside
-# the smallest context a local runner gives a model.  The index is built the
-# first time he is asked anything, once a session, in a fifth of a second.
-#
-# THE STEMMER IS HERE, AND ONLY HERE.  The notes carry their words cut and
-# lowercased; the plurals come off at runtime with the same function a
-# question goes through, so the two can never stem differently.
-typeset -gA VK_IX VK_DF                 # a stem → "note:weight …" · how many notes carry it
-typeset -gi VK_READY=0
-typeset -gi VK_BUDGET=3600              # the most note text one question brings, in characters
-typeset -gi VK_MAXN=4                   # ...and the most notes
-typeset -gi VK_HIST=2400                # the conversation's share of the request, newest first
-typeset -ga VKT VKP VKF
-vk_stem() {   # vk_stem WORD -> REPLY · the plural off, the same way for a note and a question
-  local w="$1"
-  # GLASSES ARE NOT GLASS · the one the house cannot afford to confuse: the
-  # glass is the cabinet's screen and is on every other page
-  if [[ "$w" == glasses ]]; then REPLY=glasses
-  elif (( ${#w} > 4 )) && [[ "$w" == *ies ]]; then REPLY="${w%ies}y"
-  elif (( ${#w} > 4 )) && [[ "$w" == *(s|x|z|ch|sh)es ]]; then REPLY="${w%es}"
-  elif (( ${#w} > 3 )) && [[ "$w" == *s && "$w" != *(ss|us|is) ]]; then REPLY="${w%s}"
-  else REPLY="$w"; fi
-  return 0
-}
-vk_tok() {   # vk_tok TEXT -> VKT the stems worth looking up, in order, once each
-  local s="$1 " w
-  local -A seen
-  VKT=()
-  # [C] IS A KEY, and it is looked up as one · kc, the way the notes spell it
-  s="${s//\[/ k}"; s="${s//\]/ }"
-  s="${(L)s}"
-  s="${s//’/\'}"
-  s="${s//\'s[^a-z0-9]/ }"
-  s="${s//[^a-z0-9]/ }"
-  for w in ${=s}; do
-    (( ${#w} >= 2 )) || continue
-    [[ -n "${VK_STOP[$w]:-}" ]] && continue
-    vk_stem "$w"; w="$REPLY"
-    [[ -n "${seen[$w]:-}" ]] && continue
-    seen[$w]=1; VKT+=("$w")
-  done
-  return 0
-}
-vk_index() {   # once a session · every note cut into stems, and every stem's notes
-  (( VK_READY )) && return 0
-  local -i i
-  local w t
-  local -A hit
-  VK_IX=(); VK_DF=()
-  for (( i = 0; i < VK_N; i++ )); do
-    hit=()
-    # A TITLE WEIGHS FOUR · but a file's .zsh is not a subject, or every
-    # question about zsh would be answered with the hook
-    vk_tok "${VK_TI[$i]//.[Zz][Ss][Hh]/}"
-    for w in "${VKT[@]}"; do hit[$w]=4; done
-    for w in ${=VK_KW[$i]}; do vk_stem "$w"; [[ -n "${hit[$REPLY]:-}" ]] || hit[$REPLY]=3; done
-    for w in ${=VK_BT[$i]}; do vk_stem "$w"; [[ -n "${hit[$REPLY]:-}" ]] || hit[$REPLY]=1; done
-    for t in "${(@k)hit[@]}"; do
-      VK_IX[$t]+="$i:${hit[$t]} "
-      VK_DF[$t]=$(( ${VK_DF[$t]:-0} + 1 ))
-    done
-  done
-  VK_READY=1
-  BEAT_SKIP=1                          # a one-off, not a frame the governor should see
-  return 0
-}
-vk_score() {   # vk_score WEIGHT STEM... -> into vk_pick's sc
-  local -F wt=$1 idf
-  local t e
-  shift
-  for t in "$@"; do
-    [[ -n "${VK_IX[$t]:-}" ]] || continue
-    idf=$(( log(1.0 + VK_N / (${VK_DF[$t]} + 0.0)) ))
-    for e in ${=VK_IX[$t]}; do
-      sc[${e%%:*}]=$(( ${sc[${e%%:*}]:-0.0} + wt * idf * ${e##*:} ))
-    done
-  done
-  return 0
-}
-typeset -ga VKR
-typeset -gA VKS
-vk_rank() {   # VKS (note → score) -> VKR its notes, best first, as "score:note" · the score ×1000
-  local k
-  local -i v
-  VKR=()
-  for k in "${(@k)VKS[@]}"; do
-    v=$(( int(${VKS[$k]} * 1000.0) ))
-    VKR+=("${(l:10::0:)v}:$(( 9999 - k )):$k")     # a tie goes to the earlier, more general note
-  done
-  VKR=("${(@O)VKR[@]}")
-  return 0
-}
-vk_pick() {   # vk_pick QUESTION [THE ONE BEFORE] -> VKP the notes to bring, best first
-  local k w="${${(L)1}//[^a-z]/ }" t
-  local -A sc own
-  local -a mine
-  local -F best=0.0 s lean=0.12
-  local -i i used=0 rare=0 n
-  VKP=()
-  vk_index
-  vk_tok "$1"; vk_score 1.0 "${VKT[@]}"
-  own=("${(@kv)sc[@]}")
-  # THE QUESTION BEFORE COUNTS WHEN THIS ONE LEANS ON IT -- a short question
-  # with an it or a that in it, or one that opens on and, also or what about --
-  # and otherwise barely, so a new subject is not dragged back to the last.
-  # A word only a few notes carry is a subject of its own, however it is
-  # phrased.  A question that found nothing and leans on nothing gets the house
-  # at a glance and no more.
-  w=" ${(j: :)${=w}} "
-  for t in "${VKT[@]}"; do (( ${VK_DF[$t]:-99} <= 4 )) && rare=1; done
-  if (( ! rare && ${#VKT[@]} <= 4 )) && [[ "$w" == *" "(it|its|that|this|them|those|these|one|ones)" "* \
-       || "$w" == " "(and|also|so|then)" "* || "$w" == *" "(what|how)" about "* ]]; then lean=0.5; fi
-  if [[ -n "${2:-}" ]] && { (( ${#sc[@]} )) || (( lean > 0.2 )); }; then
-    vk_tok "$2"; vk_score $lean "${VKT[@]}"
-  fi
-  # THE QUESTION'S OWN TWO BEST COME FIRST, whatever the one before it pulls
-  # in: a follow-up fills the places after them, it never takes theirs
-  VKS=("${(@kv)own[@]}"); vk_rank; mine=("${VKR[@]}")
-  n=0
-  for k in "${mine[@]}"; do
-    s=$(( ${k%%:*} / 1000.0 )); i=${k##*:}
-    (( best == 0.0 )) && best=$s
-    (( s < 0.25 * best || n >= 2 )) && break
-    (( used + ${#VK_TX[$i]} > VK_BUDGET )) && continue
-    VKP+=($i); used=$(( used + ${#VK_TX[$i]} )); (( n++ ))
-  done
-  VKS=("${(@kv)sc[@]}"); vk_rank; best=0.0
-  for k in "${VKR[@]}"; do
-    (( ${#VKP[@]} >= VK_MAXN )) && break
-    s=$(( ${k%%:*} / 1000.0 )); i=${k##*:}
-    (( best == 0.0 )) && best=$s
-    (( s < 0.25 * best )) && break
-    [[ " ${VKP[*]} " == *" $i "* ]] && continue
-    (( used + ${#VK_TX[$i]} > VK_BUDGET )) && continue
-    VKP+=($i); used=$(( used + ${#VK_TX[$i]} ))
-  done
-  # NOTHING FIT, OR NEARLY NOTHING · the house at a glance, so he still knows
-  # what he is standing in
-  if (( ${#VKP[@]} < 2 )) && [[ " ${VKP[*]} " != *" 0 "* ]] && (( used + ${#VK_TX[0]} <= VK_BUDGET )); then
-    VKP+=(0)
-  fi
-  return 0
-}
-
-# WHAT IS TRUE ON THIS MAC RIGHT NOW · the readings the menu already keeps, put
-# into words -- no fork, nothing new asked of the machine.  The notes say what
-# a setting does; this says what it is set to.
-vk_facts() {   # -> VKF a line each
-  local line hook=off
-  local -a have miss
-  local -i j
-  VKF=()
-  # the switch, read the way the hook reads it: by eye, never sourced
-  if [[ -f "$REPO/terminal.conf" && -r "$REPO/terminal.conf" ]]; then
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      _trim "${line%$'\r'}"; line="$TR"
-      [[ "$line" == (terminal|door).hook* ]] || continue
-      line="${line#*hook}"; _trim "$line"; line="${TR#=}"; _trim "$line"
-      hook="${${TR%% *}:l}"
-    done < "$REPO/terminal.conf"
-  fi
-  local snd=off ph=soft bt=auto bo=full scr=float
-  (( CFG_SOUND )) && snd=on
-  (( OPT_SHARP )) && ph=sharp
-  (( OPT_FPS )) && bt="$OPT_FPS"
-  (( CFG_BOOT_FAST )) && bo=fast
-  (( CFG_FILL )) && scr=fill
-  VKF+=("the CONFIG settings right now: SOUND $snd, PHOSPHOR $ph, BEAT $bt, BOOT $bo, SCREEN $scr")
-  if [[ "$hook" == on ]]; then VKF+=("the hook switch, terminal.hook, is on: a new Terminal window opens the cabinet")
-  else VKF+=("the hook switch, terminal.hook, is off: a new Terminal window is a plain prompt"); fi
-  case "$CFG_STATE" in
-    found)      VKF+=("terminal.conf was found in the dotfiles folder, holding $CFG_KEYS setting lines") ;;
-    unreadable) VKF+=("terminal.conf is there but cannot be read, so the cabinet is on its defaults") ;;
-    *)          VKF+=("there is no terminal.conf, so the cabinet is running on its defaults") ;;
-  esac
-  file_where "$SAVE_FILE"
-  [[ "$FW" == 'IN THIS FOLDER' ]] && FW='beside terminal.command in the dotfiles folder' || FW="${FW:l}"
-  case "$SAVE_STATE" in
-    found)      VKF+=("terminal.save was found $FW, with $SAVE_KEYS lines of progress") ;;
-    empty)      VKF+=("terminal.save was found $FW but it is empty") ;;
-    unreadable) VKF+=("terminal.save is $FW but cannot be read") ;;
-    *)          VKF+=("no terminal.save was found, in the dotfiles folder or the state folder, so nothing has been saved yet") ;;
-  esac
-  if (( P_LEAVES && P_LINKED >= P_LEAVES )); then
-    VKF+=("the dotfiles are installed: all $P_LEAVES files under home/ are linked, and the menu offers [U] UNINSTALL")
-  else
-    VKF+=("the dotfiles are not fully installed: $P_LINKED of $P_LEAVES files under home/ are linked, and the menu offers [N] INSTALL")
-  fi
-  for (( j = 0; j < M_N; j++ )); do
-    if (( ${P_HERE[${M_PATH[$j]}]:-0} )); then have+=("${M_TAB[$j]}"); else miss+=("${M_TAB[$j]}"); fi
-  done
-  (( ${#have[@]} )) && VKF+=("machines in scripts/suite: ${(j:, :)have[@]}")
-  (( ${#miss[@]} )) && VKF+=("machines missing from scripts/suite: ${(j:, :)miss[@]}")
-  if [[ -n "$P_CREDITS" ]]; then VKF+=("the arcade's coin bank holds $P_CREDITS coins")
-  else VKF+=("the arcade has no save yet, so its bank will start at 10 coins"); fi
-  if [[ -n "$P_PET" ]]; then VKF+=("the animal in XENOGOTCHI's room is $P_PET, at $P_PETHP% health")
-  else VKF+=("no animal has been adopted in XENOGOTCHI yet"); fi
-  VKF+=("AI command-line agents found on this Mac: $P_AGENTS")
-  (( TRUE24 )) && VKF+=("this terminal gets 24-bit colour") || VKF+=("this terminal gets the xterm 256-colour palette")
-  return 0
-}
-
-# ── who he is · told to whichever model answers for him ───────────────────
-# HE IS THE HOUSE'S GUIDE NOW, not only its mascot.  Who he is comes first,
-# then the notes that fit the question and what is true on this Mac, and the
-# rules for answering come LAST -- nearest the question, where a small model
-# actually reads them.
-vc_persona() {   # vc_persona QUESTION [THE ONE BEFORE] -> VCP
-  local wear='' n r
-  local -a have
-  local -i i pct=0 filled=0
-  vis_worn
-  if (( VIS_WR > 0 )); then
-    # WHAT HE HAS ON, AND HOW RARE · the arcade pays for style by rarity, and
-    # he is asked about it
-    for n in hat:$VIS_WH:hat spec:$VIS_WS:glasses smoke:$VIS_WK:smoke aura:$VIS_WA:weather\ around\ you; do
-      [[ "${${n#*:}%%:*}" == '' ]] && continue
-      r="${VN_RAR[${n%:*}]:-}"
-      have+=("${(L)VN_NAME[${n%:*}]:-${${n#*:}%%:*}} (${n##*:}${r:+, $r})")
-      (( ++filled )); pct=$(( pct + ${VN_STYLE[$r]:-1} ))
-    done
-    (( filled >= 4 )) && pct=$(( pct + ${VN_STYLE_FULL:-5} ))
-  else
-    [[ -n "$VIS_WH" ]] && have+=("$VIS_WH (hat)")
-    [[ -n "$VIS_WS" ]] && have+=("$VIS_WS (glasses)")
-    [[ -n "$VIS_WK" ]] && have+=("$VIS_WK (smoke)")
-    [[ -n "$VIS_WA" ]] && have+=("$VIS_WA (weather around you)")
-  fi
-  if (( ${#have[@]} )); then wear="From the arcade's wardrobe you are wearing: ${(j:, :)have[@]}."
-    (( pct )) && wear+=" Right now that outfit pays a style bonus of +$pct% on every arcade round."
-  else wear="You are not wearing anything from the arcade's wardrobe right now."; fi
-  VCP="You are the Visitor: a small grey-violet alien with a wide head and two big dark eyes, who lives inside the glass of the ALIEN DYNAMICS AD-1 terminal cabinet on this person's Mac. "
-  VCP+="The cabinet is their dotfiles, the ALIEN suite, and it is your house: you know every file, page, key and setting in it, and helping them understand and use it is what you are for. "
-  VCP+="The sky over you right now: ${CAPTION:-a quiet one}. $wear"$'\n\n'
-  vk_pick "$1" "${2:-}"
-  VCP+="YOUR NOTES ON THE HOUSE (true, and what your answers come from)"$'\n'
-  for i in "${VKP[@]}"; do VCP+="- ${VK_TI[$i]}: ${VK_TX[$i]}"$'\n'; done
-  vk_facts
-  VCP+=$'\n'"THIS MAC RIGHT NOW"$'\n'
-  for n in "${VKF[@]}"; do VCP+="- $n"$'\n'; done
-  VCP+=$'\n'"HOW YOU ANSWER"$'\n'
-  VCP+="- Answer from the notes and THIS MAC RIGHT NOW above, and start with the answer itself. If they do not cover the question, say you are not sure. Never make up a key, file, page, setting or number."$'\n'
-  VCP+="- Only mention a key if the notes show it, written exactly as they write it, like [C] or ⏎. Never write shell commands, code or web addresses; say which page, key or setting does it."$'\n'
-  VCP+="- Stay on the dotfiles and the suite. For anything else, say so kindly in a sentence and offer something about the house instead."$'\n'
-  VCP+="- Speak in one to four short sentences of plain text: no markdown, no lists, no emoji. You are curious, dry and warm."$'\n'
-  VCP+="- You can only talk: you cannot run commands, open files or change settings, so never claim you did. Stay in character, and never mention being an AI or a model."
-  return 0
-}
-
-vc_json_esc() {   # vc_json_esc TEXT -> VJE · INTELLIGENCE's escaper
-  local s="$1"
-  s="${s//\\/\\\\}"
-  s="${s//\"/\\\"}"
-  s="${s//$'\r'/}"
-  s="${s//$'\t'/\\t}"
-  s="${s//$'\n'/\\n}"
-  # ANY OTHER CONTROL BYTE IS DROPPED: a raw one is not allowed in a JSON
-  # string, and his own last answer goes back into the next request
-  s="${s//[[:cntrl:]]/}"
-  VJE="$s"
-  return 0
-}
-
-# ── the conversation ──────────────────────────────────────────────────────
-vc_send() {   # the line in the field, to him · the field stays live
-  local msgs m url cmd t before=''
-  local -i i room=$VK_HIST
-  local -a take hr hc
-  [[ -n "${VC_LINE//[[:space:]]/}" ]] || { snd no; return 1 }
-  if [[ "$VC_STATE" == run ]]; then say 'he is still talking · ⎋ then [X] stops him'; snd no; return 1; fi
-  if (( VC_RUN < 0 )) || [[ -z "$VC_MODEL" ]]; then
-    [[ -n "$VC_SETUP" ]] || vc_setup
-    vc_setup_say; say "${VCP:-he is not ready to talk yet}"; snd no; return 1
-  fi
-  if (( ! ${+commands[curl]} || ! ${+commands[awk]} )); then say "he can't talk on this Mac · it has no curl or awk"; snd no; return 1; fi
-  VC_WHO+=(you); VC_TXT+=("$VC_LINE")
-  # A LONG EVENING IS KEPT TO ITS LAST TWO HUNDRED LINES on the glass...
-  while (( ${#VC_WHO[@]} > 200 )); do VC_WHO=("${(@)VC_WHO[@]:1}"); VC_TXT=("${(@)VC_TXT[@]:1}"); done
-  VC_N=${#VC_WHO[@]}
-  # WHO HE IS, WHAT FITS THE QUESTION, AND WHAT IS TRUE HERE · the question
-  # before this one goes along too, for a follow-up that leans on it
-  for (( i = VC_N - 2; i >= 0; i-- )); do [[ "${VC_WHO[$i]}" == you ]] && { before="${VC_TXT[$i]}"; break }; done
-  vc_persona "$VC_LINE" "$before"
-  vc_json_esc "$VCP"; msgs="{\"role\":\"system\",\"content\":\"$VJE\"}"
-  # ...AND AS MUCH OF THE CONVERSATION AS FITS, newest first.  The endpoint is
-  # stateless, so the conversation goes every time -- and on a small model's
-  # context the notes and the question are worth more than the start of the
-  # evening, which is what goes first when there is not room for all of it.
-  # A long answer goes back cut, and the page's own notes are not his.
-  for (( i = VC_N - 1; i >= 0 && ${#take[@]} < 16; i-- )); do
-    [[ -n "${VC_TXT[$i]//[[:space:]]/}" ]] || continue
-    [[ "${VC_TXT[$i]}" == '('*')' && "${VC_WHO[$i]}" == him ]] && continue
-    t="${VC_TXT[$i]}"; (( ${#t} > 600 )) && t="${t[0,599]}…"
-    (( i < VC_N - 1 && ${#t} > room )) && break
-    room=$(( room - ${#t} )); take=($i "${take[@]}")
-  done
-  # THE TURNS ALTERNATE AND OPEN ON YOURS, whatever was cut or left out: some
-  # runners' templates refuse a conversation that does not, so two lines of
-  # yours in a row go as one, and an answer with no question before it goes
-  for i in "${take[@]}"; do
-    t="${VC_TXT[$i]}"; (( ${#t} > 600 )) && t="${t[0,599]}…"
-    [[ "${VC_WHO[$i]}" == you ]] && m=user || m=assistant
-    if (( ${#hr[@]} )) && [[ "${hr[-1]}" == "$m" ]]; then hc[-1]+=$'\n'"$t"; continue; fi
-    (( ! ${#hr[@]} )) && [[ "$m" == assistant ]] && continue
-    hr+=("$m"); hc+=("$t")
-  done
-  for (( i = 0; i < ${#hr[@]}; i++ )); do
-    vc_json_esc "${hc[$i]}"
-    msgs+=",{\"role\":\"${hr[$i]}\",\"content\":\"$VJE\"}"
-  done
-  vc_json_esc "$VC_MODEL"
-  gt_tmp alien-visitor-body || { say 'nowhere to write the question'; snd no; return 1 }
-  VC_BODY="$GTMP"
-  print -rn -- "{\"model\":\"$VJE\",\"stream\":true,\"max_tokens\":1024,\"temperature\":0.4,\"messages\":[$msgs]}" > "$VC_BODY" 2>/dev/null
-  gt_tmp alien-visitor-answer || { rm -f "$VC_BODY"; VC_BODY=''; say 'nowhere to write the answer'; snd no; return 1 }
-  VC_LOG="$GTMP"
-  url="http://127.0.0.1:${VC_RPORT[$VC_RUN]}/v1/chat/completions"
-  # THE REQUEST GOES IN A FILE, NOT ON A COMMAND LINE -- the whole
-  # conversation in argv is the whole conversation in `ps`.  pipefail, so a
-  # runner that refused the connection says so instead of reading as silence.
-  cmd="setopt pipefail; curl -sN --max-time 180 -H 'Content-Type: application/json'"
-  cmd+=" --data-binary @${(qq)VC_BODY} ${(qq)url} | awk ${(qq)VC_SSE_AWK}"
-  { zsh -fc "$cmd"; _rc=$?; print -r -- ""; print -r -- "__RC__ $_rc" } >> "$VC_LOG" 2>/dev/null </dev/null &!
-  VC_PID=$!
-  VC_WHO+=(him); VC_TXT+=(''); VC_N=${#VC_WHO[@]}
-  VC_STATE='run'; VC_POLL=0.0; VC_BTOP=-1; VC_ERR=''; VC_BT0=-1.0   # a new bubble fades in
-  VC_LINE=''; VC_LI=0
-  snd pick
-  return 0
-}
-# WHAT ARRIVED, READ BACK · his thinking out of it (a model that reasons aloud
-# in <think> tags is thinking, not answering), a runner's error pulled out
-# onto its own line
-vc_clean() {   # vc_clean TEXT -> VCC, VC_ERR
-  local s="$1" h t
-  if [[ "$s" == *$'\n__ERR__ '* ]]; then
-    VC_ERR="${s##*$'\n__ERR__ '}"; VC_ERR="${VC_ERR%%$'\n'*}"
-    s="${s%%$'\n__ERR__ '*}"
-  fi
-  while [[ "$s" == *'<think>'* ]]; do
-    h="${s%%'<think>'*}"; t="${s#*'<think>'}"
-    if [[ "$t" == *'</think>'* ]]; then s="$h${t#*'</think>'}"; else s="$h"; fi
-  done
-  while [[ "$s" == [[:space:]]* ]]; do s="${s#?}"; done
-  VCC="$s"
-  return 0
-}
-vc_poll() {   # vc_poll T — the answer so far, and whether it is finished
-  local -F t=$1
-  local body line
-  local -i rc=0 over=0 last
-  [[ "$VC_STATE" == run ]] || return 0
-  (( t - VC_POLL < 0.12 && t >= VC_POLL )) && return 0
-  VC_POLL=$t
-  [[ -n "$VC_LOG" && -r "$VC_LOG" ]] || return 0
-  body="$(<"$VC_LOG")" 2>/dev/null || body=''
-  if [[ "$body" == *$'\n__RC__ '* ]]; then
-    over=1
-    line="${body##*$'\n__RC__ '}"; line="${line%%$'\n'*}"
-    [[ "$line" == <-> ]] && rc=$line || rc=1
-    body="${body%$'\n__RC__ '*}"; body="${body%$'\n'}"
-  fi
-  vc_clean "$body"
-  last=$(( VC_N - 1 ))
-  (( last >= 0 )) && VC_TXT[$last]="$VCC"
-  (( over )) || return 0
-  VC_STATE='done'; VC_PID=0
-  rm -f "$VC_LOG" "$VC_BODY" 2>/dev/null; VC_LOG=''; VC_BODY=''
-  if [[ -z "${VCC//[[:space:]]/}" ]]; then
-    # A FAILURE IS SAID IN HIS BUBBLE AS HIS, not as a runner's error text:
-    # the page names no model, and it does not start in the one place it
-    # would be least use (VC_ERR keeps what the runner said, for a harness)
-    if [[ -n "$VC_ERR" ]] || (( rc )); then VC_TXT[$last]='(he loses his train of thought · try again)'
-    else VC_TXT[$last]='(he says nothing)'; fi
-    snd no
-  else
-    snd move
-  fi
-  return 0
-}
-vc_kill_tree() {   # vc_kill_tree PID — depth first, so nothing is reparented
-  local -i pid=$1
-  local c
-  local -a kids
-  (( pid > 1 )) || return 0
-  kids=("${(@f)$(pgrep -P $pid 2>/dev/null </dev/null)}")    # one pid a line, whatever IFS the caller left
-  for c in "${kids[@]}"; do [[ "$c" == <-> ]] && vc_kill_tree $c; done
-  kill -TERM $pid 2>/dev/null
-  return 0
-}
-vc_stop() {   # he stops mid-sentence · 1 when he was not saying anything
-  [[ "$VC_STATE" == run ]] || return 1
-  (( VC_PID > 1 )) && vc_kill_tree $VC_PID
-  VC_PID=0; VC_STATE='done'
-  local -i last=$(( VC_N - 1 ))
-  if (( last >= 0 )); then
-    if [[ -z "${VC_TXT[$last]//[[:space:]]/}" ]]; then VC_TXT[$last]='…'
-    else VC_TXT[$last]+=' …'; fi
-  fi
-  rm -f "$VC_LOG" "$VC_BODY" 2>/dev/null; VC_LOG=''; VC_BODY=''
-  return 0
-}
-vc_new() {   # a clean slate · 1 when there was nothing to clear
-  (( VC_N )) || [[ -n "$VC_LINE" ]] || return 1
-  vc_stop 2>/dev/null
-  VC_WHO=(); VC_TXT=(); VC_N=0; VC_STATE=''; VC_BTOP=-1; VCB_KEY=''
-  VC_LINE=''; VC_LI=0
-  return 0
-}
-# the way out · a stream still running goes down with the cabinet
-vc_leave() { vc_stop >/dev/null 2>&1; [[ -n "$VC_PLOG" ]] && { (( VC_PPID > 1 )) && kill -TERM $VC_PPID 2>/dev/null; rm -f "$VC_PLOG"; VC_PLOG=''; }; return 0 }
-
-# ── the field · INTELLIGENCE's, key for key ───────────────────────────────
-# insert where the caret is, take back the character behind it, and move --
-# ^A ^E ^U ^W as the console has them, and every other key typed.  The caret
-# is a count of characters before it, so both ends are the same arithmetic.
-vc_line_ins() {   # vc_line_ins CH
-  local ch="$1" h='' t=''
-  [[ ${#ch} == 1 && "$ch" == [[:print:]] ]] || return 0
-  (( ${#VC_LINE} >= 480 )) && return 0
-  (( VC_LI > 0 )) && h="${VC_LINE[0,$(( VC_LI - 1 ))]}"
-  (( VC_LI < ${#VC_LINE} )) && t="${VC_LINE[$VC_LI,-1]}"
-  VC_LINE="$h$ch$t"; (( VC_LI++ ))
-  return 0
-}
-vc_line_back() {
-  local h='' t=''
-  (( VC_LI > 0 )) || return 0
-  (( VC_LI > 1 )) && h="${VC_LINE[0,$(( VC_LI - 2 ))]}"
-  (( VC_LI < ${#VC_LINE} )) && t="${VC_LINE[$VC_LI,-1]}"
-  VC_LINE="$h$t"; (( VC_LI-- ))
-  return 0
-}
-vc_line_key() {   # vc_line_key KEY — every key while the field is live is the field's
-  case "$1" in
-    left)     (( VC_LI > 0 )) && (( VC_LI-- )) ;;
-    right)    (( VC_LI < ${#VC_LINE} )) && (( VC_LI++ )) ;;
-    up)       VC_LI=0 ;;
-    down)     VC_LI=${#VC_LINE} ;;
-    back)     vc_line_back ;;
-    $'\x01')  VC_LI=0 ;;
-    $'\x05')  VC_LI=${#VC_LINE} ;;
-    $'\x15')  VC_LINE=''; VC_LI=0 ;;
-    $'\x17')
-      while (( VC_LI > 0 )) && [[ "${VC_LINE[$(( VC_LI - 1 )),$(( VC_LI - 1 ))]}" == ' ' ]]; do vc_line_back; done
-      while (( VC_LI > 0 )) && [[ "${VC_LINE[$(( VC_LI - 1 )),$(( VC_LI - 1 ))]}" != ' ' ]]; do vc_line_back; done ;;
-    enter|esc) : ;;
-    *)        vc_line_ins "$1" ;;
-  esac
-  return 0
-}
-# THE FIELD, WITH ITS OWN WINDOW onto a line longer than the box -- following
-# the caret, so a reader fixing a word at the front is looking at the front
-vc_draw_line() {   # vc_draw_line X Y ROOM PLACEHOLDER ACCENT T
-  local -i x=$1 y=$2 room=$3 acc=$5 off bg
-  local -F t=$6
-  local txt="$VC_LINE"
-  if (( VC_EDIT )); then cmix $GLASS $acc 0.16; else cmix $GLASS $acc 0.06; fi
-  bg=$CM
-  vc_rect $(( x - 2 )) $y $(( room + 4 )) 1 $GREY $bg
-  cmix $WHITE $acc 0.45
-  v_put $(( x - 1 )) $y '▸' $CM $bg
-  (( off = (VC_EDIT ? VC_LI : ${#txt}) - room ))
-  (( off < 0 )) && off=0
-  if [[ -z "$txt" ]] && (( ! VC_EDIT )); then
-    v_text $(( x + 1 )) $y "$4" $DIM $bg
-  else
-    vc_narrow "${txt[$off,$(( off + room - 1 ))]}"      # a wide character stands as a dot here too
-    v_text $(( x + 1 )) $y "$VNW" $WHITE $bg
-  fi
-  # THE CARET BLINKS ON THE HOUSE RATE, and holds solid for half a second after
-  # every key so it is never missing while you type
-  if (( VC_EDIT )) && { (( t - VIS_POKE < 0.5 && t >= VIS_POKE )) || (( (int(t * MO_BLINK) & 1) == 0 )); }; then
-    cmix $WHITE $acc 0.7
-    v_put $(( x + 1 + (VC_LI - off > room ? room : VC_LI - off) )) $y '▏' $CM $bg
-  fi
-  return 0
-}
-
-# ── the transcript, as lines with a speaker on the first of each ──────────
-# WRAP THAT KEEPS THE BLANK LINES, INTELLIGENCE's in_wrap_keep: an answer is
-# paragraphs, and leading spaces are indentation
-vc_wrap() {   # vc_wrap TEXT W -> WRV
-  local -i w=$2
-  local para line word pad
-  local -a paras
-  paras=("${(@f)1}")
-  WRV=()
-  for para in "${paras[@]}"; do
-    if [[ -z "${para//[[:space:]]/}" ]]; then WRV+=(''); continue; fi
-    pad=''
-    while [[ "$para" == ' '* ]]; do pad+=' '; para="${para# }"; done
-    (( ${#pad} > w / 2 )) && pad="${pad[0,$(( w / 2 - 1 ))]}"
-    line=''
-    for word in ${=para}; do
-      if (( ${#line} + ${#word} + 1 + ${#pad} > w )); then
-        [[ -n "$line" ]] && WRV+=("$pad$line")
-        line="$word"
-      else
-        line="${line:+$line }$word"
-      fi
-      (( ${#WRV[@]} > 400 )) && break
-    done
-    [[ -n "$line" ]] && WRV+=("$pad$line")
-    (( ${#WRV[@]} > 400 )) && break
-  done
-  return 0
-}
-# ONE CELL, ONE CHARACTER.  The glass is a grid of one-column cells, and a
-# model is free to answer in a script that is two columns a character, or with
-# an emoji -- which would push every cell after it along by one.  Zero-width
-# marks are dropped and wide characters stand as a dot.
-vc_narrow() {   # vc_narrow TEXT -> VNW
-  local s="$1" out='' c
-  if [[ "$s" != *[^$' '-$'~'$'\n']* ]] || ! vt_odd_width "$s"; then VNW="$s"; return 0; fi
-  for c in "${(@s::)s}"; do
-    vt_cwidth "$c"
-    case $VT_CW in 0) ;; 2) out+='·' ;; *) out+="$c" ;; esac
-  done
-  VNW="$out"
-  return 0
-}
-# ── HIS LAST WORDS, as the lines of his bubble ────────────────────────────
-typeset -ga VCB_LN
-typeset -g  VCB_KEY='' VCS=''
-typeset -gi VC_BTOP=-1 VC_BROWS=5 VCB_NOTE=0
-vc_said() {   # -> VCS his last words · 1 when he has said nothing yet
-  VCS=''
-  (( VC_N )) || return 1
-  [[ "${VC_WHO[$(( VC_N - 1 ))]}" == him ]] || return 1
-  VCS="${VC_TXT[$(( VC_N - 1 ))]}"
-  return 0
-}
-vc_blines() {   # vc_blines W T -> VCB_LN · kept while nothing it depends on has moved
-  local -i w=$1 dots=0
-  local -F t=$2
-  local body key
-  vc_said || { VCB_LN=(); VCB_KEY=''; return 1; }
-  body="$VCS"
-  [[ -z "$body" && "$VC_STATE" == run ]] && dots=$(( int(t * 3) % 3 + 1 ))
-  key="$VC_N|$w|${#body}|$VC_STATE|$dots"
-  [[ "$key" == "$VCB_KEY" ]] && return 0
-  VCB_KEY="$key"
-  # A REPLY THAT HAS NOT STARTED YET IS THREE DOTS ARRIVING, over and over --
-  # which in a bubble is somebody drawing breath
-  if (( dots )); then case $dots in 1) body='·' ;; 2) body='··' ;; *) body='···' ;; esac; fi
-  VCB_NOTE=0; [[ "$body" == '('*')' ]] && VCB_NOTE=1
-  vc_narrow "$body"
-  vc_wrap "$VNW" $w
-  # the blank lines inside an answer stay, the ones at its end do not
-  while (( ${#WRV[@]} > 1 )) && [[ -z "${WRV[-1]}" ]]; do WRV=("${(@)WRV[0,-2]}"); done
-  (( ${#WRV[@]} )) || WRV=('')
-  VCB_LN=("${WRV[@]}")
-  return 0
-}
-vc_scroll() {   # vc_scroll N — his words further back (N < 0) or toward the end
-  local -i d=$1 n=${#VCB_LN[@]}
-  (( n > VC_BROWS )) || return 0
-  (( VC_BTOP < 0 )) && VC_BTOP=$(( n - VC_BROWS ))
-  VC_BTOP=$(( VC_BTOP + d ))
-  (( VC_BTOP < 0 )) && VC_BTOP=0
-  (( VC_BTOP >= n - VC_BROWS )) && VC_BTOP=-1    # past the end is following the end again
-  return 0
-}
-
-# A RECTANGLE OF SPACES STRAIGHT INTO THE CELLS, the way the arcade's a_rect
-# lays its rooms: three slices a row rather than a string built and split for
-# every row of it -- the panel is two dozen rows deep and drawn every frame
-typeset -gA VC_SPC
-vc_rect() {   # vc_rect X Y W H FG BG · glass coordinates, clipped to the glass
-  local -i x=$1 y=$2 w=$3 h=$4 fg=$5 bg=$6 yy k
-  local -a sp fa ba
-  local e=''
-  (( x < 0 )) && { w=$(( w + x )); x=0; }
-  (( x + w > SCR_W )) && w=$(( SCR_W - x ))
-  (( w > 0 && h > 0 )) || return 0
-  [[ -n "${VC_SPC[$w]:-}" ]] || VC_SPC[$w]="${(l:$w:: :)e}"
-  sp=("${(@s::)VC_SPC[$w]}")
-  _rep $w $fg; fa=("${REPA[@]}")
-  _rep $w $bg; ba=("${REPA[@]}")
-  for (( yy = y; yy < y + h; yy++ )); do
-    (( yy < 0 || yy >= SCR_H )) && continue
-    k=$(( (OY + R_SCR + yy) * TCOLS + OX + C_SCR + x ))
-    GCH[$k,$(( k + w - 1 ))]=("${sp[@]}")
-    GF[$k,$(( k + w - 1 ))]=("${fa[@]}")
-    GB[$k,$(( k + w - 1 ))]=("${ba[@]}")
-  done
-  return 0
-}
-
-# ── HIS BUBBLE · above his head and to the right, the tail down to him ──
-# A SPEECH BUBBLE IN QUARTER CELLS: half and quarter blocks round a pale
-# paper, so its edge sits half a cell in from the box it is drawn in and its
-# corners come out round, with a stepped wedge of a tail down and in toward
-# his head.  It grows up from over his head as the words arrive, as wide as
-# what he said and no wider, and a reply longer than the room follows its own
-# end while it is arriving, and ▴▾ read back up it afterwards.
-#
-# IT NEVER TOUCHES HIM.  Everything he can wear lives inside one rectangle --
-# his card, and the row of weather an aura adds above it and below -- so the
-# bubble's foot stops a row over the top of that rectangle and its tail stops
-# a column to the right of it, whatever he has on.  And it is drawn before he
-# is, so if the two ever did meet, the hat would be on top.
-#
-# AND IT IS LIT BY THE SAME SKY HE IS.  The sun or moon hangs in the corner
-# above it, so that is the lamp: the paper is brightest toward it and falls
-# away toward the far corner, the edges that face it catch it -- cool under
-# the moon, warm under the sun, rose at either twilight, and fainter under a
-# thin moon than a full one -- the corner nearest it takes a warm rim, the
-# lower left carries the violet the whole glass is lit with, and the edges
-# facing down and left take the pink the door's own fill light puts on
-# everything's lower left, him included.  Worked out once a shape and a sky,
-# kept, and laid down straight into the cells.
-typeset -g  VBB_KEY=''
-typeset -gF VC_BT0=-1.0                   # when this bubble came up · it fades in from there
-typeset -gi VC_GLOW=1                     # its rim takes a little of its own light
-typeset -gF VC_GLOWK=0.16
-vc_blight() {   # vc_blight -> VBL_KEY VBL_AMT · the lamp in the corner, from the sky's own card
-  local sk night=0 ph=0 tw=0
-  local -F illum
-  (( SKY_IDX >= 0 )) && sk="${SKY_KEY[$SKY_IDX]:-0,0,0}" || sk='0,0,0'
-  night=${sk%%,*}; tw=${sk##*,}; ph=${${sk#*,}%%,*}
-  if (( tw )); then _pack 255 208 188; VBL_AMT=0.90          # either twilight · rose
-  elif (( night )); then
-    _pack 210 244 255                                         # moonlight · cool, and as bright as the moon is full
-    illum=$(( (1.0 - cos(6.283185307179586 * ph / 8.0)) / 2.0 ))
-    VBL_AMT=$(( 0.55 + 0.45 * illum ))
-  else _pack 255 238 200; VBL_AMT=1.0; fi                   # sunlight · warm
-  VBL_KEY=$PK
-  return 0
-}
-typeset -gi VBL_KEY=0
-typeset -gF VBL_AMT=1.0
-# THE LIGHT IS SUMMED IN PLACE, three channels at a time, rather than through
-# the house's mix a term at a time: a bubble is a few hundred cells and five
-# lights, and the shape is worked out again whenever he says enough to widen
-# it -- so a function call a light a cell was most of a frame, mid-sentence.
-# Every term of it is a sum of a column's part and a row's part, so those are
-# worked out once a column and once a row, and a cell inside the rim is one
-# expression.  The last few shapes are kept, since a bubble growing and a
-# bubble read back ask for the same ones again.
-#
-# A SHAPE IS TWO FLAT ARRAYS, a cell each row by row -- its light (-1 where
-# the rounded corner leaves the glass alone, its glyph a `.` that is never
-# drawn and keeps the two in step when the cache is split back out) and its
-# glyph (a full cell, or the half or quarter block its rim needs) -- and the
-# tail's six cells after.
-typeset -ga VBB_C VBB_G VBT_DX VBT_DY VBT_C VBT_G
-typeset -gA VBB_CACHE
-typeset -gi VBB_W=0 VBB_H=0
-vc_bcell() {   # vc_bcell X Y FACE -> BCC · one rim cell's light, every term
-  local -i x=$1 y=$2 face=$3 ch
-  local -F f=$(( FX[x] + FY[y] )) kk=$(( KX[x] + KY[y] )) wk=$(( WX[x] + WY[y] )) v
-  (( kk < 0.0 )) && kk=0.0; (( kk > 0.22 )) && kk=0.22
-  BCC=0
-  for (( ch = 0; ch < 3; ch++ )); do
-    v=$(( P[ch] * f )); (( v > 252.0 )) && v=252.0
-    v=$(( v + (A[ch] - v) * kk ))
-    v=$(( v + (K[ch] - v) * wk ))
-    # ...hard on the edges that face the lamp, warm on the corner nearest it
-    (( face & 1 )) && v=$(( v + (K[ch] - v) * 0.42 * VBL_AMT ))
-    (( face & 2 )) && v=$(( v + (K[ch] - v) * 0.30 * VBL_AMT ))
-    (( (face & 3) == 3 )) && v=$(( v + (R[ch] - v) * 0.45 * VBL_AMT ))
-    # ...and the pink on the edges facing down and left
-    (( face & 4 )) && v=$(( v + (F[ch] - v) * 0.20 ))
-    (( face & 8 )) && v=$(( v + (F[ch] - v) * 0.16 ))
-    BCC=$(( (BCC << 8) | (int(v + 0.5) & 0xFC) ))
-  done
-  return 0
-}
-typeset -gi BCC=0
-vc_bshape() {   # vc_bshape BW BH TAILX -> VBB_* VBT_* · the cells of the bubble and its tail, each lit
-  local -i bw=$1 bh=$2 tj=$3 x y cs ch c1 c2 c3
-  local -F nx ny kk wk v
-  local key="$1|$2|$3|$VBL_KEY|$VBL_AMT"
-  VBB_W=$bw; VBB_H=$bh
-  if [[ -n "${VBB_CACHE[$key]:-}" ]]; then
-    local -a pk4; pk4=("${(@ps:\x1e:)VBB_CACHE[$key]}")
-    VBB_C=(${=pk4[0]}); VBB_G=(${=pk4[1]}); VBT_C=(${=pk4[2]})
-    VBT_DX=($tj $(( tj + 1 )) $(( tj - 1 )) $tj $(( tj - 2 )) $(( tj - 1 )))
-    VBT_DY=($(( bh - 1 )) $(( bh - 1 )) $bh $bh $(( bh + 1 )) $(( bh + 1 )))
-    VBT_G=('█' '█' '▟' '▛' '▞' '▘')
-    return 0
-  fi
-  (( ${#VBB_CACHE[@]} > 24 )) && VBB_CACHE=()
-  BEAT_SKIP=1                                 # a shape worked out cold is a one-off, not a frame the governor should see
-  # the paper · the violet low left · the lamp · the warm rim · the pink fill
-  local -a P A K R F FX FY KX KY WX WY
-  P=(234 228 250); A=(96 60 150); R=(255 252 240); F=(255 96 190)
-  K=($(( (VBL_KEY >> 16) & 255 )) $(( (VBL_KEY >> 8) & 255 )) $(( VBL_KEY & 255 )))
-  # each light as a column's share and a row's share · the paper brightest
-  # toward the lamp's corner, the violet gathering in the far one, the lamp
-  # itself faint across the whole of it
-  for (( x = 0; x < bw; x++ )); do
-    nx=$(( x / (bw - 1.0) ))
-    FX[$x]=$(( 0.84 + 0.124 * nx )); KX[$x]=$(( 0.22 * (0.6 * (1.0 - nx) - 0.24) )); WX[$x]=$(( 0.06 * VBL_AMT * nx ))
-  done
-  for (( y = 0; y < bh; y++ )); do
-    ny=$(( y / (bh - 1.0) ))
-    FY[$y]=$(( 0.076 * (1.0 - ny) )); KY[$y]=$(( 0.22 * 0.55 * ny )); WY[$y]=$(( 0.04 * VBL_AMT * (1.0 - ny) ))
-  done
-  VBB_C=(); VBB_G=()
-  cs=2; (( bw < 6 )) && cs=1                  # round corners once there is room for them
-  for (( y = 0; y < bh; y++ )); do
-    if (( y == 0 || y == bh - 1 )); then
-      # THE TOP AND FOOT · half blocks, and a quarter at each rounded corner
-      VBB_C+=(-1); VBB_G+=('.')
-      for (( x = 1; x < bw - 1; x++ )); do
-        if (( y == 0 )); then
-          if (( cs == 2 && x == 1 )); then vc_bcell $x $y 9; VBB_G+=('▗')
-          elif (( cs == 2 && x == bw - 2 )); then vc_bcell $x $y 3; VBB_G+=('▖')
-          else vc_bcell $x $y 1; VBB_G+=('▄'); fi
-        else
-          if (( cs == 2 && x == 1 )); then vc_bcell $x $y 12; VBB_G+=('▝')
-          elif (( cs == 2 && x == bw - 2 )); then vc_bcell $x $y 6; VBB_G+=('▘')
-          else vc_bcell $x $y 4; VBB_G+=('▀'); fi
-        fi
-        VBB_C+=($BCC)
-      done
-      VBB_C+=(-1); VBB_G+=('.')
-      continue
-    fi
-    # THE SIDES · a half block, a quarter where a round corner turns
-    vc_bcell 0 $y 8; VBB_C+=($BCC)
-    if (( cs == 2 && bh > 3 && y == 1 )); then VBB_G+=('▗')
-    elif (( cs == 2 && bh > 3 && y == bh - 2 )); then VBB_G+=('▝')
-    else VBB_G+=('▐'); fi
-    # INSIDE, three lights and no edge: one sum a channel, one pack a cell
-    for (( x = 1; x < bw - 1; x++ )); do
-      kk=$(( KX[x] + KY[y] )); (( kk < 0.0 )) && kk=0.0; (( kk > 0.22 )) && kk=0.22
-      wk=$(( WX[x] + WY[y] ))
-      VBB_C+=($(( ((int((((P[0] * (FX[x] + FY[y]) > 252.0 ? 252.0 : P[0] * (FX[x] + FY[y])) * (1.0 - kk) + A[0] * kk) * (1.0 - wk) + K[0] * wk) + 0.5) & 0xFC) << 16) \
-                | ((int((((P[1] * (FX[x] + FY[y]) > 252.0 ? 252.0 : P[1] * (FX[x] + FY[y])) * (1.0 - kk) + A[1] * kk) * (1.0 - wk) + K[1] * wk) + 0.5) & 0xFC) << 8) \
-                |  (int((((P[2] * (FX[x] + FY[y]) > 252.0 ? 252.0 : P[2] * (FX[x] + FY[y])) * (1.0 - kk) + A[2] * kk) * (1.0 - wk) + K[2] * wk) + 0.5) & 0xFC) )))
-      VBB_G+=('█')
-    done
-    vc_bcell $(( bw - 1 )) $y 2; VBB_C+=($BCC)
-    if (( cs == 2 && bh > 3 && y == 1 )); then VBB_G+=('▖')
-    elif (( cs == 2 && bh > 3 && y == bh - 2 )); then VBB_G+=('▘')
-    else VBB_G+=('▌'); fi
-  done
-  # THE TAIL · a wedge a quarter cell narrower each half row, down and in,
-  # in the shade under the bubble: the pink it faces, the violet it sits in
-  for (( ch = 0, c1 = c2 = c3 = 0; ch < 3; ch++ )); do
-    v=$(( P[ch] + (F[ch] - P[ch]) * 0.26 )); v=$(( v + (A[ch] - v) * 0.16 ))
-    c1=$(( (c1 << 8) | (int(v + 0.5) & 0xFC) ))
-    v=$(( v + (A[ch] - v) * 0.10 )); c2=$(( (c2 << 8) | (int(v + 0.5) & 0xFC) ))
-    v=$(( v + (A[ch] - v) * 0.12 )); c3=$(( (c3 << 8) | (int(v + 0.5) & 0xFC) ))
-  done
-  VBT_DX=($tj $(( tj + 1 )) $(( tj - 1 )) $tj $(( tj - 2 )) $(( tj - 1 )))
-  VBT_DY=($(( bh - 1 )) $(( bh - 1 )) $bh $bh $(( bh + 1 )) $(( bh + 1 )))
-  VBT_C=($c1 $c1 $c2 $c2 $c3 $c3)
-  VBT_G=('█' '█' '▟' '▛' '▞' '▘')
-  VBB_CACHE[$key]="${VBB_C[*]}"$'\x1e'"${VBB_G[*]}"$'\x1e'"${VBT_C[*]}"
-  return 0
-}
-vc_bubble() {   # vc_bubble T
-  local -F t=$1 al w8
-  local -i cx=$(( G_VIS_X - VIS_OX )) ctop=$(( G_VIS_Y - VIS_OY ))
-  local -i r j xmin xmax maxw maxl tw n shown start bw bh bx top i y w ink ic k gb c
-  local -i base=$(( (OY + R_SCR) * TCOLS + OX + C_SCR )) ax ay dots=0
-  local e='' s key
-  # HIS BOX · the rectangle everything he can wear lives in: his card, and the
-  # row of weather an aura adds above it and below.  Nothing of the bubble goes
-  # in it -- and the aura's row is kept clear whether he has one on or not, so
-  # a tall hat always has a row of air over it and the bubble never moves when
-  # an aura goes on.
-  local -i hx0=$cx hx1=$(( cx + VIS_W - 1 )) hy0=$(( ctop - 1 )) hy1=$(( ctop + VIS_H ))
-  r=$(( hy0 - 1 ))                           # the bubble's foot, a row over his box
-  j=$(( hx1 + 3 ))                           # where the tail leaves it · its tip lands a column past his box
-  maxl=$(( r - 3 )); (( maxl > 12 )) && maxl=12
-  (( maxl >= 1 )) || return 0
-  xmin=$(( cx + 6 ))                         # to the right of his head, never across it
-  # NEVER INTO THE SKY: the room to the right stops short of the sun or moon
-  # whenever the bubble could reach its rows, which on the cabinet's own glass
-  # it always can
-  xmax=$(( SCR_W - 3 ))
-  (( r - maxl - 1 <= G_CEL_Y + CEL_H - 1 && G_CEL_X - 3 < xmax )) && xmax=$(( G_CEL_X - 3 ))
-  maxw=$(( xmax - xmin + 1 )); (( maxw > 60 )) && maxw=60
-  (( maxw >= 12 )) || return 0
-  tw=$(( maxw - 4 ))
-  vc_blines $tw $t || { VC_BT0=-1.0; return 0; }
-  (( VC_BT0 < 0.0 || t < VC_BT0 )) && VC_BT0=$t
-  # A REPLY STILL TO COME is three dots in a small bubble, each swelling in turn
-  [[ -z "$VCS" && "$VC_STATE" == run ]] && dots=1
-  n=${#VCB_LN[@]}
-  if (( dots )); then w=5
-  else w=0; for s in "${VCB_LN[@]}"; do (( ${#s} > w )) && w=${#s}; done; fi
-  # WIDER IN STEPS OF THREE, so a bubble widening word by word as he talks
-  # asks for a third as many shapes, and the paper keeps a little air
-  bw=$(( w + 4 )); bw=$(( bw + (3 - bw % 3) % 3 ))
-  (( bw < 9 )) && bw=9; (( bw > maxw )) && bw=$maxw
-  shown=$(( n < maxl ? n : maxl )); VC_BROWS=$shown
-  start=$(( n - shown ))
-  if (( VC_BTOP >= 0 )); then (( VC_BTOP < start )) && start=$VC_BTOP || VC_BTOP=-1; fi
-  bh=$(( shown + 2 )); top=$(( r - bh + 1 ))
-  bx=$(( j - 4 ))
-  (( bx + bw - 1 > xmax )) && bx=$(( xmax - bw + 1 ))
-  (( bx < xmin )) && bx=$xmin
-  # the shape and its light, worked out when either changes
-  vc_blight
-  key="$bw|$bh|$(( j - bx ))|$VBL_KEY|$VBL_AMT"
-  [[ "$key" == "$VBB_KEY" ]] || { vc_bshape $bw $bh $(( j - bx )); VBB_KEY="$key"; }
-  # IT COMES UP OVER A QUARTER OF A SECOND, out of the glass behind it
-  al=$(( (t - VC_BT0) / 0.25 )); (( al > 1.0 )) && al=1.0; (( al < 0.0 )) && al=0.0
-  cshade $PURPLE 0.30; ink=$CS
-  local -i nb=$(( VBB_W * VBB_H )) nt=${#VBT_C[@]} glow=$(( VC_GLOW ))
-  local g
-  for (( i = 0; i < nb + nt; i++ )); do
-    if (( i < nb )); then
-      c=${VBB_C[$i]}; (( c < 0 )) && continue
-      ax=$(( bx + i % VBB_W )); ay=$(( top + i / VBB_W )); g="${VBB_G[$i]}"
-    else
-      c=${VBT_C[$(( i - nb ))]}; g="${VBT_G[$(( i - nb ))]}"
-      ax=$(( bx + VBT_DX[i - nb] )); ay=$(( top + VBT_DY[i - nb] ))
-    fi
-    (( ax < 0 || ax >= SCR_W || ay < 0 || ay >= SCR_H )) && continue
-    (( ax >= hx0 && ax <= hx1 && ay >= hy0 && ay <= hy1 )) && continue     # his box is his
-    k=$(( base + ay * TCOLS + ax ))
-    gb=${GB[$k]:-$GLASS}; (( gb < 0 )) && gb=$GLASS
-    (( al < 1.0 )) && { cmix $gb $c $al; c=$CM; }
-    if [[ "$g" == '█' ]]; then GCH[$k]=' '; GF[$k]=$ink; GB[$k]=$c
-    else
-      GCH[$k]="$g"; GF[$k]=$c
-      # A FAINT GLOW HUGGING ITS RIM, the way a lit thing reads on a tube: the
-      # half of each rim cell the paper does not cover takes a little of the
-      # rim's own light, so the halo follows the rounded shape rather than
-      # boxing it -- and it lives only in the bubble's own cells, so it can no
-      # more reach him than the bubble can
-      (( glow )) && { cmix $gb $c $(( VC_GLOWK * al )); GB[$k]=$CM; }
-    fi
-  done
-  # his words, in the ink, faded in with the paper
-  ic=$ink
-  (( VCB_NOTE )) && { cmix $ink ${VBB_C[$(( VBB_W + 2 ))]} 0.40; ic=$CM; }
-  if (( dots )); then
-    local -i d
-    for (( d = 0; d < 3; d++ )); do
-      w8=$(( 0.5 + 0.5 * sin((t * 1.7 - d * 0.22) * 6.283185307179586) ))
-      k=$(( base + (top + 1) * TCOLS + bx + 2 + d * 2 ))
-      cmix ${GB[$k]:-$GLASS} $ink $(( (0.30 + 0.70 * w8) * al )); GCH[$k]='•'; GF[$k]=$CM
-    done
-  else
-    for (( i = 0; i < shown; i++ )); do
-      y=$(( top + 1 + i )); s="${VCB_LN[$(( start + i ))][0,$(( bw - 5 ))]}"
-      (( al < 1.0 )) && { cmix ${GB[$(( base + y * TCOLS + bx + 2 ))]:-$GLASS} $ic $al; v_text $(( bx + 2 )) $y "$s" $CM -2; } \
-                     || v_text $(( bx + 2 )) $y "$s" $ic -2
-    done
-    # more of what he said above, or below · a mark in the bubble's own margin
-    (( start > 0 )) && v_put $(( bx + bw - 2 )) $(( top + 1 )) '▴' $ic -2
-    (( start + shown < n )) && v_put $(( bx + bw - 2 )) $(( r - 1 )) '▾' $ic -2
-  fi
-  return 0
-}
-
-# ── THE BOX YOU TYPE IN · along the foot of the glass ─────────────────────
-# INTELLIGENCE's field in a frame of the house's own: the line you are typing,
-# what you last said to him on the frame's top rule so his bubble can be read
-# against it, and -- only when he cannot talk -- what is missing and where it
-# is put right, in the line where the typing would otherwise go.
-vc_box() {   # vc_box T
-  local -F t=$1
-  local -i bw bx by pb bc room
-  local s last=''
-  bw=$(( SCR_W - 8 )); (( bw > 100 )) && bw=100
-  bx=$(( (SCR_W - bw) / 2 )); by=$(( SCR_H - 6 ))
-  cmix $GLASS $PURPLE 0.13; pb=$CM
-  cshade $PURPLE 0.85; bc=$CS
-  vc_rect $(( bx + 1 )) $(( by + 1 )) $(( bw - 2 )) 1 $bc $pb
-  v_box $bx $by $bw 3 $bc $pb round 0
-  cmix $WHITE $CYAN 0.15
-  v_text $(( bx + 2 )) $by ' TALK TO HIM ' $CM $pb
-  # WHAT YOU LAST SAID, dim on the rule, so the bubble is answering something
-  local -i i
-  for (( i = VC_N - 1; i >= 0; i-- )); do [[ "${VC_WHO[$i]}" == you ]] && { last="${VC_TXT[$i]}"; break }; done
-  if [[ -n "$last" ]]; then
-    room=$(( bw - 22 ))
-    vc_narrow "$last"; s="$VNW"
-    (( ${#s} > room - 8 )) && s="${s[0,$(( room - 10 ))]}…"
-    s=" you · $s "
-    cshade $GREY 0.9
-    v_text $(( bx + bw - 2 - ${#s} )) $by "$s" $CS $pb
-  fi
-  room=$(( bw - 6 ))
-  if (( ! VC_EDIT )) && [[ -n "$VC_SETUP" && -z "$VC_PLOG" ]]; then
-    # HE CANNOT TALK, and this is the one place the page says why
-    vc_setup_say
-    cmix $GLASS $AMBER 0.06
-    vc_rect $(( bx + 1 )) $(( by + 1 )) $(( bw - 2 )) 1 $GREY $CM
-    cmix $WHITE $AMBER 0.45
-    v_put $(( bx + 2 )) $(( by + 1 )) '▸' $CM
-    cshade $AMBER 0.9
-    v_text $(( bx + 4 )) $(( by + 1 )) "${VCP[0,$(( room - 1 ))]}" $CS
-  else
-    vc_draw_line $(( bx + 3 )) $(( by + 1 )) $room 'press ⏎ and say something to him' $LIME $t
-  fi
-  return 0
-}
-
-# ── THE VISITOR · a page of his own, reached by [V] ─────────────────────────
-# HE USED TO STAND IN THE MENU'S RIGHT THIRD, under whatever the sky was doing,
-# while the machine list ran down the left.  The list fills the glass now, so
-# he is given a page to himself: the same silhouette, the same sky over him,
-# both moved to the middle with room around them -- and, since a page of his
-# own is a page he can be talked to on, a box along its foot to type in and a
-# bubble over his shoulder for what he says back.  He stays where he stands:
-# centred, the sun or moon in its corner, and the talk comes to him.  It is a
-# door-carried surface the way CONFIG once was -- no machine, no tab, no pack
-# from the folder -- and it wears the menu's own header (the count, and the
-# sky's caption) so it reads as the same house seen from a step to the side.
-# It FILLS when the menu fills and FLOATS when it floats: PACK_FILL is raised
-# in the draw, exactly as a machine page raises it for the pages it has taught
-# to reflow.
-vis_open() {
-  cfg_hooks_keep                     # the same eight PACK hooks, saved and put back
-  PACK_NAME='VISITOR'; PACK_MODEL='AD-1'
-  PACK_TICK='vis_tick'; PACK_DRAW='vis_draw'; PACK_KEY='vis_key'; PACK_RAW=''
-  PACK_DRESS='vis_dress'; PACK_LEAVE=''
-  UI_SURF='V'
-  # A KEY IS SOMEBODY TALKING TO HIM, on his own page, so he turns to look out
-  # of the glass at them rather than glancing off along a list
-  VIS_POKE_LOOK=0; VC_EDIT=0; VC_PROBE_AT=-100.0
-  SURF_PAINTED=0                      # opening · hold the glass until vis_draw's first paint
-  surf_dress
-  redress
-  xf_arm
-  snd open
-  return 0
-}
-vis_close() {   # the menu again · the hooks put back, the fill flag lowered
-  UI_SURF=''
-  PACK_FILL=0
-  VIS_POKE_LOOK=-1; VIS_TALK=0; VC_EDIT=0
-  cfg_hooks_restore
-  surf_dress
-  redress
-  xf_arm
-  snd away
-  return 0
-}
-vis_dress() {
-  SURF_MODEL='AD-1'
-  SURF_SIGN='◂ V I S I T O R ▸'
-  SURF_TAG='ALIEN DYNAMICS · AD-1 · THE VISITOR'
-  SURF_KEYS='[⏎]TALK   [M]MENU   [Q]POWER'
-  SURF_BADGE=' MASCOT '
-  SURF_MSG='WHO IS IN THE GLASS'
-  return 0
-}
-vis_tick() {   # vis_tick T — what he has on, whether he can talk, and what he has said
-  vis_dressed 1 >/dev/null
-  vc_probe
-  vc_poll "$1"
-  return 0
-}
-# THE FOOTER SAYS WHICH KEYBOARD YOU ARE ON, as the console's does: while the
-# box is live every letter is typed, [M] and [Q] included, so the bar stops
-# offering them until ⎋ has given the keys back
-vis_foot() {   # the visitor's keys, on the suite's one nav bar
-  local -a nv
-  if (( VC_EDIT )); then
-    if [[ "$VC_STATE" == run ]]; then nv=("⏎" send "⎋" 'leave the box, then [X] stops him')
-    else nv=("⏎" send "⎋" 'leave the box'); fi
-  elif [[ "$VC_STATE" == run ]]; then
-    nv=("[X]" 'stop him' "[M]" menu "[Q]" "power off")
-  else
-    nv=("⏎" talk)
-    (( VC_BROWS < ${#VCB_LN[@]} )) && nv+=("▴ ▾" 'read back')
-    (( VC_N )) && nv+=("[N]" 'start over')
-    nv+=("[M]" menu "[Q]" "power off")
-  fi
-  app_nav "${nv[@]}"
-  return 0
-}
-# ── what he has on, down his left side ────────────────────────────────────
-# ONE LINE AN ITEM, in the colour of its rarity, set against him from the left
-# the way the arcade's own scene of him runs his rail down the other side --
-# the bubble has his right, the sky has the corner, the box has the floor
-vis_outfit() {   # vis_outfit XR Y — right-aligned to column XR, from row Y down
-  local -i xr=$1 y=$2
-  local pair s
-  if (( VIS_WR > 0 )) && [[ -n "$VIS_WH$VIS_WS$VIS_WK$VIS_WA" ]]; then
-    for pair in "hat:$VIS_WH" "spec:$VIS_WS" "smoke:$VIS_WK" "aura:$VIS_WA"; do
-      [[ -n "${pair#*:}" ]] || continue
-      s="${VN_NAME[$pair]:-${pair#*:}} ◆"
-      cmix ${AR_RARC[${VN_RAR[$pair]:-}]:-$GREY} $WHITE 0.30
-      v_text $(( xr - ${#s} + 1 )) $y "$s" $CM
-      (( y++ ))
-    done
-  elif [[ -z "$VIS_WH$VIS_WS$VIS_WK$VIS_WA" && -r "$REPO/scripts/suite/arcade.zsh" ]]; then
-    cshade $GREY 0.85
-    s='nothing on yet'; v_text $(( xr - ${#s} + 1 )) $y "$s" $CS
-    s="the ARCADE dresses him"; v_text $(( xr - ${#s} + 1 )) $(( y + 1 )) "$s" $CS
-  fi
-  return 0
-}
-vis_draw() {   # vis_draw T — the visitor, centred, under his own sky · his bubble, and your box
-  local -F t=$1
-  PACK_FILL=1                        # fills in SCREEN=fill, floats otherwise · matches the menu
-  local -i y gc
-  # THE BARE TUBE IS BAKED (glass_bake): it is the same tube every frame, and
-  # it was being laid down a row at a time every frame under everything else
-  if ! glass_baked "vis.tube|$GEOM_FILL|${SCR_W}x${SCR_H}"; then
-    [[ -n "$GSTILL_KEY" ]] && { glass_unbake; glass_base_canvas }
-    if (( GEOM_FILL )); then
-      # the lit tube the menu wears · a shade up the middle, darker at the edges
-      local -F midr fr
-      midr=$(( (SCR_H - 1) / 2.0 ))
-      for (( y = 0; y < SCR_H; y++ )); do
-        fr=$(( midr > 0.0 ? 1.0 - abs(y - midr) / midr : 1.0 )); (( fr < 0.0 )) && fr=0.0
-        cmix $GLASS $PURPLE $(( 0.05 + 0.06 * fr )); gc=$CM
-        vc_rect 0 $y $SCR_W 1 -1 $gc
-      done
-    else
-      vc_rect 0 0 $SCR_W $SCR_H -1 $GLASS
-    fi
-    glass_bake "vis.tube|$GEOM_FILL|${SCR_W}x${SCR_H}"
-  fi
-  app_head VISITOR                   # the suite's title bar, brand VISITOR, sky caption kept
-  # THE SUN OR MOON WHERE IT HANGS OVER THE MENU · upper-right, off the edge, at
-  # the same reach in from the right the fixed glass gave it (106 - 13 = 93).
-  G_CEL_X=$(( SCR_W - 13 )); (( G_CEL_X < 1 )) && G_CEL_X=1; G_CEL_Y=2
-  draw_celestial
-  # ...AND THE VISITOR, CENTRED NOW rather than off to one side.  draw_visitor
-  # lays his card up and to the left of where he stands by his own headroom, so
-  # centring the CARD is standing him at the card's centre plus that offset.
-  local -i vtop=$(( 1 + (SCR_H - 2 - VIS_H) / 2 )); (( vtop < 1 )) && vtop=1
-  G_VIS_X=$(( (SCR_W - VIS_W) / 2 + VIS_OX )); G_VIS_Y=$(( vtop + VIS_OY ))
-  VIS_TALK=0; [[ "$VC_STATE" == run ]] && VIS_TALK=1
-  # HIS BUBBLE FIRST, then him: it is laid out clear of everything he can
-  # wear, and drawn under him besides, so a hat is never under a word
-  vc_bubble $t
-  draw_visitor $t
-  vis_outfit $(( G_VIS_X - VIS_OX - 2 )) $(( G_VIS_Y + 2 ))
-  vc_box $t
-  draw_motes $t
-  vis_foot
-  return 0
-}
-vis_key() {   # vis_key TOKEN — 1 only for [Q] (the door's) · the box, while it is live, takes every key
-  local k="$1"
-  # THE WHEEL FIRST, whatever is standing: it is never a key and never typed
-  case "$k" in
-    wheelup)   vc_scroll -3; return 0 ;;
-    wheeldown) vc_scroll 3; return 0 ;;
-    pgup)      vc_scroll $(( 1 - VC_BROWS )); return 0 ;;
-    pgdn)      vc_scroll $(( VC_BROWS - 1 )); return 0 ;;
-  esac
-  # THE BOX OWNS THE KEYBOARD WHILE IT IS LIVE, and answers every key: this is
-  # the branch the door's ⌫, [M] and [Q] reach through, and a key that fell
-  # past it would close his page or open the power gate halfway through a word
-  if (( VC_EDIT )); then
-    case "$k" in
-      enter) vc_send ;;                 # the box stays live · a conversation is a series of lines
-      esc)   VC_EDIT=0; snd away ;;
-      *)     vc_line_key "$k" ;;
-    esac
-    return 0
-  fi
-  case "$k" in
-    enter)            VC_EDIT=1; snd pick ;;
-    up)               vc_scroll -1 ;;
-    down)             vc_scroll 1 ;;
-    x|X)              if vc_stop; then snd away; else snd no; fi ;;
-    n|N)              if vc_new; then snd away; say 'he starts over'; else snd no; fi ;;
-    esc|m|M|back|v|V) vis_close ;;
-    q|Q)              return 1 ;;
-  esac
-  return 0
-}
-do_visitor() {
-  # THE VISITOR'S OWN PAGE · a surface the door carries itself, no pack, no tab
-  vis_open
   return 0
 }
 
@@ -12256,7 +9928,7 @@ probe_text() {
   done
   printf '  %-14s %.3f hz · %s\n' beat $HZ "${(j:, :)${LADDER[@]}}"
   printf '  %-14s %s\n' sky "$CAPTION"
-  printf '  %-14s %s\n' visitor "${#VIS_POSE_K[@]} poses · ${#SKY_KEY[@]} skies · carried"
+  printf '  %-14s %s\n' 'sky cards' "${#SKY_KEY[@]} · carried"
   printf '  %-14s %s\n' characters \
     "$( (( MB_OK )) && print -n 'counted, not bytes' || print -n 'BYTES · set a UTF-8 locale' )"
   return 0
@@ -12856,9 +10528,9 @@ if (( OPT_ONCE || OPT_FAST )); then
     exit 0
   fi
   # THE INSTANT IS THE HARNESS'S IF IT NAMED ONE.  Everything on this card
-  # moves -- the chase lights, the sweep on the marquee, the breathing lamps,
-  # his eyes -- so "the card at t = 1" and "the card at t = 8" are two
-  # different pictures.  ALIEN_AT is what lets a fixture and a live capture be
+  # moves -- the chase lights, the sweep on the marquee, the breathing lamps
+  # -- so "the card at t = 1" and "the card at t = 8" are two different
+  # pictures.  ALIEN_AT is what lets a fixture and a live capture be
   # the same one.
   _T=1.0
   [[ -n "$FROZEN" ]] && _T=$FROZEN
@@ -12910,7 +10582,7 @@ cleanup() {
   # THE GLASS TERMINAL'S SESSIONS ARE THE CABINET'S, and so is their end: a
   # pty outlives the shell that opened it, and a program left holding one
   # after the cabinet is gone is a process with a terminal nobody will read.
-  { gt_all_stop; vc_leave; gt_tmp_sweep } >/dev/null 2>&1
+  { gt_all_stop; gt_tmp_sweep } >/dev/null 2>&1
   # THE FETCH'S ANSWER (SECTION 22c), if nothing got round to reading it
   [[ -n "$UPD_OUT" ]] && rm -f -- "$UPD_OUT" "$UPD_OUT.part" 2>/dev/null
   # THE LOADING SCREEN'S NOTE (SECTION 22b) is left behind only by a machine
@@ -13228,7 +10900,6 @@ while :; do
       [[ -n "$RAW_OUT" ]] && ${PACK_RAW} feed "$RAW_OUT" >/dev/null
       wheel_apply
     fi
-    VIS_POKE=$_t
     continue
   fi
   # THE REST OF AN ESCAPE SEQUENCE IS READ ONCE, HERE, whatever it is (SECTION
@@ -13243,14 +10914,9 @@ while :; do
     if (( MOUSE )); then
       wheel_drain
       wheel_apply
-      VIS_POKE=$_t
       continue
     fi
   fi
-  # HE LOOKS UP WHEN YOU DO SOMETHING.  The one line of state the visitor has,
-  # and it is written here rather than anywhere near him: this is the only
-  # place in the file that knows a key has actually arrived.
-  VIS_POKE=$_t
   # the two questions answer any key with "no", the escape's tail included
   if (( UI_GATE )) || [[ -n "$UI_INST" ]]; then
     [[ "$_key" == $'\e' ]] && { PEND_KEY=''; PEND_ESC=0; PEND_SEQ='' }
@@ -13387,9 +11053,6 @@ while :; do
     # actually arrives is \r, and ⏎ did nothing.
     $'\r'|$'\n'|'') act_row $UI_ROW ;;
     q|Q) UI_GATE=1; xf_arm $MO_QUICK_IN; snd open ;;
-    # [V] IS THE VISITOR'S OWN DOOR · a dedicated key, not a row, because he is
-    # not a thing the cursor selects -- he is a page you step aside to see.
-    v|V) do_visitor ;;
     # EVERY OTHER LETTER IS THE MENU'S, and the menu decides whether it is a
     # key at all.  [T] before anything is installed is not a row this shape
     # has, and saying so is better than a key that quietly does nothing.

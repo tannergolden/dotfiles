@@ -31,13 +31,13 @@ python3, so the cabinet comes up on a fresh Mac with nothing installed, and so
 does the installer that sets up the rest. No Python or Node sits in the path
 between a double-click and the menu.
 
-| Machine          | Model | What it is                                                                                                                                                                                                                    |
-| :--------------- | :---- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **TERMINAL**     | AD-1  | The door: [`terminal.command`](terminal.command), one self-contained file holding the whole cabinet, from the renderer and the power-up to the menu, the CONFIG panel, the visitor and the sky. A copy on its own still runs. |
-| **SYSTEM**       | NX-88 | A monitor for the Mac: eight pages of live readings, from a radar scope of every process to the battery's cycle count. It only reads.                                                                                         |
-| **INTELLIGENCE** | IQ-88 | A switchboard for AI command lines: the cloud agents on this Mac, the local models and the runners that hold them, a router, a bench and a prompt library.                                                                    |
-| **XENOGOTCHI**   | XG-9  | An adoption centre. You sign for one animal, name it, and it lives in its room on the real clock.                                                                                                                             |
-| **ARCADE**       | NX-88 | Twelve cabinets, one coin a game, with a high-score table for every rung, a trophy room, and a marketplace that dresses the visitor.                                                                                          |
+| Machine          | Model | What it is                                                                                                                                                                                                       |
+| :--------------- | :---- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TERMINAL**     | AD-1  | The door: [`terminal.command`](terminal.command), one self-contained file holding the whole cabinet, from the renderer and the power-up to the menu, the CONFIG panel and the sky. A copy on its own still runs. |
+| **SYSTEM**       | NX-88 | A monitor for the Mac: eight pages of live readings, from a radar scope of every process to the battery's cycle count. It only reads.                                                                            |
+| **INTELLIGENCE** | IQ-88 | A switchboard for AI command lines: the cloud agents on this Mac, the local models and the runners that hold them, a router, a bench and a prompt library.                                                       |
+| **XENOGOTCHI**   | XG-9  | An adoption centre. You sign for one animal, name it, and it lives in its room on the real clock.                                                                                                                |
+| **ARCADE**       | NX-88 | Twelve cabinets, one coin a game, with a high-score table for every rung, a trophy room and a marketplace.                                                                                                       |
 
 The four machines live in [`scripts/suite/`](scripts/suite) as **page packs**:
 the door reads each one into itself the first time you open it, and it draws
@@ -133,18 +133,12 @@ CONFIG page turns updating off.
 | **[T]** TERMINAL                    | Your own login shell, inside the glass. `^]` steps back to the menu with the shell still running. |
 | **[N]** INSTALL / **[U]** UNINSTALL | The installer, on the glass: INSTALL until all three files are linked, and UNINSTALL always.      |
 | **[R]** RESCAN                      | Reads the machine again and shows the self test card.                                             |
-| **[C]** CONFIG                      | Sound, phosphor, frame rate, boot, screen and update, written straight to `terminal.conf`.        |
-| **[V]** VISITOR                     | The visitor's page.                                                                               |
+| **[C]** CONFIG                      | Sound, frame rate, boot, screen and update, written straight to `terminal.conf`.                  |
 | **[Q]**                             | Power off, from anywhere. **[Y]** confirms.                                                       |
 
 The same keys mean the same thing on every surface: ◂ ▸ turn pages, ⎋ goes back
 one level, **[M]** or ⌫ leave a machine, and each page names its own keys along
 its foot.
-
-**The visitor** is the small grey-violet alien who lives in the glass and knows
-the house. On his page you can talk to him: he answers through a model running
-on this Mac (Ollama, llama.cpp, LM Studio or MLX) and through nothing that
-leaves it, and he wears whatever the arcade has sold you.
 
 ---
 
@@ -179,8 +173,7 @@ pet.
 STAR RAIDER, GRID RUNNER, LASER DODGE, NIGHT DRIVE, LIGHT CYCLE, PLASMA BALL,
 ASTRO DRIFT and BEAT GRID. Each has four rungs, ROOKIE to INSANE, with a
 high-score table for every one. Coins come from playing. The MARKETPLACE sells
-the machines and 166 things for the visitor to wear, and the TROPHY ROOM holds
-190 trophies.
+the machines, and the TROPHY ROOM holds 172 trophies.
 
 ---
 
@@ -218,7 +211,6 @@ it does not own.
 | Key                 | Values                       | What it sets                                                         |
 | :------------------ | :--------------------------- | :------------------------------------------------------------------- |
 | `sound`             | `on` · `off`                 | The cabinet's small noises. CONFIG, or [U] in the arcade.            |
-| `phosphor`          | `soft` · `sharp`             | How the lit sprites are drawn. CONFIG.                               |
 | `beat`              | `auto` · `30` · `60` · `120` | The frame rate. CONFIG.                                              |
 | `boot`              | `full` · `fast`              | The whole opening, or straight to the menu. CONFIG.                  |
 | `screen`            | `float` · `fill`             | The cabinet centred in the window, or the glass filling it. CONFIG.  |
@@ -236,8 +228,8 @@ one.
 
 ## 💾 Your Save
 
-`terminal.save` holds every machine's progress: the arcade's coin bank, tables,
-trophies and wardrobe, and every animal you have signed for, one dotted
+`terminal.save` holds every machine's progress: the arcade's coin bank, tables
+and trophies, and every animal you have signed for, one dotted
 `key=value` a line. The cabinet looks for it **beside `terminal.command`
 first**, then in `~/.local/state/alien/`, and `ALIEN_SAVE=<file>` overrides
 both. The self test's READING SAVE AND CONFIG lines say which one it found.
@@ -304,7 +296,6 @@ files, so the pictures are reproducible and leak nothing about a real machine.
 | `--check`          | The glyph test card.                       |
 | `--256` / `--true` | Force the xterm 256 palette, or 24-bit.    |
 | `--plain`          | No colour at all.                          |
-| `--sharp`          | The sprites as ink, not ground.            |
 | `--fps N`          | Pin the frame rate.                        |
 
 | Variable                                   | What it does                                                                                       |

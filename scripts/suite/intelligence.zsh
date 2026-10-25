@@ -1385,7 +1385,7 @@ in_ell() {   # in_ell TEXT N -> ELL, with a real ellipsis rather than a cut
 # drew its `terminal` label, `RPD` stopped being 0.0174 and became the string
 # `terminal `, and from that frame on every sky calculation in the door failed
 # -- silently, because sky_sun answers "I do not know where you are" rather
-# than complaining.  The mascot's day and night went with it.
+# than complaining.  The cabinet's day and night went with it.
 #
 # A PACK SHARES THE HOST'S NAMESPACE.  There is no scope between them: this
 # file is SOURCED into the door, so every unprefixed global it writes is one

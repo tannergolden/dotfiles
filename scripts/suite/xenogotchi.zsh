@@ -1960,8 +1960,8 @@ xg_dog_sploot() {   # xg_dog_sploot — flat on the belly, hind legs out the bac
 # ══════════════════════════════════════════════════════════════════════════
 # A heavy riveted hull ring with a seal that glows in the reactor's colour and
 # a ring of running lights chasing slowly round it; deep space inside, the
-# stars drifting past as the ship makes way; and hanging in it, the VISITOR
-# PAGE'S OWN SUN OR MOON — the same card (SKY_ROW) the driver picks every
+# stars drifting past as the ship makes way; and hanging in it, the DOOR'S
+# OWN SUN OR MOON -- the same card (SKY_ROW) the driver picks every
 # minute (SKY_IDX): tonight's real moon phase, the sun by day, the dusk and
 # dawn cards between.  Now and then — rarely, a pass an hour at most — the
 # ship comes over EARTH and the planet's curve slides across the foot of the
@@ -2047,7 +2047,7 @@ xg_port_glass() {   # the ring, the seal, the glass, the card · baked
       v_put $x $y ' ' $GREY $c0
     done
   done
-  # the card · the visitor page's own sun or moon, its soft rim blended into THIS sky
+  # the card · the door's own sun or moon, its soft rim blended into THIS sky
   local -i i cr cg cb br bg2 bb kk
   local cell; local -F w
   for (( i=0; i<72; i++ )); do

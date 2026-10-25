@@ -60,7 +60,6 @@ request, are left to the
 | **Switch**         | Whether a new window opens the cabinet: only `on` lets it                                                 | `terminal.hook` in `terminal.conf`              |
 | **Title card**     | The card a machine opens on, its name in lights over one live picture, until a key goes in                | `tc_*` in the door and the packs                |
 | **Tube**           | The CRT the glass is drawn as: a vignette, a slow bright roll, phosphor on every change                   | SECTION 5 of the door                           |
-| **Visitor**        | The small grey-violet alien in the glass, who answers through a model on this Mac                         | SECTION 12 of the door; **[V]** on the menu     |
 | **Warm-up**        | The door reading every pack in and starting it ahead of the reader, a step at a time                      | `PACK_WARM`, and `warm-skip`                    |
 
 ---
