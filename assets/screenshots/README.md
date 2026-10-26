@@ -40,20 +40,20 @@ capture the terminal when its look is the point.
 Every capture here is of moonbase, the invented Mac in
 [`scripts/fixtures/system/`](../../scripts/fixtures/system/README.md), taken
 with `TERMINAL_MOCK=1` and `SYSTEM_MOCK=1` so that nothing in them describes a
-real machine. The cabinet has one look, the night one, so none of them has a day
-twin.
+real machine. Each is a GIF of a loading card, the title card a machine opens on
+or the TERMINAL's own self test, and plays at the speed the cabinet drew it. The
+cabinet has one look, the night one, so none of them has a day twin.
 
 <!-- AUTO-INDEX:BEGIN dir=. style=log -->
 
-| Entry                                              | Purpose                                                                                                                                                                             |
-| :------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`arcade-night-drive.png`](arcade-night-drive.png) | NIGHT DRIVE in play, cropped to the top of the cabinet. Shown under the ARCADE paragraph of The Machines in the root README.                                                        |
-| [`intelligence-menu.png`](intelligence-menu.png)   | INTELLIGENCE's menu: its seven pages and the switchboard between the cloud agents and the local runners. Shown under the INTELLIGENCE paragraph of The Machines in the root README. |
-| [`README.md`](README.md)                           | This file.                                                                                                                                                                          |
-| [`system-overview.png`](system-overview.png)       | SYSTEM's OVERVIEW page, the radar scope mid-sweep. Shown under the SYSTEM paragraph of The Machines in the root README.                                                             |
-| [`terminal-menu.png`](terminal-menu.png)           | The whole cabinet on its menu, in a Terminal window. Shown under the first paragraph of What This Is in the root README.                                                            |
-| [`terminal-power-up.gif`](terminal-power-up.gif)   | The power-up at the speed it runs, from the stars alone to the finished self test card. Shown in Using It in the root README.                                                       |
-| [`xenogotchi-home.png`](xenogotchi-home.png)       | MOCHI, a blue tabby, at home in XENOGOTCHI. Shown under the XENOGOTCHI paragraph of The Machines in the root README.                                                                |
+| Entry                                                        | Purpose                                                                                                                                                                              |
+| :----------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`arcade-title-card.gif`](arcade-title-card.gif)             | ARCADE's title card coming up, the twelve cabinets either side of NEON SNAKE playing itself. Shown under the ARCADE paragraph of The Machines in the root README.                    |
+| [`intelligence-title-card.gif`](intelligence-title-card.gif) | INTELLIGENCE's title card coming up, with its switchboard between the cloud agents and the local runners. Shown under the INTELLIGENCE paragraph of The Machines in the root README. |
+| [`README.md`](README.md)                                     | This file.                                                                                                                                                                           |
+| [`system-title-card.gif`](system-title-card.gif)             | SYSTEM's title card coming up, with the processor's last sixteen minutes and its meters. Shown under the SYSTEM paragraph of The Machines in the root README.                        |
+| [`terminal-power-up.gif`](terminal-power-up.gif)             | The TERMINAL's own loading card: the power-up, from the stars alone to the finished self test card. Shown under the first paragraph of What This Is in the root README.              |
+| [`xenogotchi-title-card.gif`](xenogotchi-title-card.gif)     | XENOGOTCHI's title card coming up, with MOCHI, a blue tabby, asleep. Shown under the XENOGOTCHI paragraph of The Machines in the root README.                                        |
 
 <!-- AUTO-INDEX:END -->
 
