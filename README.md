@@ -26,7 +26,7 @@ flickers, a starfield outside, and on the glass every machine in the suite with
 what each one is doing right now. Everything wears the plate of ALIEN DYNAMICS,
 a make-believe hardware maker of 1984, and the cabinet is its SYNTHWAVE series.
 
-![The cabinet powering up: stars alone, the cabinet lighting around a dark tube, a white line opening into the warming glass, then the self test card listing the machine, the four slots, the save and the config, down to ALL SYSTEMS NOMINAL](assets/screenshots/terminal-power-up.gif)
+![The cabinet powering up: stars alone, the cabinet lighting around a dark tube, the glass warming, the self test card finding no save and no config and running on factory settings, then the picture opening onto the menu, with every machine beside its live reading](assets/screenshots/terminal-power-up.gif)
 
 **It is zsh from end to end, on purpose.** macOS ships zsh and does not ship
 python3, so the cabinet comes up on a fresh Mac with nothing installed, and so
@@ -154,7 +154,7 @@ nothing. It has six instruments, [O] OVERVIEW, [C] PROCESSOR, [R] MEMORY,
 shell, so SYSTEM asks python3 for it when python3 is present, and shows the
 totals when it is not.
 
-![SYSTEM's title card coming up: the glass changes channel, the name strikes in letter by letter, the processor's last sixteen minutes draw in as bars, the CPU, memory and disk meters fill, and ALL SYSTEMS NOMINAL types out above PRESS ANY KEY](assets/screenshots/system-title-card.gif)
+![SYSTEM opening on its title card, the name striking in over the processor's last sixteen minutes and the CPU, memory and disk meters, then its menu of instruments, the OVERVIEW page's radar sweeping every process, and the MEMORY page's breakdown](assets/screenshots/system-title-card.gif)
 
 **INTELLIGENCE** has seven pages. [C] CLOUD holds Claude Code, Antigravity, Grok
 Build and Codex, each used only through its own official command line and signed
@@ -166,7 +166,7 @@ waits for a **[Y]**. An egress guard checks anything bound for a cloud engine fo
 secrets and fails closed, and the suite never reads, copies or proxies a token,
 or the value of an API key.
 
-![INTELLIGENCE's title card coming up: the name strikes in from violet to pink, then a switchboard wires Claude Code, Antigravity and Codex through the glass to ollama, llama.cpp and MLX, and THREE OF FOUR LINES LIVE types out above PRESS ANY KEY](assets/screenshots/intelligence-title-card.gif)
+![INTELLIGENCE opening on its title card, a switchboard wiring Claude Code, Antigravity and Codex through the glass to ollama, llama.cpp and MLX, then its menu of seven pages, CLOUD with the four agents and how each signs in, and LOCAL with the runners and the models on disk](assets/screenshots/intelligence-title-card.gif)
 
 **XENOGOTCHI** has four pages: [H] HOME, where the animal lives, [O] STORE,
 [A] ADOPT and [S] STATS. Twenty-five species arrive in shipments, three of them
@@ -175,7 +175,7 @@ next from a running emotional state, and keeps living while the cabinet is
 closed, gently: time away is capped, and a wrong clock is never read as a lost
 pet.
 
-![XENOGOTCHI's title card coming up: the name strikes in from amber to pink, MOCHI the blue tabby appears asleep between meters for health, food, water, mood, bond and energy, and MOCHI IS ASLEEP types out above PRESS ANY KEY](assets/screenshots/xenogotchi-title-card.gif)
+![XENOGOTCHI opening on intake night, four arrivals waiting under the name, then the adoption centre's certificates for three of them, a chinchilla, a xenomorph and a scarlet macaw, each waiting for a name and a signature](assets/screenshots/xenogotchi-title-card.gif)
 
 **ARCADE** holds twelve games: NEON SNAKE, BLOCK FALL, VOID PONG, BRICK NOVA,
 STAR RAIDER, GRID RUNNER, LASER DODGE, NIGHT DRIVE, LIGHT CYCLE, PLASMA BALL,
@@ -183,7 +183,7 @@ ASTRO DRIFT and BEAT GRID. Each has four rungs, ROOKIE to INSANE, with a
 high-score table for every one. Coins come from playing. The MARKETPLACE sells
 the machines, and the TROPHY ROOM holds 172 trophies.
 
-![ARCADE's title card coming up: the name strikes in from pink to cyan over SYNTHWAVE SERIES, the twelve cabinets line up either side of NEON SNAKE playing itself, and INSERT COIN sits above PRESS ANY KEY](assets/screenshots/arcade-title-card.gif)
+![ARCADE opening on its title card, NEON SNAKE playing itself among the twelve cabinets with 10 coins in the bank and one game unlocked, then the lobby stepping down to VOID PONG's preview, and VOID PONG's high-score table](assets/screenshots/arcade-title-card.gif)
 
 ---
 
