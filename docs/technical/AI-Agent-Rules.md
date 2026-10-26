@@ -29,7 +29,10 @@ Cursor's User Rules take a paste by hand.
 
 A release also serves the hub's kit, and this installs it too: the guard hook
 that denies force-pushes, merges and other irreversible commands before they
-run, the `develop` skill, and the Worker and Reviewer subagents.
+run, the `develop` skill, the five faculties the hub pins from
+tannergolden/knowledge (research, discover, editorial, visualize and finance,
+each with its team), and the Worker and Reviewer subagents. In a BRAIN vault,
+each faculty gives way to the vault's own copy.
 
 **Nothing is installed unless every downloaded file matches its pin.** The pin
 file names a release and the SHA-256 of the home file, the installer and the
